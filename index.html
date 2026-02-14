@@ -4,89 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    
-    <title>Retro Gaming Romain</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Retro App</title>
     <style>
-        :root { --neon: #00ff88; --bg: #0a0a0a; --card: #161616; }
+        :root { --neon: #00ff88; --bg: #000000; --card: #111; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
         
-        body { 
-            background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; 
-            margin: 0; padding: 0; overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
+        header { height: 60px; background: #000; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #222; }
+        #back-btn { position: absolute; left: 15px; background: #222; border: none; color: white; padding: 8px 15px; border-radius: 8px; display: none; }
+
+        .container { min-height: calc(100vh - 125px); display: flex; flex-direction: column; }
+
+        /* Menus Plein Écran */
+        .full-menu { display: flex; flex-direction: column; flex-grow: 1; padding: 10px; gap: 10px; }
+        .menu-item { 
+            flex: 1; position: relative; border-radius: 15px; overflow: hidden; 
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid #333; text-decoration: none;
         }
+        .menu-item img { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .menu-item span { position: relative; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); }
 
-        /* Header Fixe */
-        header { 
-            height: 60px; background: #000; display: flex; align-items: center; 
-            justify-content: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100;
-        }
-        #back-btn { position: absolute; left: 15px; background: #222; border: none; color: white; padding: 5px 12px; border-radius: 8px; display: none; }
-
-        /* Conteneur principal avec marge pour la barre iPhone/Android */
-        .container { padding: 15px; padding-bottom: 80px; }
-
-        /* Menu Visuel Marque */
-        .brand-list { display: grid; gap: 15px; }
-        .btn-large { 
-            background: var(--card); border: 1px solid #333; border-radius: 15px; 
-            padding: 30px; text-align: center; font-size: 1.2rem; font-weight: bold;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-        }
-        .btn-large img { width: 100px; height: 50px; object-fit: contain; filter: brightness(1.2); }
-
-        /* Grille des jeux */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        /* Grille des articles */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
         .card { background: var(--card); border-radius: 12px; padding: 10px; border: 1px solid #222; text-align: center; }
-        .img-box { height: 160px; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 8px; margin-bottom: 8px; }
+        .img-box { height: 150px; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 8px; }
         .img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .not-owned { opacity: 0.2; filter: grayscale(1); }
-        .title { font-size: 0.8rem; font-weight: bold; height: 32px; overflow: hidden; margin-top: 5px; }
-        .price { color: var(--neon); font-size: 1rem; font-weight: bold; margin-top: 5px; }
+        .title { font-size: 0.75rem; font-weight: bold; margin-top: 8px; height: 30px; overflow: hidden; }
+        .price { color: var(--neon); font-weight: bold; margin-top: 5px; }
 
-        /* Navigation Basse (Fixe) */
-        .bottom-nav { 
-            position: fixed; bottom: 0; width: 100%; height: 65px; 
-            background: #000; border-top: 1px solid #222;
-            display: flex; justify-content: space-around; align-items: center;
-        }
-        .nav-link { text-align: center; color: #666; font-size: 0.7rem; text-decoration: none; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; }
+        .nav-link { text-align: center; color: #666; font-size: 0.7rem; }
         .nav-link.active { color: var(--neon); }
-
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <button id="back-btn" onclick="goTo('brands')">⬅ Retour</button>
-    <h1 id="header-title" style="font-size: 1.1rem;">MY RETRO APP</h1>
+    <button id="back-btn" onclick="goHome()">⬅ Retour</button>
+    <h1 id="header-title">RETRO GAMING</h1>
 </header>
 
 <div class="container">
-    <div id="view-brands" class="view">
-        <div class="brand-list">
-            <div class="btn-large" onclick="openBrand('Nintendo')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Nintendo.svg/1024px-Nintendo.svg.png">
-                NINTENDO
-            </div>
-            <div class="btn-large" onclick="openBrand('Playstation')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/PlayStation_logo.svg/2560px-PlayStation_logo.svg.png">
-                PLAYSTATION
-            </div>
-            <div class="btn-large" onclick="openBrand('Xbox')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Xbox_one_logo.svg/1024px-Xbox_one_logo.svg.png">
-                XBOX
-            </div>
+    <div id="view-brands" class="view full-menu">
+        <div class="menu-item" onclick="selectBrand('Nintendo')">
+            <img src="https://drive.google.com/thumbnail?id=107z7-iXjM8S7vR_zX6O2u7J5Oa_Kz1_Q&sz=w1000"> <span>Nintendo</span>
+        </div>
+        <div class="menu-item" onclick="selectBrand('Playstation')">
+            <img src="https://drive.google.com/thumbnail?id=1YyWp9X_XzX_Xz_Xz_Xz_Xz_Xz_Xz_Xz&sz=w1000"> <span>Playstation</span>
+        </div>
+        <div class="menu-item" onclick="selectBrand('Xbox')">
+            <img src="https://drive.google.com/thumbnail?id=1_Xz_Xz_Xz_Xz_Xz_Xz_Xz_Xz_Xz_Xz&sz=w1000">
+            <span>Xbox</span>
         </div>
     </div>
 
-    <div id="view-categories" class="view hidden">
-        <div class="brand-list">
-            <div class="btn-large" onclick="loadList('Jeux')">💿 JEUX</div>
-            <div class="btn-large" onclick="loadList('Consoles')">🎮 CONSOLES</div>
-            <div class="btn-large" onclick="loadList('Accessoires')">🔌 ACCESSOIRES</div>
+    <div id="view-categories" class="view full-menu hidden">
+        <div class="menu-item" onclick="loadContent('Jeux')">
+            <img src="https://drive.google.com/thumbnail?id=1v_v_v_v_v_v_v_v_v_v_v_v_v_v_v_v&sz=w1000">
+            <span>Jeux</span>
+        </div>
+        <div class="menu-item" onclick="loadContent('Consoles')">
+            <img src="https://drive.google.com/thumbnail?id=2v_v_v_v_v_v_v_v_v_v_v_v_v_v_v_v&sz=w1000">
+            <span>Consoles</span>
+        </div>
+        <div class="menu-item" onclick="loadContent('Accessoires')">
+            <img src="https://drive.google.com/thumbnail?id=3v_v_v_v_v_v_v_v_v_v_v_v_v_v_v_v&sz=w1000">
+            <span>Accessoires</span>
         </div>
     </div>
 
@@ -96,7 +82,7 @@
 </div>
 
 <nav class="bottom-nav">
-    <div class="nav-link active" onclick="goTo('brands')">🏠<br>Accueil</div>
+    <div class="nav-link active" onclick="goHome()">🏠<br>Accueil</div>
     <div class="nav-link" onclick="alert('Stats bientôt dispo')">📊<br>Stats</div>
 </nav>
 
@@ -104,31 +90,30 @@
     const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
     let brand = '';
 
-    function goTo(step) {
-        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.getElementById('back-btn').style.display = (step === 'brands') ? 'none' : 'block';
-        
-        if(step === 'brands') {
-            document.getElementById('view-brands').classList.remove('hidden');
-            document.getElementById('header-title').innerText = "MY RETRO APP";
-        } else if(step === 'categories') {
-            document.getElementById('view-categories').classList.remove('hidden');
-            document.getElementById('header-title').innerText = brand.toUpperCase();
-            document.getElementById('back-btn').onclick = () => goTo('brands');
-        } else if(step === 'list') {
-            document.getElementById('view-list').classList.remove('hidden');
-            document.getElementById('back-btn').onclick = () => goTo('categories');
-        }
+    function getImg(url) {
+        if (!url || !url.includes('id=')) return url;
+        const id = url.split('id=')[1].split('&')[0];
+        return `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
     }
 
-    function openBrand(selected) {
+    function selectBrand(selected) {
         brand = selected;
-        goTo('categories');
+        document.getElementById('view-brands').classList.add('hidden');
+        document.getElementById('view-categories').classList.remove('hidden');
+        document.getElementById('back-btn').style.display = 'block';
+        document.getElementById('header-title').innerText = brand.toUpperCase();
     }
 
-    async function loadList(category) {
-        goTo('list');
-        document.getElementById('header-title').innerText = category.toUpperCase();
+    function goHome() {
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.getElementById('view-brands').classList.remove('hidden');
+        document.getElementById('back-btn').style.display = 'none';
+        document.getElementById('header-title').innerText = "RETRO GAMING";
+    }
+
+    async function loadContent(category) {
+        document.getElementById('view-categories').classList.add('hidden');
+        document.getElementById('view-list').classList.remove('hidden');
         const container = document.getElementById('list-container');
         container.innerHTML = "Chargement...";
 
@@ -140,33 +125,26 @@
 
         let html = '';
         rows.forEach(row => {
-            const rowBrand = row.c[1]?.v || '';
-            if(rowBrand.toLowerCase().includes(brand.toLowerCase())) {
-                const title = row.c[0]?.v || 'Sans titre';
-                const img = row.c[6]?.v || '';
-                const price = row.c[12]?.v || '--';
-                const owned = row.c[14]?.v || '';
+            // Lecture simplifiée pour éviter les erreurs de colonnes
+            const title = row.c[0]?.v || '';
+            const itemBrand = row.c[1]?.v || '';
+            const imgUrl = row.c[6]?.v || '';
+            const price = row.c[12]?.v || '--';
+            const owned = row.c[14]?.v || '';
 
-                // Formatage du lien Drive
-                let imgSrc = img;
-                if(img.includes('id=')) {
-                    const id = img.split('id=')[1].split('&')[0];
-                    imgSrc = `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
-                }
-
+            // Filtrage : On vérifie si la marque du tableau (col B) contient le nom sélectionné
+            if(itemBrand.toLowerCase().includes(brand.toLowerCase())) {
                 html += `
                     <div class="card ${owned.includes('Oui') ? '' : 'not-owned'}">
-                        <div class="img-box"><img src="${imgSrc}"></div>
+                        <div class="img-box"><img src="${getImg(imgUrl)}"></div>
                         <div class="title">${title}</div>
                         <div class="price">${price} €</div>
                     </div>
                 `;
             }
         });
-        container.innerHTML = html || "Aucun objet trouvé.";
+        container.innerHTML = html || "<p style='grid-column:1/3; text-align:center;'>Aucun article trouvé pour " + brand + ".</p>";
     }
-
-    goTo('brands');
 </script>
 </body>
 </html>
