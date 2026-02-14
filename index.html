@@ -11,13 +11,9 @@
             border: 1px solid #333; transition: transform 0.3s;
         }
         .card:hover { transform: scale(1.05); border-color: #00ff88; box-shadow: 0 0 15px #00ff8844; }
-        
-        /* Transparence si NON possédé (Colonne O) */
         .not-owned { opacity: 0.25; filter: grayscale(100%); }
-
-        .img-container { width: 100%; height: 230px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+        .img-container { width: 100%; height: 230px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; background: #1a1a1a; border-radius: 6px; }
         img { max-width: 100%; max-height: 100%; border-radius: 6px; object-fit: contain; }
-        
         .title { font-weight: bold; font-size: 0.85em; height: 35px; overflow: hidden; margin-bottom: 5px; color: #eee; }
         .price { color: #00ff88; font-weight: bold; font-family: monospace; font-size: 1.1em; }
     </style>
@@ -30,6 +26,16 @@
         const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU'; 
         const SHEET_NAME = 'Jeux';
 
+        // Fonction pour transformer un lien de partage Drive en lien d'image direct
+        function formatDriveLink(link) {
+            if (!link) return '';
+            if (link.includes('drive.google.com')) {
+                const id = link.match(/[\w-]{25,}/);
+                return id ? `https://lh3.googleusercontent.com/u/0/d/${id}` : link;
+            }
+            return link;
+        }
+
         async function fetchSheet() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
             try {
@@ -40,20 +46,19 @@
                 
                 let html = '';
                 rows.forEach(row => {
-                    // MAPPING EXACT SELON TON TABLEAU "Retro Gaming App"
                     const titre = row.c[0] ? row.c[0].v : 'Sans titre'; // Colonne A
-                    const photoUrl = row.c[6] ? row.c[6].v : '';       // Colonne G (Jaquette)
-                    const possede = row.c[14] ? row.c[14].v : '';      // Colonne O (Achat oui/non)
-                    const cote = row.c[12] ? row.c[12].v : '--';       // Colonne M (Cote Actuelle)
+                    const rawPhotoUrl = row.c[6] ? row.c[6].v : '';     // Colonne G
+                    const possede = row.c[14] ? row.c[14].v : '';      // Colonne O
+                    const cote = row.c[12] ? row.c[12].v : '--';       // Colonne M
 
-                    // On vérifie si la colonne O contient le petit carré vert coché "✅️ Oui"
+                    const photoUrl = formatDriveLink(rawPhotoUrl);
                     const isOwned = (possede && possede.includes("Oui"));
                     const classOwned = isOwned ? "" : "not-owned";
 
                     html += `
                         <div class="card ${classOwned}">
                             <div class="img-container">
-                                <img src="${photoUrl}" alt="${titre}" onerror="this.src='https://via.placeholder.com/200x250?text=Pas+d+image'">
+                                <img src="${photoUrl}" alt="${titre}" onerror="this.src='https://via.placeholder.com/200x250?text=Chargement...'">
                             </div>
                             <div class="title">${titre}</div>
                             <div class="price">${cote} €</div>
@@ -62,7 +67,7 @@
                 });
                 document.getElementById('app').innerHTML = html;
             } catch (e) {
-                document.getElementById('app').innerHTML = "Erreur de chargement. Vérifie le partage du Sheet.";
+                document.getElementById('app').innerHTML = "Erreur. Vérifie le partage du Sheet.";
             }
         }
         fetchSheet();
