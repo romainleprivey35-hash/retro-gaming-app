@@ -8,50 +8,43 @@
     <title>Retro Collection</title>
     <style>
         :root { --neon: #00ff88; --bg: #000; --card: #111; }
-        
         body { 
-            background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; 
+            background: var(--bg); color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0; padding: 0; height: 100vh; overflow: hidden; 
         }
-
-        /* Conteneur principal qui prend toute la place sans défiler */
         .app-container { height: 100vh; display: flex; flex-direction: column; }
-
         header { 
-            height: 50px; background: #000; display: flex; align-items: center; 
-            justify-content: center; border-bottom: 1px solid #222; flex-shrink: 0;
+            height: 60px; background: #000; display: flex; align-items: center; 
+            justify-content: center; border-bottom: 1px solid #222; flex-shrink: 0; padding-top: env(safe-area-inset-top);
         }
-        #back-btn { position: absolute; left: 15px; background: #222; border: none; color: white; padding: 5px 12px; border-radius: 8px; display: none; }
+        #back-btn { position: absolute; left: 15px; background: #222; border: none; color: white; padding: 8px 15px; border-radius: 8px; display: none; z-index: 10; }
+        header h1 { font-size: 1rem; color: var(--neon); text-transform: uppercase; letter-spacing: 2px; }
 
-        /* Menus Plein Écran : 3 blocs de 33% */
-        .full-menu { display: flex; flex-direction: column; flex-grow: 1; }
+        /* Full Menu 3 blocs */
+        .full-menu { display: flex; flex-direction: column; flex-grow: 1; background: #000; }
         .menu-item { 
-            flex: 1; position: relative; overflow: hidden; 
-            display: flex; align-items: center; justify-content: center;
-            border-bottom: 1px solid #222; transition: 0.3s;
+            flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+            border-bottom: 1px solid #222; background-size: cover; background-position: center;
         }
-        .menu-item img { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-        .menu-item span { position: relative; font-size: 1.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 2px 10px #000; }
-        .menu-item:active { background: #222; }
+        .menu-item::after { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); }
+        .menu-item span { position: relative; z-index: 2; font-size: 1.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; }
 
-        /* Grille des jeux (Seule partie qui défile) */
-        .scroll-view { flex-grow: 1; overflow-y: auto; padding: 10px; padding-bottom: 80px; }
+        /* Grille des articles */
+        .scroll-view { flex-grow: 1; overflow-y: auto; padding: 10px; padding-bottom: 80px; -webkit-overflow-scrolling: touch; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .card { background: var(--card); border-radius: 12px; padding: 10px; border: 1px solid #222; text-align: center; }
-        .img-box { height: 150px; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 8px; margin-bottom: 8px; }
+        .img-box { height: 140px; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 8px; overflow: hidden; }
         .img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .not-owned { opacity: 0.2; filter: grayscale(1); }
-        .title { font-size: 0.75rem; font-weight: bold; height: 32px; overflow: hidden; margin-top: 5px; }
+        .title { font-size: 0.75rem; font-weight: bold; height: 32px; overflow: hidden; margin-top: 5px; color: #eee; }
         .price { color: var(--neon); font-size: 1rem; font-weight: bold; margin-top: 5px; }
 
-        /* Navigation Basse */
         .bottom-nav { 
-            height: 65px; background: #000; border-top: 1px solid #222; 
-            display: flex; justify-content: space-around; align-items: center; flex-shrink: 0;
+            height: 70px; background: #000; border-top: 1px solid #222; 
+            display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom);
         }
-        .nav-link { text-align: center; color: #555; font-size: 0.7rem; }
+        .nav-link { text-align: center; color: #555; font-size: 0.7rem; text-decoration: none; }
         .nav-link.active { color: var(--neon); }
-
         .hidden { display: none !important; }
     </style>
 </head>
@@ -60,100 +53,8 @@
 <div class="app-container">
     <header>
         <button id="back-btn" onclick="handleBack()">◀</button>
-        <h1 id="header-title" style="font-size: 1rem; color: var(--neon);">RETRO APP</h1>
+        <h1 id="header-title">RETRO APP</h1>
     </header>
 
-    <div id="view-brands" class="full-menu">
-        </div>
-
-    <div id="view-categories" class="full-menu hidden">
-        </div>
-
-    <div id="view-list" class="scroll-view hidden">
-        <div id="list-container" class="grid"></div>
-    </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-link active" onclick="goHome()">🏠<br>Accueil</div>
-        <div class="nav-link" onclick="alert('Stats bientôt dispo')">📊<br>Stats</div>
-    </nav>
-</div>
-
-<script>
-    const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
-    let brand = '';
-    let step = 'brands';
-
-    function getImg(url) {
-        if (!url || !url.includes('id=')) return url;
-        const id = url.split('id=')[1].split('&')[0];
-        return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
-    }
-
-    async function fetchTab(tabName) {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${tabName}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        return JSON.parse(text.substr(47).slice(0, -2)).table.rows;
-    }
-
-    async function loadBrands() {
-        const rows = await fetchTab('Menu');
-        let html = '';
-        rows.forEach(row => {
-            const name = row.c[0]?.v;
-            const img = getImg(row.c[1]?.v);
-            if(name) html += `<div class="menu-item" onclick="selectBrand('${name}')"><img src="${img}"><span>${name}</span></div>`;
-        });
-        document.getElementById('view-brands').innerHTML = html;
-    }
-
-    async function loadCategories() {
-        const rows = await fetchTab('Categories');
-        let html = '';
-        rows.forEach(row => {
-            const name = row.c[0]?.v;
-            const img = getImg(row.c[1]?.v);
-            if(name) html += `<div class="menu-item" onclick="selectCategory('${name}')"><img src="${img}"><span>${name}</span></div>`;
-        });
-        document.getElementById('view-categories').innerHTML = html;
-    }
-
-    function selectBrand(selected) {
-        brand = selected;
-        step = 'categories';
-        updateUI();
-        loadCategories();
-    }
-
-    function selectCategory(cat) {
-        step = 'list';
-        updateUI();
-        loadList(cat);
-    }
-
-    function handleBack() {
-        if (step === 'list') step = 'categories';
-        else if (step === 'categories') step = 'brands';
-        updateUI();
-    }
-
-    function goHome() {
-        step = 'brands';
-        updateUI();
-    }
-
-    function updateUI() {
-        document.getElementById('view-brands').classList.toggle('hidden', step !== 'brands');
-        document.getElementById('view-categories').classList.toggle('hidden', step !== 'categories');
-        document.getElementById('view-list').classList.toggle('hidden', step !== 'list');
-        document.getElementById('back-btn').style.display = (step === 'brands') ? 'none' : 'block';
-        document.getElementById('header-title').innerText = (step === 'brands') ? 'RETRO APP' : brand.toUpperCase();
-    }
-
-    async function loadList(category) {
-        const container = document.getElementById('list-container');
-        container.innerHTML = "Chargement...";
-        const rows = await fetchTab(category);
-        let html = '';
-        rows.forEach(row => {
+    <div id="view-brands" class="full-menu"></div>
+    <div id="view-categories
