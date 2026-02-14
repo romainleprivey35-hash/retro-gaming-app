@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Gaming App - Romain</title>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <style>
+        body { background: #1a1a1a; color: white; font-family: sans-serif; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 20px; }
+        .card { 
+            background: #333; border-radius: 10px; padding: 10px; 
+            transition: transform 0.3s; cursor: pointer;
+            perspective: 1000px; /* Important pour la 3D */
+        }
+        /* Effet de transparence pour les jeux non possédés */
+        .not-owned { opacity: 0.3; filter: grayscale(100%); }
+        img { width: 100%; border-radius: 5px; }
+        .price { color: #4caf50; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Ma Collection Retro</h1>
+    <div id="app" class="grid">Chargement de la collection...</div>
+
+    <script>
+        // On va connecter ton Google Sheet ici à l'étape suivante
+        const SHEET_ID = 'TON_ID_DE_SHEET_ICI';
+        const TAB_NAME = 'Jeux';
+
+        async function loadGames() {
+            // C'est ici qu'on fera la magie pour lire ton tableau
+            document.getElementById('app').innerHTML = "<p>Connexion au Google Sheet établie ! Prêt pour la 3D.</p>";
+        }
+        loadGames();
+    </script>
+</body>
+</html>
