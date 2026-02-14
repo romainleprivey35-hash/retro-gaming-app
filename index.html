@@ -2,178 +2,171 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Retro App - Romain</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <title>Retro Gaming Romain</title>
     <style>
-        :root { --neon: #00ff88; --bg: #121212; --card: #1e1e1e; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 70px; }
+        :root { --neon: #00ff88; --bg: #0a0a0a; --card: #161616; }
         
-        /* Navigation Basse */
+        body { 
+            background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; 
+            margin: 0; padding: 0; overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Header Fixe */
+        header { 
+            height: 60px; background: #000; display: flex; align-items: center; 
+            justify-content: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100;
+        }
+        #back-btn { position: absolute; left: 15px; background: #222; border: none; color: white; padding: 5px 12px; border-radius: 8px; display: none; }
+
+        /* Conteneur principal avec marge pour la barre iPhone/Android */
+        .container { padding: 15px; padding-bottom: 80px; }
+
+        /* Menu Visuel Marque */
+        .brand-list { display: grid; gap: 15px; }
+        .btn-large { 
+            background: var(--card); border: 1px solid #333; border-radius: 15px; 
+            padding: 30px; text-align: center; font-size: 1.2rem; font-weight: bold;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .btn-large img { width: 100px; height: 50px; object-fit: contain; filter: brightness(1.2); }
+
+        /* Grille des jeux */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--card); border-radius: 12px; padding: 10px; border: 1px solid #222; text-align: center; }
+        .img-box { height: 160px; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 8px; margin-bottom: 8px; }
+        .img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .not-owned { opacity: 0.2; filter: grayscale(1); }
+        .title { font-size: 0.8rem; font-weight: bold; height: 32px; overflow: hidden; margin-top: 5px; }
+        .price { color: var(--neon); font-size: 1rem; font-weight: bold; margin-top: 5px; }
+
+        /* Navigation Basse (Fixe) */
         .bottom-nav { 
-            position: fixed; bottom: 0; width: 100%; height: 60px; 
-            background: #1a1a1a; display: flex; justify-content: space-around; 
-            align-items: center; border-top: 1px solid #333; z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; height: 65px; 
+            background: #000; border-top: 1px solid #222;
+            display: flex; justify-content: space-around; align-items: center;
         }
-        .nav-item { text-align: center; font-size: 0.8rem; color: #888; text-decoration: none; cursor: pointer; }
-        .nav-item.active { color: var(--neon); }
+        .nav-link { text-align: center; color: #666; font-size: 0.7rem; text-decoration: none; }
+        .nav-link.active { color: var(--neon); }
 
-        /* Menus de sélection */
-        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; padding: 20px; }
-        .menu-btn { 
-            background: var(--card); border: 1px solid #333; padding: 25px; 
-            border-radius: 15px; text-align: center; font-size: 1.2rem; font-weight: bold;
-            transition: 0.3s;
-        }
-        .menu-btn:active { transform: scale(0.95); border-color: var(--neon); }
-
-        /* Stats */
-        .stats-container { padding: 20px; }
-        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--neon); }
-        .stat-val { font-size: 1.5rem; font-weight: bold; color: var(--neon); }
-
-        /* Liste de jeux (ton ancienne grille) */
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px; }
-        .card { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; border: 1px solid #333; }
-        .not-owned { opacity: 0.25; filter: grayscale(100%); }
-        .img-container { width: 100%; height: 150px; margin-bottom: 8px; }
-        img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
+<header>
+    <button id="back-btn" onclick="goTo('brands')">⬅ Retour</button>
+    <h1 id="header-title" style="font-size: 1.1rem;">MY RETRO APP</h1>
+</header>
+
+<div class="container">
     <div id="view-brands" class="view">
-        <h1 style="text-align:center">Choisir une Marque</h1>
-        <div class="menu-grid">
-            <div class="menu-btn" onclick="showCategories('Nintendo')">🔴 NINTENDO</div>
-            <div class="menu-btn" onclick="showCategories('Playstation')">🔵 PLAYSTATION</div>
-            <div class="menu-btn" onclick="showCategories('Xbox')">🟢 XBOX</div>
+        <div class="brand-list">
+            <div class="btn-large" onclick="openBrand('Nintendo')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Nintendo.svg/1024px-Nintendo.svg.png">
+                NINTENDO
+            </div>
+            <div class="btn-large" onclick="openBrand('Playstation')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/PlayStation_logo.svg/2560px-PlayStation_logo.svg.png">
+                PLAYSTATION
+            </div>
+            <div class="btn-large" onclick="openBrand('Xbox')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Xbox_one_logo.svg/1024px-Xbox_one_logo.svg.png">
+                XBOX
+            </div>
         </div>
     </div>
 
     <div id="view-categories" class="view hidden">
-        <h1 id="brand-title" style="text-align:center">Catégories</h1>
-        <div class="menu-grid">
-            <div class="menu-btn" onclick="loadContent('Jeux')">💿 JEUX</div>
-            <div class="menu-btn" onclick="loadContent('Consoles')">🎮 CONSOLES</div>
-            <div class="menu-btn" onclick="loadContent('Accessoires')">🔌 ACCESSOIRES</div>
-            <div class="menu-btn" style="background:#333" onclick="showView('view-brands')">⬅️ Retour</div>
+        <div class="brand-list">
+            <div class="btn-large" onclick="loadList('Jeux')">💿 JEUX</div>
+            <div class="btn-large" onclick="loadList('Consoles')">🎮 CONSOLES</div>
+            <div class="btn-large" onclick="loadList('Accessoires')">🔌 ACCESSOIRES</div>
         </div>
     </div>
 
     <div id="view-list" class="view hidden">
-        <h1 id="list-title" style="text-align:center">Ma Collection</h1>
-        <div id="app" class="grid"></div>
-        <div style="text-align:center; padding: 20px;">
-            <button class="menu-btn" onclick="showView('view-categories')">Retour aux catégories</button>
-        </div>
+        <div id="list-container" class="grid"></div>
     </div>
+</div>
 
-    <div id="view-stats" class="view hidden">
-        <h1 style="text-align:center">Mes Stats</h1>
-        <div id="stats-content" class="stats-container">
-            <div class="stat-card"><div>Valeur Totale Collection</div><div id="stat-total" class="stat-val">0 €</div></div>
-            <div class="stat-card"><div>Investissement total</div><div id="stat-invest" class="stat-val">0 €</div></div>
-            <div class="stat-card"><div>Jeux possédés</div><div id="stat-count" class="stat-val">0 / 0</div></div>
-        </div>
-    </div>
+<nav class="bottom-nav">
+    <div class="nav-link active" onclick="goTo('brands')">🏠<br>Accueil</div>
+    <div class="nav-link" onclick="alert('Stats bientôt dispo')">📊<br>Stats</div>
+</nav>
 
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="showView('view-brands')">🏠<br>Accueil</div>
-        <div class="nav-item" onclick="showView('view-stats')">📊<br>Stats</div>
-    </nav>
+<script>
+    const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
+    let brand = '';
 
-    <script>
-        const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
-        let currentBrand = '';
-        let allData = { Jeux: [], Consoles: [], Accessoires: [] };
-
-        function showView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-            document.getElementById(viewId).classList.remove('hidden');
-            if(viewId === 'view-stats') calculateStats();
+    function goTo(step) {
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.getElementById('back-btn').style.display = (step === 'brands') ? 'none' : 'block';
+        
+        if(step === 'brands') {
+            document.getElementById('view-brands').classList.remove('hidden');
+            document.getElementById('header-title').innerText = "MY RETRO APP";
+        } else if(step === 'categories') {
+            document.getElementById('view-categories').classList.remove('hidden');
+            document.getElementById('header-title').innerText = brand.toUpperCase();
+            document.getElementById('back-btn').onclick = () => goTo('brands');
+        } else if(step === 'list') {
+            document.getElementById('view-list').classList.remove('hidden');
+            document.getElementById('back-btn').onclick = () => goTo('categories');
         }
+    }
 
-        function showCategories(brand) {
-            currentBrand = brand;
-            document.getElementById('brand-title').innerText = brand.toUpperCase();
-            showView('view-categories');
-        }
+    function openBrand(selected) {
+        brand = selected;
+        goTo('categories');
+    }
 
-        function getDirectImg(url) {
-            if (!url || !url.includes('id=')) return url;
-            const id = url.split('id=')[1].split('&')[0];
-            return `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
-        }
+    async function loadList(category) {
+        goTo('list');
+        document.getElementById('header-title').innerText = category.toUpperCase();
+        const container = document.getElementById('list-container');
+        container.innerHTML = "Chargement...";
 
-        async function loadContent(category) {
-            document.getElementById('list-title').innerText = currentBrand + " - " + category;
-            showView('view-list');
-            document.getElementById('app').innerHTML = "Chargement...";
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${category}`;
+        const response = await fetch(url);
+        const text = await response.text();
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
 
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${category}`;
-            try {
-                const response = await fetch(url);
-                const text = await response.text();
-                const json = JSON.parse(text.substr(47).slice(0, -2));
-                const rows = json.table.rows;
-                
-                let html = '';
-                rows.forEach(row => {
-                    // Analyse par rapport à ton tableau
-                    const titre = row.c[0] ? row.c[0].v : 'Sans titre';
-                    const marque = row.c[1] ? row.c[1].v : ''; // Colonne B pour la marque
-                    const rawPhoto = row.c[6] ? row.c[6].v : '';
-                    const cote = row.c[12] ? row.c[12].v : 0;
-                    const possede = row.c[14] ? row.c[14].v : '';
+        let html = '';
+        rows.forEach(row => {
+            const rowBrand = row.c[1]?.v || '';
+            if(rowBrand.toLowerCase().includes(brand.toLowerCase())) {
+                const title = row.c[0]?.v || 'Sans titre';
+                const img = row.c[6]?.v || '';
+                const price = row.c[12]?.v || '--';
+                const owned = row.c[14]?.v || '';
 
-                    // On filtre par marque sélectionnée
-                    if (marque.toLowerCase().includes(currentBrand.toLowerCase())) {
-                        const isOwned = (possede && possede.includes("Oui"));
-                        html += `
-                            <div class="card ${isOwned ? '' : 'not-owned'}">
-                                <div class="img-container"><img src="${getDirectImg(rawPhoto)}"></div>
-                                <div class="title">${titre}</div>
-                                <div class="price">${cote} €</div>
-                            </div>
-                        `;
-                    }
-                });
-                document.getElementById('app').innerHTML = html || "Aucun article trouvé.";
-            } catch (e) {
-                document.getElementById('app').innerHTML = "Erreur de chargement.";
+                // Formatage du lien Drive
+                let imgSrc = img;
+                if(img.includes('id=')) {
+                    const id = img.split('id=')[1].split('&')[0];
+                    imgSrc = `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
+                }
+
+                html += `
+                    <div class="card ${owned.includes('Oui') ? '' : 'not-owned'}">
+                        <div class="img-box"><img src="${imgSrc}"></div>
+                        <div class="title">${title}</div>
+                        <div class="price">${price} €</div>
+                    </div>
+                `;
             }
-        }
+        });
+        container.innerHTML = html || "Aucun objet trouvé.";
+    }
 
-        async function calculateStats() {
-            // Ici on va charger l'onglet "Jeux" pour les stats (on pourra ajouter les autres après)
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`;
-            const response = await fetch(url);
-            const text = await response.text();
-            const json = JSON.parse(text.substr(47).slice(0, -2));
-            const rows = json.table.rows;
-
-            let totalCote = 0;
-            let totalAchat = 0;
-            let countOwned = 0;
-
-            rows.forEach(row => {
-                const cote = parseFloat(row.c[12]?.v) || 0;
-                const achat = parseFloat(row.c[10]?.v) || 0; // Colonne K (Prix achat)
-                const possede = row.c[14]?.v || '';
-
-                totalCote += cote;
-                totalAchat += achat;
-                if(possede.includes("Oui")) countOwned++;
-            });
-
-            document.getElementById('stat-total').innerText = totalCote.toLocaleString() + " €";
-            document.getElementById('stat-invest').innerText = totalAchat.toLocaleString() + " €";
-            document.getElementById('stat-count').innerText = countOwned + " / " + rows.length;
-        }
-
-        // Au démarrage
-        showView('view-brands');
-    </script>
+    goTo('brands');
+</script>
 </body>
 </html>
