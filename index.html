@@ -7,33 +7,30 @@
         body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
         .card { 
-            background: #222; border-radius: 12px; padding: 10px; text-align: center;
-            border: 1px solid #333; transition: transform 0.3s;
+            background: #222; border-radius: 12px; padding: 15px; text-align: center;
+            border: 1px solid #333; transition: all 0.3s ease-in-out;
         }
-        .card:hover { transform: scale(1.05); border-color: #00ff88; box-shadow: 0 0 15px #00ff8844; }
+        .card:hover { transform: translateY(-5px); border-color: #00ff88; box-shadow: 0 5px 15px rgba(0,255,136,0.3); }
         .not-owned { opacity: 0.25; filter: grayscale(100%); }
-        .img-container { width: 100%; height: 230px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; background: #1a1a1a; border-radius: 6px; }
-        img { max-width: 100%; max-height: 100%; border-radius: 6px; object-fit: contain; }
-        .title { font-weight: bold; font-size: 0.85em; height: 35px; overflow: hidden; margin-bottom: 5px; color: #eee; }
-        .price { color: #00ff88; font-weight: bold; font-family: monospace; font-size: 1.1em; }
+        .img-container { width: 100%; height: 230px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; background: #1a1a1a; border-radius: 8px; overflow: hidden; }
+        img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .title { font-weight: bold; font-size: 0.9em; height: 40px; margin-bottom: 5px; color: #fff; }
+        .price { color: #00ff88; font-weight: bold; font-family: monospace; font-size: 1.2em; }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center; color: #00ff88;">🎮 MA COLLECTION RETRO</h1>
+    <h1 style="text-align: center; color: #00ff88; letter-spacing: 2px;">🎮 MA COLLECTION RETRO</h1>
     <div id="app" class="grid">Chargement de la collection...</div>
 
     <script>
         const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU'; 
         const SHEET_NAME = 'Jeux';
 
-        // Fonction pour transformer un lien de partage Drive en lien d'image direct
-        function formatDriveLink(link) {
-            if (!link) return '';
-            if (link.includes('drive.google.com')) {
-                const id = link.match(/[\w-]{25,}/);
-                return id ? `https://lh3.googleusercontent.com/u/0/d/${id}` : link;
-            }
-            return link;
+        // Cette fonction transforme ton lien Drive en image affichable
+        function getDirectImg(url) {
+            if (!url || !url.includes('id=')) return url;
+            const id = url.split('id=')[1].split('&')[0];
+            return `https://lh3.googleusercontent.com/u/0/d/${id}`;
         }
 
         async function fetchSheet() {
@@ -46,19 +43,19 @@
                 
                 let html = '';
                 rows.forEach(row => {
-                    const titre = row.c[0] ? row.c[0].v : 'Sans titre'; // Colonne A
-                    const rawPhotoUrl = row.c[6] ? row.c[6].v : '';     // Colonne G
-                    const possede = row.c[14] ? row.c[14].v : '';      // Colonne O
-                    const cote = row.c[12] ? row.c[12].v : '--';       // Colonne M
+                    const titre = row.c[0] ? row.c[0].v : 'Sans titre'; // Col A
+                    const rawPhoto = row.c[6] ? row.c[6].v : '';        // Col G
+                    const cote = row.c[12] ? row.c[12].v : '--';         // Col M
+                    const possede = row.c[14] ? row.c[14].v : '';        // Col O
 
-                    const photoUrl = formatDriveLink(rawPhotoUrl);
+                    const photoUrl = getDirectImg(rawPhoto);
                     const isOwned = (possede && possede.includes("Oui"));
                     const classOwned = isOwned ? "" : "not-owned";
 
                     html += `
                         <div class="card ${classOwned}">
                             <div class="img-container">
-                                <img src="${photoUrl}" alt="${titre}" onerror="this.src='https://via.placeholder.com/200x250?text=Chargement...'">
+                                <img src="${photoUrl}" alt="${titre}" onerror="this.src='https://via.placeholder.com/200x250?text=Image+Non+Partagée'">
                             </div>
                             <div class="title">${titre}</div>
                             <div class="price">${cote} €</div>
