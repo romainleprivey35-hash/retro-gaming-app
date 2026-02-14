@@ -3,40 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>Ma Collection Retro - Romain</title>
-    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <style>
         body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 25px; }
-        
-        /* Conteneur pour l'effet 3D */
-        .card-container { perspective: 1000px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
         
         .card { 
-            background: #222; border-radius: 12px; padding: 15px;
-            transition: transform 0.5s; transform-style: preserve-3d;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            text-align: center;
+            background: #222; border-radius: 12px; padding: 10px;
+            transition: all 0.4s ease; text-align: center;
+            border: 1px solid #333;
         }
 
-        /* Effet de transparence si pas possédé */
-        .not-owned { opacity: 0.3; filter: grayscale(80%); }
+        /* L'effet 3D au survol */
+        .card:hover { 
+            transform: translateY(-10px) rotateY(10deg); 
+            box-shadow: 0 10px 20px rgba(0,255,136,0.2);
+            border-color: #00ff88;
+        }
 
-        .card:hover { transform: rotateY(15deg) rotateX(10deg); } /* Petite rotation 3D au survol */
+        /* Gestion de la transparence (si non possédé) */
+        .not-owned { opacity: 0.25; filter: grayscale(100%); }
+
+        .img-container { width: 100%; height: 250px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; }
+        img { max-width: 100%; max-height: 100%; border-radius: 8px; object-fit: contain; }
         
-        img { width: 100%; height: 220px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; }
-        .title { font-weight: bold; font-size: 0.9em; height: 40px; overflow: hidden; }
-        .price { color: #00ff88; font-family: monospace; font-size: 1.1em; margin-top: 10px; }
+        .title { font-weight: bold; font-size: 0.85em; height: 35px; overflow: hidden; color: #eee; }
+        .price { color: #00ff88; font-weight: bold; margin-top: 8px; font-size: 1.1em; }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center; margin-bottom: 40px;">🎮 Ma Collection Retro</h1>
-    <div id="app" class="grid">Chargement de tes jeux...</div>
+    <h1 style="text-align: center; color: #00ff88;">🎮 MA COLLECTION RETRO</h1>
+    <div id="app" class="grid">Chargement de la collection...</div>
 
     <script>
-        // --- CONFIGURATION ---
-        const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU'; 
+        const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU'; // Vérifie bien cet ID
         const SHEET_NAME = 'Jeux';
-        // ---------------------
 
         async function fetchSheet() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
@@ -48,28 +48,29 @@
                 
                 let html = '';
                 rows.forEach(row => {
-                    const photo = row.c[0] ? row.c[0].v : ''; // Col A
-                    const titre = row.c[1] ? row.c[1].v : 'Sans titre'; // Col B
-                    const possede = row.c[5] ? row.c[5].v : ''; // Col F
-                    const cote = row.c[7] ? row.c[7].v : '--'; // Col H
-                    
-                    // Vérification si le jeu est possédé pour la transparence
-                    const isOwned = (possede == "TRUE" || possede == "Dans ma collection");
+                    // Récupération des colonnes (A, B, F, H)
+                    const photoUrl = row.c[0] ? row.c[0].v : ''; 
+                    const titre = row.c[1] ? row.c[1].v : 'Sans titre';
+                    const possede = row.c[5] ? row.c[5].v : ''; 
+                    const cote = row.c[7] ? row.c[7].v : '--';
+
+                    // On simplifie la règle de possession : si c'est vide, on considère que tu ne l'as pas
+                    const isOwned = (possede !== null && possede !== "" && possede !== false);
                     const classOwned = isOwned ? "" : "not-owned";
 
                     html += `
-                        <div class="card-container">
-                            <div class="card ${classOwned}">
-                                <img src="${photo}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
-                                <div class="title">${titre}</div>
-                                <div class="price">${cote} €</div>
+                        <div class="card ${classOwned}">
+                            <div class="img-container">
+                                <img src="${photoUrl}" alt="${titre}" onerror="this.src='https://via.placeholder.com/200x250?text=Image+Introuvable'">
                             </div>
+                            <div class="title">${titre}</div>
+                            <div class="price">${cote} €</div>
                         </div>
                     `;
                 });
                 document.getElementById('app').innerHTML = html;
             } catch (e) {
-                document.getElementById('app').innerHTML = "Erreur de connexion : Vérifie le partage du Sheet.";
+                document.getElementById('app').innerHTML = "Erreur d'affichage. Vérifie ton ID de Sheet.";
             }
         }
         fetchSheet();
