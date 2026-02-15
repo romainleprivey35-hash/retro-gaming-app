@@ -3,103 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Retro App</title>
+    <title>Retro Collection Pro</title>
+    
     <style>
-        :root { --nintendo: #e60012; --sony: #003791; --xbox: #107c10; }
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; }
+        :root { --nintendo: #e60012; --sony: #003791; --xbox: #107c10; --neon: #00ff88; --bg: #000; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        header { height: 60px; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: center; position: relative; }
-        #back-btn { position: absolute; left: 15px; background: #333; color: #fff; border: none; padding: 8px 15px; border-radius: 20px; display: none; }
-        
-        .container { flex: 1; display: flex; flex-direction: column; padding: 15px; gap: 20px; overflow-y: auto; }
+        header { height: 60px; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+        #back-btn { position: absolute; left: 15px; background: #333; color: white; border: none; padding: 8px 15px; border-radius: 20px; display: none; }
+        h1 { font-size: 1rem; color: var(--neon); text-transform: uppercase; letter-spacing: 2px; }
 
-        /* Les 3 Pilules */
+        .container { flex: 1; display: flex; flex-direction: column; padding: 15px; gap: 15px; overflow-y: auto; }
+
+        /* Pilules Plein Écran */
         .pill { 
             flex: 1; min-height: 120px; border-radius: 100px; display: flex; align-items: center; justify-content: center;
-            text-decoration: none; border: 2px solid rgba(255,255,255,0.1); font-size: 1.5rem; font-weight: bold;
-            background-size: contain; background-repeat: no-repeat; background-position: center;
-            transition: 0.3s;
+            border: 2px solid rgba(255,255,255,0.1); transition: 0.3s; position: relative;
         }
-        .nintendo { box-shadow: 0 0 25px var(--nintendo); border-color: var(--nintendo); }
-        .playstation { box-shadow: 0 0 25px var(--sony); border-color: var(--sony); }
-        .xbox { box-shadow: 0 0 25px var(--xbox); border-color: var(--xbox); }
+        .pill img { max-height: 70px; max-width: 80%; object-fit: contain; z-index: 2; }
+        
+        /* Halos de couleur */
+        .pill.nintendo { box-shadow: 0 0 20px var(--nintendo); border-color: var(--nintendo); }
+        .pill.playstation { box-shadow: 0 0 20px var(--sony); border-color: var(--sony); }
+        .pill.xbox { box-shadow: 0 0 20px var(--xbox); border-color: var(--xbox); }
+
+        /* Grille des Consoles et Jeux */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: #111; border-radius: 15px; padding: 10px; border: 1px solid #333; text-align: center; }
+        .card img { width: 100%; height: 120px; object-fit: contain; }
+        .not-owned { opacity: 0.2; filter: grayscale(1); }
+        .price { color: var(--neon); font-weight: bold; margin-top: 5px; }
 
         .hidden { display: none !important; }
-        #error-display { color: #ff4444; font-size: 12px; padding: 10px; text-align: center; }
+        #loader { color: #555; font-size: 10px; text-align: center; padding: 5px; }
     </style>
 </head>
 <body>
 
-    <div id="error-display"></div>
+    <div id="loader">Connexion...</div>
 
     <header>
-        <button id="back-btn" onclick="window.location.reload()">◀</button>
-        <h1 style="font-size: 1.2rem; color: #00ff88;">RETRO APP</h1>
+        <button id="back-btn" onclick="nav.back()">◀</button>
+        <h1 id="app-title">RETRO APP</h1>
     </header>
 
-    <div id="view-brands" class="container">
-        <div class="pill nintendo" onclick="selectBrand('Nintendo')">
-            <span id="txt-nintendo">NINTENDO</span>
-        </div>
-        <div class="pill playstation" onclick="selectBrand('Playstation')">
-            <span id="txt-sony">PLAYSTATION</span>
-        </div>
-        <div class="pill xbox" onclick="selectBrand('Xbox')">
-            <span id="txt-xbox">XBOX</span>
-        </div>
-    </div>
+    <div id="view-brands" class="container"></div>
+    <div id="view-categories" class="container hidden"></div>
+    <div id="view-consoles" class="container hidden"><div id="console-grid" class="grid"></div></div>
+    <div id="view-items" class="container hidden"><div id="item-grid" class="grid"></div></div>
 
-    <div id="view-next" class="container hidden">
-        </div>
+    <script>
+        const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
+        let current = { brand: '', cat: '', console: '', step: 'brands' };
 
-<script>
-    const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
-    let brand = "";
+        // --- Moteur de données ---
+        const data = {
+            async fetch(tab) {
+                document.getElementById('loader').innerText = `Chargement ${tab}...`;
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
+                const res = await fetch(url);
+                const text = await res.text();
+                return JSON.parse(text.substring(47, text.length - 2)).table.rows;
+            },
+            getImg(url) {
+                if (!url || !url.includes('id=')) return '';
+                return `https://drive.google.com/thumbnail?id=${url.split('id=')[1].split('&')[0]}&sz=w500`;
+            }
+        };
 
-    // Fonction pour afficher les erreurs sur l'écran du tel
-    function showError(msg) {
-        document.getElementById('error-display').innerText = "Info : " + msg;
-    }
+        // --- Navigation & Affichage ---
+        const nav = {
+            async start() {
+                const rows = await data.fetch('Menu');
+                let html = '';
+                rows.forEach((r, i) => {
+                    const name = r.c[0].v;
+                    const img = data.getImg(r.c[1].v);
+                    const cls = name.toLowerCase();
+                    html += `<div class="pill ${cls}" onclick="nav.toCategories('${name}')"><img src="${img}"></div>`;
+                });
+                document.getElementById('view-brands').innerHTML = html;
+                document.getElementById('loader').innerText = "Prêt";
+            },
 
-    // Extraction d'ID Drive propre
-    function getImg(url) {
-        if (!url || !url.includes('id=')) return '';
-        const id = url.split('id=')[1].split('&')[0];
-        return `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
-    }
+            async toCategories(brand) {
+                current.brand = brand;
+                current.step = 'categories';
+                this.updateUI();
+                const rows = await data.fetch('Categories');
+                let html = '';
+                rows.forEach(r => {
+                    const name = r.c[0].v;
+                    const img = data.getImg(r.c[1].v);
+                    html += `<div class="pill" style="border-color:#333" onclick="nav.toConsoles('${name}')"><img src="${img}"></div>`;
+                });
+                document.getElementById('view-categories').innerHTML = html;
+            },
 
-    // Charger les logos du menu dès le départ
-    async function loadLogos() {
-        try {
-            showError("Connexion au catalogue...");
-            const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Menu`);
-            const text = await res.text();
-            const json = JSON.parse(text.substring(47, text.length - 2));
-            const rows = json.table.rows;
-            
-            // On remplace le texte des pilules par les images du Sheet
-            document.getElementById('txt-nintendo').innerHTML = `<img src="${getImg(rows[0].c[1].v)}" style="height:60px">`;
-            document.getElementById('txt-sony').innerHTML = `<img src="${getImg(rows[1].c[1].v)}" style="height:60px">`;
-            document.getElementById('txt-xbox').innerHTML = `<img src="${getImg(rows[2].c[1].v)}" style="height:60px">`;
-            showError("Catalogue prêt.");
-        } catch (e) {
-            showError("Erreur de chargement des logos. Vérifie le partage du Sheet.");
-        }
-    }
+            async toConsoles(cat) {
+                current.cat = cat;
+                current.step = 'consoles';
+                this.updateUI();
+                const rows = await data.fetch(cat);
+                // Filtrage unique des consoles pour la marque choisie (Option B)
+                const list = [...new Set(rows
+                    .filter(r => r.c[1]?.v.toLowerCase().includes(current.brand.toLowerCase()))
+                    .map(r => r.c[2]?.v))];
+                
+                let html = '';
+                list.forEach(c => {
+                    html += `<div class="card" onclick="nav.toItems('${c}')">
+                        <div style="font-size:2rem; margin-bottom:10px;">🎮</div>
+                        <div style="font-weight:bold">${c}</div>
+                    </div>`;
+                });
+                document.getElementById('console-grid').innerHTML = html || "Aucune console trouvée.";
+            },
 
-    async function selectBrand(name) {
-        brand = name;
-        document.getElementById('view-brands').classList.add('hidden');
-        document.getElementById('view-next').classList.remove('hidden');
-        document.getElementById('back-btn').style.display = 'block';
-        
-        showError("Chargement des catégories...");
-        // Ici on chargera l'étape suivante (Categories)
-        // Je m'arrête là pour tester si l'accueil s'affiche enfin
-    }
+            async toItems(cons) {
+                current.console = cons;
+                current.step = 'items';
+                this.updateUI();
+                const rows = await data.fetch(current.cat);
+                let html = '';
+                rows.forEach(r => {
+                    const b = r.c[1]?.v || "";
+                    const c = r.c[2]?.v || "";
+                    if (b.toLowerCase().includes(current.brand.toLowerCase()) && c === cons) {
+                        const img = data.getImg(r.c[6]?.v);
+                        const owned = r.c[14]?.v || "";
+                        html += `<div class="card ${owned.includes('Oui') ? '' : 'not-owned'}">
+                            <img src="${img}">
+                            <div style="font-size:0.75rem; margin:8px 0; height:30px; overflow:hidden;">${r.c[0].v}</div>
+                            <div class="price">${r.c[12]?.v || '--'} €</div>
+                        </div>`;
+                    }
+                });
+                document.getElementById('item-grid').innerHTML = html;
+            },
 
-    // Lancement
-    loadLogos();
-</script>
+            back() {
+                if (current.step === 'items') this.toConsoles(current.cat);
+                else if (current.step === 'consoles') this.toCategories(current.brand);
+                else location.reload();
+            },
+
+            updateUI() {
+                const steps = ['brands', 'categories', 'consoles', 'items'];
+                steps.forEach(s => document.getElementById(`view-${s}`).classList.toggle('hidden', current.step !== s));
+                document.getElementById('back-btn').style.display = current.step === 'brands' ? 'none' : 'block';
+                document.getElementById('app-title').innerText = current.brand || "RETRO APP";
+            }
+        };
+
+        nav.start();
+    </script>
 </body>
 </html>
