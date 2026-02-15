@@ -29,19 +29,33 @@ async function fetchGames(brand) {
 
 function displayResults(brand, groups) {
     let html = `<h2 class="title">Jeux ${brand}</h2>`;
+    
     for (const consoleName in groups) {
         const logoId = CONFIG.CONSOLE_LOGOS[consoleName] || "";
+        
+        // Header de la console
         html += `<div class="console-header">
                     ${logoId ? `<img src="https://drive.google.com/thumbnail?id=${logoId}&sz=w200" class="console-logo">` : ""}
                     <h3>${consoleName}</h3>
                 </div>`;
+        
+        // Début de la grille
+        html += `<div class="game-grid">`;
+        
         groups[consoleName].forEach(game => {
             const opacity = game.isOwned.includes("❌") ? "0.3" : "1";
-            html += `<div class="game-card" style="opacity:${opacity}">
-                        <span>${game.title}</span>
-                        <span class="price">${game.price}€</span>
-                     </div>`;
+            
+            html += `
+                <div class="game-card" style="opacity:${opacity}" onclick='openGameDetail(${JSON.stringify(game).replace(/'/g, "&apos;")})'>
+                    <img src="${game.imgJaquette}" class="game-jaquette" onerror="this.src='https://via.placeholder.com/150x200?text=No+Image'">
+                    <div class="game-info">
+                        <div class="game-title">${game.title}</div>
+                        <div class="game-price">${game.price}€</div>
+                    </div>
+                </div>`;
         });
+        
+        html += `</div>`; // Fin de la grille
     }
     document.getElementById('view-list').innerHTML = html;
 }
