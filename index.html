@@ -9,7 +9,7 @@
 <body>
 
     <header style="height: 60px; display: flex; align-items: center; padding: 0 20px;">
-        <button id="back-btn" onclick="goBack()" style="display: none; background: #333; color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 20px;">
+        <button id="back-btn" onclick="goBack()" style="display: none; background: #333; color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 20px; font-weight: bold;">
             ◀ RETOUR
         </button>
     </header>
@@ -29,8 +29,25 @@
     <div id="view-list" style="display: none; padding: 20px;"></div>
 
     <script>
-        // LE CERVEAU EST ICI MAINTENANT
         const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
+        
+        // IDs de tes logos consoles dans ton Drive
+        const CONSOLE_LOGOS = {
+            "PS1": "1DV-N37sM1AA-fl5rYe1_Urr6hh9e6eTF",
+            "PS2": "10h2eIupplXfFBvQQNWRptu1EC3xTkghc",
+            "PS3": "1eqVPNUIqNwzdPs4j6ALB922qNvSJozFA",
+            "PS4": "1VjijUcf3nyaclZazZT8akg_4Ifo0UjGM",
+            "PS5": "1F_qvq4AM8uvx1nKaRUdPWh5r1mjVqic8",
+            "N64": "1iumJt5i-5Jd85ZPZLr3NR44hbhdohUh5",
+            "GameCube": "1SW-jXEJnlZ4nh3jXg3IVkNGK7QzZMSze",
+            "Wii": "1aAx82c4LPWz6U-JQ2jXf3fG0hwAOG_Bc",
+            "GBA": "11vgmA2xIMxNHbbYMcUIwXTNgt0BVKacp",
+            "GB": "1XEkPuCr2mmIvpsmjmpkrG1XumS-24wLb",
+            "GBC": "1dek_9N4wDwFBhSYmUoij7OhtFfCc4hcQ",
+            "DS": "1Gals-7-g_lNxOBult4FihHYiv2nKgkfP",
+            "Xbox": "15i7MRlq_QVyKUsQKWsFfMSkvqALFwb2I",
+            "PSP": "1zOJp5Yh0JRHhI-o4PfyFTdX_OH7j3Bmo"
+        };
 
         function openBrand(brandName) {
             document.getElementById('view-brands').style.display = 'none';
@@ -40,8 +57,8 @@
             document.getElementById('view-list').innerHTML = `
                 <h2 style="text-align:center; color:white; margin-bottom:30px;">${brandName}</h2>
                 <div class="category-pill" onclick="fetchGames('${brandName}')" style="background:#222; padding:20px; border-radius:50px; text-align:center; color:white; margin-bottom:15px; border:1px solid #444; font-weight:bold;">JEUX</div>
-                <div class="category-pill" style="background:#222; padding:20px; border-radius:50px; text-align:center; color:white; margin-bottom:15px; border:1px solid #444; opacity:0.5;">CONSOLES</div>
-                <div class="category-pill" style="background:#222; padding:20px; border-radius:50px; text-align:center; color:white; margin-bottom:15px; border:1px solid #444; opacity:0.5;">ACCESSOIRES</div>
+                <div class="category-pill" style="background:#222; padding:20px; border-radius:50px; text-align:center; color:white; margin-bottom:15px; border:1px solid #444; opacity:0.3;">CONSOLES</div>
+                <div class="category-pill" style="background:#222; padding:20px; border-radius:50px; text-align:center; color:white; margin-bottom:15px; border:1px solid #444; opacity:0.3;">ACCESSOIRES</div>
             `;
         }
 
@@ -53,7 +70,7 @@
 
         async function fetchGames(brand) {
             const viewList = document.getElementById('view-list');
-            viewList.innerHTML = `<h2 style="text-align:center; color:white;">Connexion au Sheets...</h2>`;
+            viewList.innerHTML = `<h2 style="text-align:center; color:white;">Chargement...</h2>`;
             
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`;
 
@@ -63,28 +80,26 @@
                 const json = JSON.parse(text.substr(47).slice(0, -2));
                 const rows = json.table.rows;
                 
-                let html = `<h2 style="text-align:center; color:white;">Jeux ${brand}</h2>`;
-                
+                // On groupe les jeux par console
+                const groups = {};
                 rows.forEach(row => {
-                    const title = row.c[0] ? row.c[0].v : "Sans titre";
                     const brandInSheet = row.c[2] ? row.c[2].v : "";
-                    const price = row.c[12] ? row.c[12].v : "0";
-                    const isOwned = row.c[14] ? row.c[14].v : "";
-
-                    if (brandInSheet && brandInSheet.toLowerCase().includes(brand.toLowerCase())) {
-                        const opacity = isOwned.includes("❌") ? "0.3" : "1";
-                        html += `
-                            <div style="background:#1a1a1a; margin-bottom:10px; padding:15px; border-radius:10px; color:white; opacity:${opacity}; display:flex; justify-content:space-between; border-left:4px solid #444;">
-                                <span>${title}</span>
-                                <span style="color:#00ff00; font-weight:bold;">${price}€</span>
-                            </div>`;
+                    if (brandInSheet.toLowerCase().includes(brand.toLowerCase())) {
+                        const consoleName = row.c[4] ? row.c[4].v : "Autre";
+                        if (!groups[consoleName]) groups[consoleName] = [];
+                        groups[consoleName].push({
+                            title: row.c[0] ? row.c[0].v : "Sans titre",
+                            price: row.c[12] ? row.c[12].v : "0",
+                            isOwned: row.c[14] ? row.c[14].v : ""
+                        });
                     }
                 });
-                viewList.innerHTML = html;
-            } catch (e) {
-                viewList.innerHTML = `<p style="color:red;">Erreur. Vérifie ta connexion.</p>`;
-            }
-        }
-    </script>
-</body>
-</html>
+
+                let html = `<h2 style="text-align:center; color:white; margin-bottom:20px;">Jeux ${brand}</h2>`;
+                
+                for (const consoleName in groups) {
+                    const logoId = CONSOLE_LOGOS[consoleName] || "";
+                    html += `
+                        <div style="margin-bottom:30px;">
+                            <div style="display:flex; align-items:center; margin-bottom:15px; border-bottom: 2px solid #333; padding-bottom:8px;">
+                                ${logoId ? `<img src="https://drive.google.com/thumbnail?id=${logoId}&sz=w200" style="height:35px; margin-right:12
