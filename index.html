@@ -3,160 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Retro Collection Pro</title>
+    <title>Retro Collection</title>
     
-    <style>
-        :root { --nintendo: #e60012; --sony: #003791; --xbox: #107c10; --neon: #00ff88; --bg: #000; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        header { height: 60px; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
-        #back-btn { position: absolute; left: 15px; background: #333; color: white; border: none; padding: 8px 15px; border-radius: 20px; display: none; }
-        h1 { font-size: 1rem; color: var(--neon); text-transform: uppercase; letter-spacing: 2px; }
-
-        .container { flex: 1; display: flex; flex-direction: column; padding: 15px; gap: 15px; overflow-y: auto; }
-
-        /* Pilules Plein Écran */
-        .pill { 
-            flex: 1; min-height: 120px; border-radius: 100px; display: flex; align-items: center; justify-content: center;
-            border: 2px solid rgba(255,255,255,0.1); transition: 0.3s; position: relative;
-        }
-        .pill img { max-height: 70px; max-width: 80%; object-fit: contain; z-index: 2; }
-        
-        /* Halos de couleur */
-        .pill.nintendo { box-shadow: 0 0 20px var(--nintendo); border-color: var(--nintendo); }
-        .pill.playstation { box-shadow: 0 0 20px var(--sony); border-color: var(--sony); }
-        .pill.xbox { box-shadow: 0 0 20px var(--xbox); border-color: var(--xbox); }
-
-        /* Grille des Consoles et Jeux */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { background: #111; border-radius: 15px; padding: 10px; border: 1px solid #333; text-align: center; }
-        .card img { width: 100%; height: 120px; object-fit: contain; }
-        .not-owned { opacity: 0.2; filter: grayscale(1); }
-        .price { color: var(--neon); font-weight: bold; margin-top: 5px; }
-
-        .hidden { display: none !important; }
-        #loader { color: #555; font-size: 10px; text-align: center; padding: 5px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="loader">Connexion...</div>
-
-    <header>
-        <button id="back-btn" onclick="nav.back()">◀</button>
-        <h1 id="app-title">RETRO APP</h1>
+    <header style="height: 60px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #222;">
+        <h1 id="main-title" style="font-size: 1.2rem; color: #00ff88; text-transform: uppercase;">Retro App</h1>
     </header>
 
-    <div id="view-brands" class="container"></div>
-    <div id="view-categories" class="container hidden"></div>
-    <div id="view-consoles" class="container hidden"><div id="console-grid" class="grid"></div></div>
-    <div id="view-items" class="container hidden"><div id="item-grid" class="grid"></div></div>
+    <div id="app-container">
+        <div id="view-brands" class="pill-container">
+            <div class="pill nintendo" onclick="loadBrand('Nintendo')">
+                <img id="logo-nintendo" src="" alt="Nintendo">
+            </div>
+            <div class="pill playstation" onclick="loadBrand('Playstation')">
+                <img id="logo-sony" src="" alt="Playstation">
+            </div>
+            <div class="pill xbox" onclick="loadBrand('Xbox')">
+                <img id="logo-xbox" src="" alt="Xbox">
+            </div>
+        </div>
+
+        <div id="view-list" class="game-grid" style="display: none;">
+            </div>
+    </div>
 
     <script>
         const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
-        let current = { brand: '', cat: '', console: '', step: 'brands' };
 
-        // --- Moteur de données ---
-        const data = {
-            async fetch(tab) {
-                document.getElementById('loader').innerText = `Chargement ${tab}...`;
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
-                const res = await fetch(url);
-                const text = await res.text();
-                return JSON.parse(text.substring(47, text.length - 2)).table.rows;
-            },
-            getImg(url) {
-                if (!url || !url.includes('id=')) return '';
-                return `https://drive.google.com/thumbnail?id=${url.split('id=')[1].split('&')[0]}&sz=w500`;
-            }
-        };
+        // 1. Fonction pour nettoyer les liens Drive
+        function formatImg(url) {
+            if (!url || !url.includes('id=')) return url;
+            const id = url.split('id=')[1].split('&')[0];
+            return `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
+        }
 
-        // --- Navigation & Affichage ---
-        const nav = {
-            async start() {
-                const rows = await data.fetch('Menu');
-                let html = '';
-                rows.forEach((r, i) => {
-                    const name = r.c[0].v;
-                    const img = data.getImg(r.c[1].v);
-                    const cls = name.toLowerCase();
-                    html += `<div class="pill ${cls}" onclick="nav.toCategories('${name}')"><img src="${img}"></div>`;
-                });
-                document.getElementById('view-brands').innerHTML = html;
-                document.getElementById('loader').innerText = "Prêt";
-            },
+        // 2. Chargement des 3 logos dès le départ
+        async function fetchLogos() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Menu`;
+            const res = await fetch(url);
+            const text = await res.text();
+            const rows = JSON.parse(text.substring(47, text.length - 2)).table.rows;
+            
+            // On assigne les images de ton Sheet aux 3 pilules fixes
+            document.getElementById('logo-nintendo').src = formatImg(rows[0].c[1].v);
+            document.getElementById('logo-sony').src = formatImg(rows[1].c[1].v);
+            document.getElementById('logo-xbox').src = formatImg(rows[2].c[1].v);
+        }
 
-            async toCategories(brand) {
-                current.brand = brand;
-                current.step = 'categories';
-                this.updateUI();
-                const rows = await data.fetch('Categories');
-                let html = '';
-                rows.forEach(r => {
-                    const name = r.c[0].v;
-                    const img = data.getImg(r.c[1].v);
-                    html += `<div class="pill" style="border-color:#333" onclick="nav.toConsoles('${name}')"><img src="${img}"></div>`;
-                });
-                document.getElementById('view-categories').innerHTML = html;
-            },
+        // 3. Fonction pour charger les jeux (Vrac pour l'instant pour assurer la marche)
+        async function loadBrand(brandName) {
+            document.getElementById('view-brands').style.display = 'none';
+            document.getElementById('view-list').style.display = 'grid';
+            document.getElementById('main-title').innerText = brandName.toUpperCase();
+            
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`;
+            const res = await fetch(url);
+            const text = await res.text();
+            const rows = JSON.parse(text.substring(47, text.length - 2)).table.rows;
 
-            async toConsoles(cat) {
-                current.cat = cat;
-                current.step = 'consoles';
-                this.updateUI();
-                const rows = await data.fetch(cat);
-                // Filtrage unique des consoles pour la marque choisie (Option B)
-                const list = [...new Set(rows
-                    .filter(r => r.c[1]?.v.toLowerCase().includes(current.brand.toLowerCase()))
-                    .map(r => r.c[2]?.v))];
-                
-                let html = '';
-                list.forEach(c => {
-                    html += `<div class="card" onclick="nav.toItems('${c}')">
-                        <div style="font-size:2rem; margin-bottom:10px;">🎮</div>
-                        <div style="font-weight:bold">${c}</div>
-                    </div>`;
-                });
-                document.getElementById('console-grid').innerHTML = html || "Aucune console trouvée.";
-            },
-
-            async toItems(cons) {
-                current.console = cons;
-                current.step = 'items';
-                this.updateUI();
-                const rows = await data.fetch(current.cat);
-                let html = '';
-                rows.forEach(r => {
-                    const b = r.c[1]?.v || "";
-                    const c = r.c[2]?.v || "";
-                    if (b.toLowerCase().includes(current.brand.toLowerCase()) && c === cons) {
-                        const img = data.getImg(r.c[6]?.v);
-                        const owned = r.c[14]?.v || "";
-                        html += `<div class="card ${owned.includes('Oui') ? '' : 'not-owned'}">
-                            <img src="${img}">
-                            <div style="font-size:0.75rem; margin:8px 0; height:30px; overflow:hidden;">${r.c[0].v}</div>
-                            <div class="price">${r.c[12]?.v || '--'} €</div>
+            let html = '';
+            rows.forEach(r => {
+                const itemBrand = r.c[1]?.v || "";
+                if (itemBrand.toLowerCase().includes(brandName.toLowerCase())) {
+                    const owned = r.c[14]?.v || "";
+                    html += `
+                        <div class="game-card ${owned.includes('Oui') ? '' : 'not-owned'}">
+                            <img src="${formatImg(r.c[6]?.v)}">
+                            <div style="font-size:0.8rem; margin:10px 0;">${r.c[0].v}</div>
+                            <div style="color:#00ff88; font-weight:bold;">${r.c[12]?.v || '--'} €</div>
                         </div>`;
-                    }
-                });
-                document.getElementById('item-grid').innerHTML = html;
-            },
+                }
+            });
+            document.getElementById('view-list').innerHTML = html;
+        }
 
-            back() {
-                if (current.step === 'items') this.toConsoles(current.cat);
-                else if (current.step === 'consoles') this.toCategories(current.brand);
-                else location.reload();
-            },
-
-            updateUI() {
-                const steps = ['brands', 'categories', 'consoles', 'items'];
-                steps.forEach(s => document.getElementById(`view-${s}`).classList.toggle('hidden', current.step !== s));
-                document.getElementById('back-btn').style.display = current.step === 'brands' ? 'none' : 'block';
-                document.getElementById('app-title').innerText = current.brand || "RETRO APP";
-            }
-        };
-
-        nav.start();
+        fetchLogos();
     </script>
 </body>
 </html>
