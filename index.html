@@ -3,139 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <title>Retro App</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>Retro Collection - Romain</title>
+
     <style>
-        body { background: #000; color: white; font-family: sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        header { height: 60px; border-bottom: 1px solid #333; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
-        #back-btn { position: absolute; left: 10px; background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; display: none; }
-        h1 { font-size: 1.2rem; color: #00ff88; text-transform: uppercase; margin: 0; }
+        :root { --nintendo: #e60012; --sony: #003791; --xbox: #107c10; --neon: #00ff88; --bg: #000; }
+        body { background: var(--bg); color: white; font-family: 'Roboto', sans-serif; margin: 0; overflow: hidden; height: 100vh; }
+        
+        header { height: 60px; display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid #222; }
+        #back-btn { position: absolute; left: 15px; background: #222; border: none; color: white; padding: 8px 15px; border-radius: 20px; display: none; }
+        
+        .app-content { height: calc(100vh - 125px); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 
-        .content { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-
-        /* Style des 3 blocs */
-        .full-btn { 
-            flex: 1; min-height: 200px; position: relative; display: flex; align-items: center; justify-content: center;
-            border-bottom: 1px solid #222; background-size: cover; background-position: center; text-decoration: none; color: white;
+        /* Design des 3 Pilules */
+        .brand-container { display: flex; flex-direction: column; height: 100%; gap: 15px; padding: 15px; }
+        .brand-pill { 
+            flex: 1; border-radius: 100px; position: relative; display: flex; align-items: center; justify-content: center;
+            border: 2px solid rgba(255,255,255,0.1); overflow: visible; transition: 0.3s;
         }
-        .full-btn::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
-        .full-btn span { position: relative; z-index: 2; font-size: 2rem; font-weight: bold; text-transform: uppercase; }
+        /* Effet Halo */
+        .brand-pill.nintendo { box-shadow: 0 0 20px var(--nintendo); border-color: var(--nintendo); }
+        .brand-pill.playstation { box-shadow: 0 0 20px var(--sony); border-color: var(--sony); }
+        .brand-pill.xbox { box-shadow: 0 0 20px var(--xbox); border-color: var(--xbox); }
+        
+        .brand-pill img { height: 50%; max-width: 70%; object-fit: contain; }
 
-        /* Style de la grille finale */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
-        .card { background: #111; border-radius: 10px; padding: 10px; border: 1px solid #333; text-align: center; }
-        .card img { max-width: 100%; height: 140px; object-fit: contain; }
+        /* Grille des Jeux */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
+        .card { background: #111; border-radius: 15px; padding: 10px; border: 1px solid #333; text-align: center; }
+        .card img { width: 100%; height: 130px; object-fit: contain; border-radius: 8px; }
+        .card .title { font-size: 0.8rem; font-weight: bold; margin: 8px 0; height: 32px; overflow: hidden; }
+        .card .price { color: var(--neon); font-size: 1rem; font-weight: bold; }
         .not-owned { opacity: 0.2; filter: grayscale(1); }
-        .price { color: #00ff88; font-weight: bold; margin-top: 5px; }
+
+        /* Nav Basse */
+        .bottom-nav { height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; }
+        .nav-link { color: #555; font-size: 0.7rem; text-align: center; text-decoration: none; }
+        .nav-link.active { color: var(--neon); }
 
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<header>
-    <button id="back-btn" onclick="goBack()">◀</button>
-    <h1 id="title">RETRO APP</h1>
-</header>
+    <header>
+        <button id="back-btn" onclick="navigation.back()">◀</button>
+        <h1 id="app-title" style="font-size: 1.2rem; letter-spacing: 1px;">MY COLLECTION</h1>
+    </header>
 
-<div id="view-brands" class="content"></div>
-<div id="view-categories" class="content hidden"></div>
-<div id="view-list" class="content hidden"><div id="list-grid" class="grid"></div></div>
+    <div id="main-view" class="app-content">
+        </div>
 
-<script>
-    const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
-    let brand = '';
-    let step = 'brands';
+    <nav class="bottom-nav">
+        <div class="nav-link active" onclick="navigation.home()">🏠<br>Accueil</div>
+        <div class="nav-link" onclick="stats.show()">📊<br>Stats</div>
+    </nav>
 
-    function getDriveImg(url) {
-        if (!url) return '';
-        if (url.includes('id=')) {
-            const id = url.split('id=')[1].split('&')[0];
-            return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
-        }
-        return url;
-    }
+    <script>
+        const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
+        let currentBrand = "", currentCat = "", currentConsole = "";
 
-    async function loadSheet(tab) {
-        try {
-            const response = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`);
-            const text = await response.text();
-            const data = JSON.parse(text.substr(47).slice(0, -2));
-            return data.table.rows;
-        } catch (e) {
-            console.error(e);
-            return [];
-        }
-    }
-
-    async function initBrands() {
-        const rows = await loadSheet('Menu');
-        let html = '';
-        rows.forEach(r => {
-            const name = r.c[0]?.v;
-            const img = getDriveImg(r.c[1]?.v);
-            if(name) html += `<div class="full-btn" style="background-image:url('${img}')" onclick="pickBrand('${name}')"><span>${name}</span></div>`;
-        });
-        document.getElementById('view-brands').innerHTML = html || "Erreur de chargement.";
-    }
-
-    async function initCategories() {
-        const rows = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Categories`)
-            .then(r => r.text()).then(t => JSON.parse(t.substr(47).slice(0, -2))).then(d => d.table.rows);
-        
-        let html = '';
-        rows.forEach(r => {
-            const name = r.c[0]?.v;
-            const img = getDriveImg(r.c[1]?.v);
-            if(name) html += `<div class="full-btn" style="background-image:url('${img}')" onclick="pickCategory('${name}')"><span>${name}</span></div>`;
-        });
-        document.getElementById('view-categories').innerHTML = html;
-    }
-
-    function pickBrand(b) {
-        brand = b; step = 'categories';
-        render();
-        initCategories();
-    }
-
-    function pickCategory(c) {
-        step = 'list';
-        render();
-        loadItems(c);
-    }
-
-    async function loadItems(c) {
-        const grid = document.getElementById('list-grid');
-        grid.innerHTML = "Chargement...";
-        const rows = await loadSheet(c);
-        let html = '';
-        rows.forEach(r => {
-            const name = r.c[0]?.v || '';
-            const b = r.c[1]?.v || '';
-            const img = getDriveImg(r.c[6]?.v);
-            const pr = r.c[12]?.v || '--';
-            const ow = r.c[14]?.v || '';
-
-            if(b.toLowerCase().includes(brand.toLowerCase())) {
-                html += `<div class="card ${ow.includes('Oui') ? '' : 'not-owned'}">
-                    <img src="${img}">
-                    <div style="font-size:0.8rem; margin:5px 0;">${name}</div>
-                    <div class="price">${pr} €</div>
-                </div>`;
+        const api = {
+            async get(tab) {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
+                const res = await fetch(url);
+                const text = await res.text();
+                return JSON.parse(text.substring(47, text.length - 2)).table.rows;
             }
-        });
-        grid.innerHTML = html || "Aucun jeu trouvé.";
-    }
+        };
 
-    function goBack() {
-        if(step === 'list') step = 'categories';
-        else if(step === 'categories') step = 'brands';
-        render();
-    }
+        const ui = {
+            renderBrands(rows) {
+                let html = '<div class="brand-container">';
+                rows.forEach(r => {
+                    const name = r.c[0].v;
+                    const img = `https://drive.google.com/thumbnail?id=${r.c[1].v.split('id=')[1].split('&')[0]}&sz=w500`;
+                    const colorClass = name.toLowerCase();
+                    html += `<div class="brand-pill ${colorClass}" onclick="navigation.selectBrand('${name}')"><img src="${img}"></div>`;
+                });
+                document.getElementById('main-view').innerHTML = html + '</div>';
+            },
 
-    function render() {
-        document.getElementById('view-brands').classList.toggle('hidden', step !== 'brands');
-        document.getElementById('view-categories').classList.toggle('hidden', step !== 'categories');
-        document.getElementById('view-list').classList.toggle('hidden', step !== 'list');
-        document.getElementById('back-btn').style.display = (step === '
+            renderCategories(rows) {
+                let html = '<div class="brand-container">';
+                rows.forEach(r => {
+                    const name = r.c[0].v;
+                    const img = `https://drive.google.com/thumbnail?id=${r.c[1].v.split('id=')[1].split('&')[0]}&sz=w500`;
+                    html += `<div class="brand-pill" style="border-color: #333" onclick="navigation.selectCategory('${name}')"><img src="${img}"><span>${name}</span></div>`;
+                });
+                document.getElementById('main-view').innerHTML = html + '</div>';
+            },
+
+            renderConsoles(list) {
+                let html = '<div class="grid">';
+                list.forEach(c => {
+                    html += `<div class="card" onclick="navigation.selectConsole('${c}')">
+                                <div style="font-size: 2rem;">🎮</div>
+                                <div class="title">${c}</div>
+                             </div>`;
+                });
+                document.getElementById('main-view').innerHTML = html + '</div>';
+            },
+
+            renderItems(rows) {
+                let html = '<div class="grid">';
+                rows.forEach(r => {
+                    const name = r.c[0]?.v || "";
+                    const b = r.c[1]?.v || "";
+                    const c = r.c[2]?.v || "";
+                    const img = r.c[6]?.v ? `https://drive.google.com/thumbnail?id=${r.c[6].v.split('id=')[1].split('&')[0]}&sz=w500` : "";
+                    const price = r.c[12]?.v || "--";
+                    const owned = r.c[14]?.v || "";
+
+                    if (b.toLowerCase().includes(currentBrand.toLowerCase()) && c === currentConsole) {
+                        html += `<div class="card ${owned.includes('Oui') ? '' : 'not-owned'}">
+                                    <img src="${img}">
+                                    <div class="title">${name}</div>
+                                    <div class="price">${price} €</div>
+                                 </div>`;
+                    }
+                });
+                document.getElementById('main-view').innerHTML = html + '</div>';
+            }
+        };
+
+        const navigation = {
+            async home() {
+                document.getElementById('back-btn').style.display = 'none';
+                const rows = await api.get('Menu');
+                ui.renderBrands(rows);
+            },
+            async selectBrand(b) {
+                currentBrand = b;
+                document.getElementById('back-btn').style.display = 'block';
+                const rows = await api.get('Categories');
+                ui.renderCategories(rows);
+            },
+            async selectCategory(cat) {
+                currentCat = cat;
+                const rows = await api.get(cat);
+                const consoles = [...new Set(rows.filter(r => r.c[1]?.v.toLowerCase().includes(currentBrand.toLowerCase())).map(r => r.c[2]?.v))];
+                ui.renderConsoles(consoles);
+            },
+            async selectConsole(cons) {
+                currentConsole = cons;
+                const rows = await api.get(currentCat);
+                ui.renderItems(rows);
+            },
+            back() { location.reload(); }
+        };
+
+        // Lancement direct
+        navigation.home();
+    </script>
+</body>
+</html>
