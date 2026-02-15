@@ -1,7 +1,6 @@
 const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU'; 
 const TAB_NAME = 'Jeux'; 
 
-// Correspondance entre tes noms de consoles et les IDs de ton Drive
 const CONSOLE_LOGOS = {
     "PS1": "1DV-N37sM1AA-fl5rYe1_Urr6hh9e6eTF",
     "PS2": "10h2eIupplXfFBvQQNWRptu1EC3xTkghc",
@@ -19,6 +18,34 @@ const CONSOLE_LOGOS = {
     "PSP": "1zOJp5Yh0JRHhI-o4PfyFTdX_OH7j3Bmo"
 };
 
+// --- FONCTIONS DE NAVIGATION ---
+
+function openBrand(brandName) {
+    document.getElementById('view-brands').style.display = 'none';
+    const viewList = document.getElementById('view-list');
+    viewList.style.display = 'block';
+    document.getElementById('back-btn').style.display = 'block';
+    renderCategories(brandName);
+}
+
+function renderCategories(brandName) {
+    const viewList = document.getElementById('view-list');
+    viewList.innerHTML = `
+        <h2 style="text-align:center; color:white; margin-bottom:30px;">${brandName}</h2>
+        <div class="category-pill" onclick="fetchGames('${brandName}')">JEUX</div>
+        <div class="category-pill" onclick="alert('Bientôt...')">CONSOLES</div>
+        <div class="category-pill" onclick="alert('Bientôt...')">ACCESSOIRES</div>
+    `;
+}
+
+function goBack() {
+    document.getElementById('view-brands').style.display = 'flex';
+    document.getElementById('view-list').style.display = 'none';
+    document.getElementById('back-btn').style.display = 'none';
+}
+
+// --- CHARGEMENT DES DONNÉES ---
+
 async function fetchGames(brand) {
     const viewList = document.getElementById('view-list');
     viewList.innerHTML = `<h2 style="text-align:center; color:white;">Chargement...</h2>`;
@@ -31,7 +58,6 @@ async function fetchGames(brand) {
         const json = JSON.parse(text.substr(47).slice(0, -2));
         const rows = json.table.rows;
 
-        // 1. Organiser les jeux par console
         const gamesByConsole = {};
         
         rows.forEach(row => {
@@ -49,36 +75,20 @@ async function fetchGames(brand) {
             }
         });
 
-        // 2. Construire l'affichage par blocs
         let html = `<h2 style="text-align:center; color:white; margin-bottom:20px;">Jeux ${brand}</h2>`;
         
         for (const consoleName in gamesByConsole) {
-            const logoId = CONSOLE_LOGOS[consoleName] || ""; // On cherche le logo
+            const logoId = CONSOLE_LOGOS[consoleName] || ""; 
             
             html += `
                 <div class="console-block" style="margin-bottom:30px;">
                     <div style="display:flex; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom: 2px solid #333;">
-                        ${logoId ? `<img src="https://drive.google.com/thumbnail?id=${logoId}&sz=w200" style="height:40px; margin-right:15px;">` : ""}
-                        <h3 style="color:white; margin:0;">${consoleName}</h3>
+                        ${logoId ? `<img src="https://drive.google.com/thumbnail?id=${logoId}&sz=w200" style="height:35px; margin-right:15px; filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.2));">` : ""}
+                        <h3 style="color:white; margin:0; font-family:sans-serif;">${consoleName}</h3>
                     </div>
                     ${gamesByConsole[consoleName].map(game => {
                         const opacity = game.isOwnedValue.includes("❌") ? "0.3" : "1";
                         return `
-                            <div style="background:#1a1a1a; margin-bottom:8px; padding:12px; border-radius:8px; color:white; opacity:${opacity}; display:flex; justify-content:space-between; align-items:center;">
-                                <span>${game.title}</span>
-                                <span style="color:#00ff00;">${game.price}€</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        }
-
-        viewList.innerHTML = html;
-
-    } catch (error) {
-        viewList.innerHTML = `<p style="color:red; text-align:center;">Erreur de chargement.</p>`;
-    }
-}
-
-// Les fonctions openBrand, renderCategories et goBack restent identiques
+                            <div style="background:#1a1a1a; margin-bottom:8px; padding:12px; border-radius:8px; color:white; opacity:${opacity}; display:flex; justify-content:space-between; align-items:center; border-left: 3px solid #333;">
+                                <span style="font-family:sans-serif;">${game.title}</span>
+                                <span style="color:#00ff00
