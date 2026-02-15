@@ -15,32 +15,76 @@
     </header>
 
     <div id="view-brands" class="menu-container">
-        
-        <div class="pill pill-nintendo" onclick="openBrand('Nintendo')" style="color:white; font-family:sans-serif; font-weight:bold;">
-            <img src="https://drive.google.com/thumbnail?id=1UjAmaGcJuACX5jIkaDu6OdHA4fkKokp-&sz=w500" 
-                 alt="Nintendo" 
-                 onerror="this.style.display='none'; this.parentNode.innerText='NINTENDO';"
-                 style="max-height:60%;">
+        <div class="pill pill-nintendo" onclick="openBrand('Nintendo')">
+            <img src="https://drive.google.com/thumbnail?id=1UjAmaGcJuACX5jIkaDu6OdHA4fkKokp-&sz=w500" alt="Nintendo" onerror="this.style.display='none'; this.parentNode.innerText='NINTENDO';">
         </div>
-        
-        <div class="pill pill-sony" onclick="openBrand('PlayStation')" style="color:white; font-family:sans-serif; font-weight:bold;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Playstation_logo_colour.svg" 
-                 alt="Sony"
-                 onerror="this.style.display='none'; this.parentNode.innerText='SONY';"
-                 style="max-height:60%;">
+        <div class="pill pill-sony" onclick="openBrand('PlayStation')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Playstation_logo_colour.svg" alt="Sony">
         </div>
-        
-        <div class="pill pill-xbox" onclick="openBrand('Xbox')" style="color:white; font-family:sans-serif; font-weight:bold;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg" 
-                 alt="Xbox"
-                 onerror="this.style.display='none'; this.parentNode.innerText='XBOX';"
-                 style="max-height:60%;">
+        <div class="pill pill-xbox" onclick="openBrand('Xbox')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg" alt="Xbox">
         </div>
-
     </div>
 
     <div id="view-list" style="display: none; padding: 20px;"></div>
 
-    <script src="app.js"></script>
+    <script>
+        // LE CERVEAU EST ICI MAINTENANT
+        const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
+
+        function openBrand(brandName) {
+            document.getElementById('view-brands').style.display = 'none';
+            document.getElementById('view-list').style.display = 'block';
+            document.getElementById('back-btn').style.display = 'block';
+            
+            document.getElementById('view-list').innerHTML = `
+                <h2 style="text-align:center; color:white; margin-bottom:30px;">${brandName}</h2>
+                <div class="category-pill" onclick="fetchGames('${brandName}')" style="background:#222; padding:20px; border-radius:50px; text-align:center; color:white; margin-bottom:15px; border:1px solid #444; font-weight:bold;">JEUX</div>
+                <div class="category-pill" style="background:#222; padding:20px; border-radius:50px; text-align:center; color:white; margin-bottom:15px; border:1px solid #444; opacity:0.5;">CONSOLES</div>
+                <div class="category-pill" style="background:#222; padding:20px; border-radius:50px; text-align:center; color:white; margin-bottom:15px; border:1px solid #444; opacity:0.5;">ACCESSOIRES</div>
+            `;
+        }
+
+        function goBack() {
+            document.getElementById('view-brands').style.display = 'flex';
+            document.getElementById('view-list').style.display = 'none';
+            document.getElementById('back-btn').style.display = 'none';
+        }
+
+        async function fetchGames(brand) {
+            const viewList = document.getElementById('view-list');
+            viewList.innerHTML = `<h2 style="text-align:center; color:white;">Connexion au Sheets...</h2>`;
+            
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`;
+
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                const json = JSON.parse(text.substr(47).slice(0, -2));
+                const rows = json.table.rows;
+                
+                let html = `<h2 style="text-align:center; color:white;">Jeux ${brand}</h2>`;
+                
+                rows.forEach(row => {
+                    const title = row.c[0] ? row.c[0].v : "Sans titre";
+                    const brandInSheet = row.c[2] ? row.c[2].v : "";
+                    const price = row.c[12] ? row.c[12].v : "0";
+                    const isOwned = row.c[14] ? row.c[14].v : "";
+
+                    if (brandInSheet && brandInSheet.toLowerCase().includes(brand.toLowerCase())) {
+                        const opacity = isOwned.includes("❌") ? "0.3" : "1";
+                        html += `
+                            <div style="background:#1a1a1a; margin-bottom:10px; padding:15px; border-radius:10px; color:white; opacity:${opacity}; display:flex; justify-content:space-between; border-left:4px solid #444;">
+                                <span>${title}</span>
+                                <span style="color:#00ff00; font-weight:bold;">${price}€</span>
+                            </div>`;
+                    }
+                });
+                viewList.innerHTML = html;
+            } catch (e) {
+                viewList.innerHTML = `<p style="color:red;">Erreur. Vérifie ta connexion.</p>`;
+            }
+        }
+    </script>
 </body>
 </html>
