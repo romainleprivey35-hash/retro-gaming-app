@@ -1,20 +1,34 @@
+// Remplace cette URL par TON lien Google Sheets (en t'assurant qu'il est en "Partage public")
+const SHEET_URL = "TON_LIEN_GOOGLE_SHEET_ICI";
+
 function openBrand(brandName) {
-    // 1. Cacher le menu principal
     document.getElementById('view-brands').style.display = 'none';
-    
-    // 2. Afficher la zone de liste et le bouton retour
     const viewList = document.getElementById('view-list');
     viewList.style.display = 'block';
     document.getElementById('back-btn').style.display = 'block';
     
-    // 3. Créer le titre et les boutons de catégories
+    // On affiche un message de chargement
+    viewList.innerHTML = `<h2 style="text-align:center; color:white;">Chargement de ${brandName}...</h2>`;
+    
+    // Pour l'instant on garde nos boutons de test, mais on prépare la suite
+    setTimeout(() => {
+        renderCategories(brandName);
+    }, 500); 
+}
+
+function renderCategories(brandName) {
+    const viewList = document.getElementById('view-list');
     viewList.innerHTML = `
         <h2 style="text-align:center; color:white; margin-bottom:30px;">${brandName}</h2>
-        
-        <div class="category-pill" onclick="alert('Bientôt : Liste des Jeux')">JEUX</div>
-        <div class="category-pill" onclick="alert('Bientôt : Liste des Consoles')">CONSOLES</div>
-        <div class="category-pill" onclick="alert('Bientôt : Liste des Accessoires')">ACCESSOIRES</div>
+        <div class="category-pill" onclick="loadData('${brandName}', 'Jeux')">JEUX</div>
+        <div class="category-pill" onclick="loadData('${brandName}', 'Consoles')">CONSOLES</div>
+        <div class="category-pill" onclick="loadData('${brandName}', 'Accessoires')">ACCESSOIRES</div>
     `;
+}
+
+function loadData(brand, category) {
+    alert("Connexion au Sheets pour : " + brand + " / " + category);
+    // C'est ici qu'on ajoutera le code pour aspirer tes lignes Google Sheets à l'étape suivante
 }
 
 function goBack() {
