@@ -18,12 +18,10 @@ const CONSOLE_LOGOS = {
     "PSP": "1zOJp5Yh0JRHhI-o4PfyFTdX_OH7j3Bmo"
 };
 
-// --- FONCTIONS DE NAVIGATION ---
-
 function openBrand(brandName) {
+    console.log("Clic sur " + brandName);
     document.getElementById('view-brands').style.display = 'none';
-    const viewList = document.getElementById('view-list');
-    viewList.style.display = 'block';
+    document.getElementById('view-list').style.display = 'block';
     document.getElementById('back-btn').style.display = 'block';
     renderCategories(brandName);
 }
@@ -44,12 +42,10 @@ function goBack() {
     document.getElementById('back-btn').style.display = 'none';
 }
 
-// --- CHARGEMENT DES DONNÉES ---
-
 async function fetchGames(brand) {
     const viewList = document.getElementById('view-list');
     viewList.innerHTML = `<h2 style="text-align:center; color:white;">Chargement...</h2>`;
-
+    
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${TAB_NAME}`;
 
     try {
@@ -57,7 +53,6 @@ async function fetchGames(brand) {
         const text = await response.text();
         const json = JSON.parse(text.substr(47).slice(0, -2));
         const rows = json.table.rows;
-
         const gamesByConsole = {};
         
         rows.forEach(row => {
@@ -67,28 +62,23 @@ async function fetchGames(brand) {
             const price = row.c[12] ? row.c[12].v : "0";
             const isOwnedValue = row.c[14] ? row.c[14].v : "";
 
-            if (brandInSheet.toLowerCase().includes(brand.toLowerCase())) {
-                if (!gamesByConsole[consoleType]) {
-                    gamesByConsole[consoleType] = [];
-                }
+            if (brandInSheet && brandInSheet.toLowerCase().includes(brand.toLowerCase())) {
+                if (!gamesByConsole[consoleType]) gamesByConsole[consoleType] = [];
                 gamesByConsole[consoleType].push({ title, price, isOwnedValue });
             }
         });
 
         let html = `<h2 style="text-align:center; color:white; margin-bottom:20px;">Jeux ${brand}</h2>`;
-        
         for (const consoleName in gamesByConsole) {
             const logoId = CONSOLE_LOGOS[consoleName] || ""; 
-            
             html += `
-                <div class="console-block" style="margin-bottom:30px;">
-                    <div style="display:flex; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom: 2px solid #333;">
-                        ${logoId ? `<img src="https://drive.google.com/thumbnail?id=${logoId}&sz=w200" style="height:35px; margin-right:15px; filter: drop-shadow(0px 0px 5px rgba(255,255,255,0.2));">` : ""}
-                        <h3 style="color:white; margin:0; font-family:sans-serif;">${consoleName}</h3>
+                <div style="margin-bottom:30px;">
+                    <div style="display:flex; align-items:center; margin-bottom:15px; border-bottom: 2px solid #333; padding-bottom:5px;">
+                        ${logoId ? `<img src="https://drive.google.com/thumbnail?id=${logoId}&sz=w200" style="height:30px; margin-right:10px;">` : ""}
+                        <h3 style="color:white; margin:0;">${consoleName}</h3>
                     </div>
                     ${gamesByConsole[consoleName].map(game => {
                         const opacity = game.isOwnedValue.includes("❌") ? "0.3" : "1";
-                        return `
-                            <div style="background:#1a1a1a; margin-bottom:8px; padding:12px; border-radius:8px; color:white; opacity:${opacity}; display:flex; justify-content:space-between; align-items:center; border-left: 3px solid #333;">
-                                <span style="font-family:sans-serif;">${game.title}</span>
-                                <span style="color:#00ff00
+                        return `<div style="background:#1a1a1a; margin-bottom:8px; padding:12px; border-radius:8px; color:white; opacity:${opacity}; display:flex; justify-content:space-between;">
+                            <span>${game.title}</span>
+                            <span style
