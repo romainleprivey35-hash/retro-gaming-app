@@ -4,80 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Retro Collection</title>
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header style="height: 60px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #222;">
-        <h1 id="main-title" style="font-size: 1.2rem; color: #00ff88; text-transform: uppercase;">Retro App</h1>
-    </header>
+    <header>
+        <button id="back-btn" style="display: none;" onclick="goHome()">◀ Retour</button>
+        </header>
 
     <div id="app-container">
         <div id="view-brands" class="pill-container">
             <div class="pill nintendo" onclick="loadBrand('Nintendo')">
-                <img id="logo-nintendo" src="" alt="Nintendo">
+                <img id="logo-nintendo" src="">
             </div>
             <div class="pill playstation" onclick="loadBrand('Playstation')">
-                <img id="logo-sony" src="" alt="Playstation">
+                <img id="logo-sony" src="">
             </div>
             <div class="pill xbox" onclick="loadBrand('Xbox')">
-                <img id="logo-xbox" src="" alt="Xbox">
+                <img id="logo-xbox" src="">
             </div>
         </div>
 
-        <div id="view-list" class="game-grid" style="display: none;">
-            </div>
+        <div id="view-list" class="game-grid" style="display: none;"></div>
     </div>
 
     <script>
         const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
 
-        // 1. Fonction pour nettoyer les liens Drive
         function formatImg(url) {
             if (!url || !url.includes('id=')) return url;
             const id = url.split('id=')[1].split('&')[0];
             return `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
         }
 
-        // 2. Chargement des 3 logos dès le départ
+        // Chargement des logos du menu
         async function fetchLogos() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Menu`;
             const res = await fetch(url);
             const text = await res.text();
             const rows = JSON.parse(text.substring(47, text.length - 2)).table.rows;
             
-            // On assigne les images de ton Sheet aux 3 pilules fixes
+            // On s'assure de prendre le bon logo pour la bonne marque
+            // Si l'ordre dans ton Google Sheet change, on pourra filtrer par nom ici
             document.getElementById('logo-nintendo').src = formatImg(rows[0].c[1].v);
             document.getElementById('logo-sony').src = formatImg(rows[1].c[1].v);
             document.getElementById('logo-xbox').src = formatImg(rows[2].c[1].v);
         }
 
-        // 3. Fonction pour charger les jeux (Vrac pour l'instant pour assurer la marche)
         async function loadBrand(brandName) {
+            // UI Switch
             document.getElementById('view-brands').style.display = 'none';
             document.getElementById('view-list').style.display = 'grid';
-            document.getElementById('main-title').innerText = brandName.toUpperCase();
+            document.getElementById('back-btn').style.display = 'block';
+            document.getElementById('view-list').innerHTML = "<p style='text-align:center; width:100%; grid-column:1/3;'>Chargement des jeux...</p>";
             
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`;
-            const res = await fetch(url);
-            const text = await res.text();
-            const rows = JSON.parse(text.substring(47, text.length - 2)).table.rows;
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`;
+                const res = await fetch(url);
+                const text = await res.text();
+                const rows = JSON.parse(text.substring(47, text.length - 2)).table.rows;
 
-            let html = '';
-            rows.forEach(r => {
-                const itemBrand = r.c[1]?.v || "";
-                if (itemBrand.toLowerCase().includes(brandName.toLowerCase())) {
-                    const owned = r.c[14]?.v || "";
-                    html += `
-                        <div class="game-card ${owned.includes('Oui') ? '' : 'not-owned'}">
-                            <img src="${formatImg(r.c[6]?.v)}">
-                            <div style="font-size:0.8rem; margin:10px 0;">${r.c[0].v}</div>
-                            <div style="color:#00ff88; font-weight:bold;">${r.c[12]?.v || '--'} €</div>
-                        </div>`;
-                }
-            });
-            document.getElementById('view-list').innerHTML = html;
+                let html = '';
+                rows.forEach(r => {
+                    const itemBrand = r.c[1]?.v || "";
+                    // Filtre sur la marque
+                    if (itemBrand.toLowerCase().includes(brandName.toLowerCase())) {
+                        const title = r.c[0]?.v || "Sans titre";
+                        const price = r.c[12]?.v || "--";
+                        const owned = r.c[14]?.v || "";
+                        const img = formatImg(r.c[6]?.v);
+
+                        html += `
+                            <div class="game-card ${owned.includes('Oui') ? '' : 'not-owned'}">
+                                <img src="${img}">
+                                <div style="font-size:0.75rem; font-weight:bold; margin:8px 0; height:32px; overflow:hidden;">${title}</div>
+                                <div style="color:#00ff88; font-weight:bold;">${price} €</div>
+                            </div>`;
+                    }
+                });
+                document.getElementById('view-list').innerHTML = html || "<p style='text-align:center; width:100%; grid-column:1/3;'>Aucun jeu trouvé.</p>";
+            } catch (e) {
+                document.getElementById('view-list').innerHTML = "Erreur de chargement.";
+            }
+        }
+
+        function goHome() {
+            document.getElementById('view-brands').style.display = 'flex';
+            document.getElementById('view-list').style.display = 'none';
+            document.getElementById('back-btn').style.display = 'none';
         }
 
         fetchLogos();
