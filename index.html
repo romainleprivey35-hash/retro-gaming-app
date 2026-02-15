@@ -8,19 +8,28 @@
 </head>
 <body>
 
-    <div class="menu-container">
-        <div class="pill pill-nintendo">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg" alt="Nintendo">
+    <header style="height: 60px; display: flex; align-items: center; padding: 0 20px;">
+        <button id="back-btn" onclick="goBack()" style="display: none; background: #333; color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 20px; font-weight: bold;">
+            ◀ RETOUR
+        </button>
+    </header>
+
+    <div id="view-brands" class="menu-container">
+        <div class="pill pill-nintendo" onclick="openBrand('Nintendo')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/Nintendo_Logo.svg" alt="Nintendo">
         </div>
         
-        <div class="pill pill-sony">
+        <div class="pill pill-sony" onclick="openBrand('PlayStation')">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Playstation_logo_colour.svg" alt="Sony">
         </div>
         
-        <div class="pill pill-xbox">
+        <div class="pill pill-xbox" onclick="openBrand('Xbox')">
             <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg" alt="Xbox">
         </div>
     </div>
 
+    <div id="view-list" style="display: none; padding: 20px;"></div>
+
+    <script src="app.js"></script>
 </body>
 </html>
