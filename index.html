@@ -9,23 +9,32 @@
 <body>
 
     <header style="height: 60px; display: flex; align-items: center; padding: 0 20px;">
-        <button id="back-btn" onclick="goBack()" style="display: none; background: #333; color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 20px; font-weight: bold;">
+        <button id="back-btn" onclick="goBack()" style="display: none; background: #333; color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 20px;">
             ◀ RETOUR
         </button>
     </header>
 
     <div id="view-brands" class="menu-container">
         
-        <div class="pill pill-nintendo" onclick="openBrand('Nintendo')">
-            <img src="https://drive.google.com/thumbnail?id=1UjAmaGcJuACX5jIkaDu6OdHA4fkKokp-&sz=w500" alt="Nintendo">
+        <div class="pill pill-nintendo" onclick="openBrand('Nintendo')" style="color:white; font-family:sans-serif; font-weight:bold;">
+            <img src="https://drive.google.com/thumbnail?id=1UjAmaGcJuACX5jIkaDu6OdHA4fkKokp-&sz=w500" 
+                 alt="Nintendo" 
+                 onerror="this.style.display='none'; this.parentNode.innerText='NINTENDO';"
+                 style="max-height:60%;">
         </div>
         
-        <div class="pill pill-sony" onclick="openBrand('PlayStation')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Playstation_logo_colour.svg" alt="Sony">
+        <div class="pill pill-sony" onclick="openBrand('PlayStation')" style="color:white; font-family:sans-serif; font-weight:bold;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Playstation_logo_colour.svg" 
+                 alt="Sony"
+                 onerror="this.style.display='none'; this.parentNode.innerText='SONY';"
+                 style="max-height:60%;">
         </div>
         
-        <div class="pill pill-xbox" onclick="openBrand('Xbox')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg" alt="Xbox">
+        <div class="pill pill-xbox" onclick="openBrand('Xbox')" style="color:white; font-family:sans-serif; font-weight:bold;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg" 
+                 alt="Xbox"
+                 onerror="this.style.display='none'; this.parentNode.innerText='XBOX';"
+                 style="max-height:60%;">
         </div>
 
     </div>
