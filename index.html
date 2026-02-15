@@ -3,93 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Retro Collection</title>
+    <title>Retro App - Step 1</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header>
-        <button id="back-btn" style="display: none;" onclick="goHome()">◀ RETOUR</button>
-    </header>
-
-    <div id="view-brands" class="pill-container">
-        <div class="pill nintendo" onclick="loadBrand('Nintendo')">
-            <img id="logo-nintendo" src="" alt="NINTENDO">
-        </div>
-        <div class="pill playstation" onclick="loadBrand('Playstation')">
-            <img id="logo-sony" src="" alt="SONY">
-        </div>
-        <div class="pill xbox" onclick="loadBrand('Xbox')">
-            <img id="logo-xbox" src="" alt="XBOX">
-        </div>
+    <div class="menu-container">
+        <div class="pill pill-nintendo"></div>
+        
+        <div class="pill pill-sony"></div>
+        
+        <div class="pill pill-xbox"></div>
     </div>
 
-    <div id="view-list" class="game-grid" style="display: none;"></div>
-
-    <script>
-        const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
-
-        function formatImg(url) {
-            if (!url) return '';
-            if (url.includes('id=')) {
-                const id = url.split('id=')[1].split('&')[0];
-                return `https://drive.google.com/thumbnail?id=${id}&sz=w500`;
-            }
-            return url;
-        }
-
-        async function fetchLogos() {
-            try {
-                const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Menu`);
-                const text = await res.text();
-                const rows = JSON.parse(text.substring(47, text.length - 2)).table.rows;
-                
-                // On essaie de charger les logos
-                if(rows[0]) document.getElementById('logo-nintendo').src = formatImg(rows[0].c[1].v);
-                if(rows[1]) document.getElementById('logo-sony').src = formatImg(rows[1].c[1].v);
-                if(rows[2]) document.getElementById('logo-xbox').src = formatImg(rows[2].c[1].v);
-            } catch (e) { console.log("Erreur logos"); }
-        }
-
-        async function loadBrand(brandName) {
-            // Changement de vue immédiat
-            document.getElementById('view-brands').style.display = 'none';
-            document.getElementById('view-list').style.display = 'grid';
-            document.getElementById('back-btn').style.display = 'block';
-            document.getElementById('view-list').innerHTML = "<p>Chargement...</p>";
-            
-            try {
-                const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`);
-                const text = await res.text();
-                const rows = JSON.parse(text.substring(47, text.length - 2)).table.rows;
-
-                let html = '';
-                rows.forEach(r => {
-                    const itemBrand = r.c[1]?.v || "";
-                    if (itemBrand.toLowerCase().includes(brandName.toLowerCase())) {
-                        const owned = r.c[14]?.v || "";
-                        html += `
-                            <div class="game-card ${owned.includes('Oui') ? '' : 'not-owned'}">
-                                <img src="${formatImg(r.c[6]?.v)}">
-                                <div style="font-size:0.75rem; margin:8px 0;">${r.c[0].v}</div>
-                                <div style="color:#00ff88;">${r.c[12]?.v || '--'} €</div>
-                            </div>`;
-                    }
-                });
-                document.getElementById('view-list').innerHTML = html || "Aucun jeu.";
-            } catch (e) {
-                document.getElementById('view-list').innerHTML = "Erreur de connexion.";
-            }
-        }
-
-        function goHome() {
-            document.getElementById('view-brands').style.display = 'flex';
-            document.getElementById('view-list').style.display = 'none';
-            document.getElementById('back-btn').style.display = 'none';
-        }
-
-        // On lance le chargement des logos en arrière-plan
-        fetchLogos();
-    </script>
 </body>
 </html>
