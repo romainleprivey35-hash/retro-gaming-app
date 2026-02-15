@@ -1,23 +1,41 @@
-/* --- LE VISUEL --- */
 :root {
     --nintendo: #e60012;
     --sony: #003791;
     --xbox: #107c10;
-    --neon: #00ff88;
     --bg: #000;
 }
 
 body {
     background: var(--bg);
     color: white;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: sans-serif;
     margin: 0;
+    padding: 0;
     height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-/* Les Pilules du Menu */
+header {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    border-bottom: 1px solid #222;
+}
+
+#back-btn {
+    position: absolute;
+    left: 15px;
+    background: #333;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    z-index: 10;
+}
+
+/* Container des 3 pilules */
 .pill-container {
     display: flex;
     flex-direction: column;
@@ -33,21 +51,28 @@ body {
     align-items: center;
     justify-content: center;
     border: 2px solid rgba(255,255,255,0.1);
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+    overflow: hidden; /* Empêche le logo de déborder */
+    background: #000;
 }
 
-.pill.nintendo { box-shadow: 0 0 25px var(--nintendo); border-color: var(--nintendo); }
-.pill.playstation { box-shadow: 0 0 25px var(--sony); border-color: var(--sony); }
-.pill.xbox { box-shadow: 0 0 25px var(--xbox); border-color: var(--xbox); }
+/* Affectation des halos aux bonnes couleurs */
+.pill.nintendo { box-shadow: 0 0 20px var(--nintendo); border-color: var(--nintendo); }
+.pill.playstation { box-shadow: 0 0 20px var(--sony); border-color: var(--sony); }
+.pill.xbox { box-shadow: 0 0 20px var(--xbox); border-color: var(--xbox); }
 
-/* La Grille des Jeux */
+.pill img {
+    max-height: 80%;
+    max-width: 80%;
+    object-fit: contain;
+}
+
+/* Grille des jeux */
 .game-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
     padding: 15px;
+    overflow-y: auto;
 }
 
 .game-card {
@@ -58,13 +83,5 @@ body {
     text-align: center;
 }
 
-.game-card img {
-    width: 100%;
-    height: 140px;
-    object-fit: contain;
-}
-
-.not-owned {
-    opacity: 0.2;
-    filter: grayscale(1);
-}
+.game-card img { width: 100%; height: 120px; object-fit: contain; }
+.not-owned { opacity: 0.25; filter: grayscale(1); }
