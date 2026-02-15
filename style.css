@@ -1,13 +1,46 @@
-/* Centrage des images dans les pilules */
+:root {
+    --nintendo: #e60012;
+    --sony: #003791;
+    --xbox: #107c10;
+    --bg: #000;
+}
+
+body {
+    background-color: #000 !important; /* Force le noir */
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    justify-content: space-around;
+    align-items: center;
+    box-sizing: border-box;
+}
+
 .pill {
+    width: 90%;
+    height: 25%;
+    border-radius: 100px;
+    background: #111;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
+.pill-nintendo { box-shadow: 0 0 25px var(--nintendo); border-color: var(--nintendo); }
+.pill-sony { box-shadow: 0 0 25px var(--sony); border-color: var(--sony); }
+.pill-xbox { box-shadow: 0 0 25px var(--xbox); border-color: var(--xbox); }
+
 .pill img {
-    max-height: 70%;
+    max-height: 60%;
     max-width: 80%;
     object-fit: contain;
 }
