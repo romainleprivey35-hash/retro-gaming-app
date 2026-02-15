@@ -1,0 +1,70 @@
+/* --- LE VISUEL --- */
+:root {
+    --nintendo: #e60012;
+    --sony: #003791;
+    --xbox: #107c10;
+    --neon: #00ff88;
+    --bg: #000;
+}
+
+body {
+    background: var(--bg);
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Les Pilules du Menu */
+.pill-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    flex: 1;
+}
+
+.pill {
+    flex: 1;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.1);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.pill.nintendo { box-shadow: 0 0 25px var(--nintendo); border-color: var(--nintendo); }
+.pill.playstation { box-shadow: 0 0 25px var(--sony); border-color: var(--sony); }
+.pill.xbox { box-shadow: 0 0 25px var(--xbox); border-color: var(--xbox); }
+
+/* La Grille des Jeux */
+.game-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 15px;
+}
+
+.game-card {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 15px;
+    padding: 10px;
+    text-align: center;
+}
+
+.game-card img {
+    width: 100%;
+    height: 140px;
+    object-fit: contain;
+}
+
+.not-owned {
+    opacity: 0.2;
+    filter: grayscale(1);
+}
