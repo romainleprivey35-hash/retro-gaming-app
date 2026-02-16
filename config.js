@@ -4,9 +4,10 @@ const CONFIG = {
     
     // Les noms EXACTS de tes onglets (attention à la majuscule)
     TABS: {
-        JEUX: 'Jeux',
-        CONSOLES: 'Consoles'
-    },
+    JEUX: 'Jeux',
+    CONSOLES: 'Consoles',
+    ACCESSOIRES: 'Accessoires' // <-- Vérifie que le nom est identique à ton onglet Sheets
+}
 
     // Les logos qui s'affichent en haut des listes de jeux
     CONSOLE_LOGOS: {
