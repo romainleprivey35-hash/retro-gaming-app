@@ -36,7 +36,6 @@ function showCategories() {
         </div>`;
 }
 
-// LOGIQUE DES CLICS ET ANIMATIONS
 let activeGameData = null;
 
 function handleCardClick(imgSrc, data) {
@@ -44,7 +43,8 @@ function handleCardClick(imgSrc, data) {
     const overlay = document.getElementById('overlay');
     const floating = document.getElementById('floating-card');
     
-    floating.innerHTML = `<div class="game-card" style="width:100%;height:100%;border:none;"><img src="${imgSrc}"></div>`;
+    // On met juste l'image, sans le conteneur game-card pour ne pas avoir de fond blanc
+    floating.innerHTML = `<img src="${imgSrc}">`;
     overlay.style.display = 'block';
     floating.style.display = 'block';
     floating.classList.remove('bounce');
@@ -60,8 +60,8 @@ function handleFloatingClick() {
         const detail = document.getElementById('full-detail');
         detail.style.display = 'block';
         detail.innerHTML = `
-            <button onclick="this.parentElement.style.display='none'" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;">✕ FERMER</button>
-            <img src="${activeGameData.img}" style="width:100%; max-height:350px; object-fit:contain; margin:20px 0;">
+            <button onclick="document.getElementById('full-detail').style.display='none'" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;">✕ FERMER</button>
+            <img src="${activeGameData.img}" style="width:100%; max-height:350px; object-fit:contain; margin:20px 0; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));">
             <h1 style="text-align:center;">${activeGameData.title}</h1>
             <div style="background:#f9f9f9; padding:20px; border-radius:10px; margin-top:20px;">
                 <p><b>Console :</b> ${activeGameData.console}</p>
@@ -75,6 +75,7 @@ function handleFloatingClick() {
 function closeOverlay() {
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('floating-card').style.display = 'none';
+    document.getElementById('floating-card').classList.remove('animate-zoom', 'bounce');
 }
 
 async function fetchGamesByBrand() {
@@ -97,21 +98,29 @@ async function fetchGamesByBrand() {
     });
 
     for (const c in groups) {
-        view.innerHTML += `<div style="padding:15px 15px 0;"><b>${c}</b></div><div class="game-grid">`;
+        const titleDiv = document.createElement('div');
+        titleDiv.style.padding = "15px 15px 0";
+        titleDiv.innerHTML = `<b>${c}</b>`;
+        view.appendChild(titleDiv);
+        
+        const grid = document.createElement('div');
+        grid.className = 'game-grid';
         groups[c].forEach(g => {
-            const card = document.createElement('div'); card.className = 'game-card';
+            const card = document.createElement('div');
+            card.className = 'game-card';
             card.style.opacity = g.owned.includes('✅') ? '1' : '0.4';
             card.onclick = () => handleCardClick(g.img, g);
             card.innerHTML = `<img src="${g.img}">`;
-            view.lastChild.appendChild(card);
+            grid.appendChild(card);
         });
+        view.appendChild(grid);
     }
 }
 
 // CONSOLES ET ACCESSOIRES
 async function fetchConsolesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.CONSOLES}`;
     const resp = await fetch(url);
     const text = await resp.text();
@@ -131,7 +140,7 @@ async function fetchConsolesByBrand() {
 
 async function fetchAccessoriesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES</h2>`;
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES</h2>`;
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.ACCESSOIRES}`;
     const resp = await fetch(url);
     const text = await resp.text();
