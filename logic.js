@@ -28,7 +28,7 @@ function showCategories() {
     const view = document.getElementById('view-list');
     view.innerHTML = `
         <div class="sticky-header"><button onclick="location.reload()">⬅ Retour</button></div>
-        <h2 style="text-align:center; margin-top:80px;">${currentBrand.toUpperCase()}</h2>
+        <h2 style="text-align:center; margin-top:80px; color:white;">${currentBrand.toUpperCase()}</h2>
         <div class="game-grid">
             <div class="game-card" onclick="fetchGamesByBrand()"><div style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:bold;">🎮 JEUX</div></div>
             <div class="game-card" onclick="fetchConsolesByBrand()"><div style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:bold;">🕹️ CONSOLES</div></div>
@@ -38,6 +38,7 @@ function showCategories() {
 
 let activeGameData = null;
 
+// ÉTAPE 1 : CLIC SUR LA GRILLE (ZOOM ET ROTATION)
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
@@ -51,6 +52,7 @@ function handleCardClick(imgSrc, data) {
     setTimeout(() => { floating.classList.add('animate-zoom'); }, 10);
 }
 
+// RETOUR : CLIC SUR LE GRIS (INVERSE 2X PLUS RAPIDE)
 function closeOverlay() {
     const floating = document.getElementById('floating-card');
     floating.classList.remove('animate-zoom');
@@ -60,20 +62,19 @@ function closeOverlay() {
         document.getElementById('overlay').style.display = 'none';
         floating.style.display = 'none';
         floating.classList.remove('animate-reverse');
-    }, 600); // 2x plus rapide (0.6s)
+    }, 600); // 0.6s (moitié de 1.2s)
 }
 
+// ÉTAPE 2 : CLIC SUR L'IMAGE ZOOMÉE (REBOND + FUSION ROTATIVE)
 function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
     
-    // 1. Rebond
     floating.classList.add('bounce');
     
     setTimeout(() => {
-        // Préparer la fiche en fond
         detail.innerHTML = `
-            <button onclick="this.parentElement.classList.remove('open'); setTimeout(()=>this.parentElement.style.display='none', 1000)" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
+            <button onclick="document.getElementById('full-detail').classList.remove('open'); setTimeout(()=>document.getElementById('full-detail').style.display='none', 1000)" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
             <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:20px;">
             <h1 style="text-align:center;margin:0 0 20px 0;">${activeGameData.title}</h1>
             <div style="background:#f9f9f9; padding:20px; border-radius:15px; font-size:1.1em; border:1px solid #eee;">
@@ -82,22 +83,21 @@ function handleFloatingClick() {
                 <p><b>Statut :</b> ${activeGameData.owned}</p>
             </div>`;
         
-        // 2. Lancer la FUSION (Rotation + Flou + Apparition fiche)
         floating.classList.remove('bounce');
-        floating.classList.add('fusion-out'); // Image devient floue et tourne
-        detail.style.display = 'block';
-        setTimeout(() => { detail.classList.add('open'); }, 50); // Fiche apparaît en fondu
+        floating.classList.add('fusion-out'); // Rotation vers 720deg + flou
         
-        // 3. Nettoyer après l'animation
+        detail.style.display = 'block';
+        setTimeout(() => { detail.classList.add('open'); }, 50); // Fondu de la fiche
+        
         setTimeout(() => {
             document.getElementById('overlay').style.display = 'none';
             floating.style.display = 'none';
-            floating.classList.remove('fusion-out');
         }, 1200);
 
-    }, 400); // Temps du rebond
+    }, 400); 
 }
 
+// CHARGEMENT DES DONNÉES (JEUX, CONSOLES, ACCESSOIRES)
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `
@@ -105,7 +105,7 @@ async function fetchGamesByBrand() {
         <div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div>
         <div id="full-detail"></div>
         <div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div>
-        <h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
+        <h2 style="text-align:center;margin-top:80px;color:white;">JEUX</h2>`;
     
     if (allGames.length === 0) await preloadData();
     const groups = {};
@@ -120,6 +120,7 @@ async function fetchGamesByBrand() {
     for (const c in groups) {
         const titleDiv = document.createElement('div');
         titleDiv.style.padding = "15px 15px 0";
+        titleDiv.style.color = "white";
         titleDiv.innerHTML = `<b>${c}</b>`;
         view.appendChild(titleDiv);
         const grid = document.createElement('div');
@@ -136,10 +137,9 @@ async function fetchGamesByBrand() {
     }
 }
 
-// CONSOLES ET ACCESSOIRES (Utilisent la même logique de clic)
 async function fetchConsolesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;color:white;">CONSOLES</h2>`;
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.CONSOLES}`;
     const resp = await fetch(url);
     const text = await resp.text();
@@ -159,7 +159,7 @@ async function fetchConsolesByBrand() {
 
 async function fetchAccessoriesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES</h2>`;
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;color:white;">ACCESSOIRES</h2>`;
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.ACCESSOIRES}`;
     const resp = await fetch(url);
     const text = await resp.text();
