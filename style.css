@@ -1,72 +1,35 @@
-:root { --brand-color: #333; --bg-color: #ffffff; }
-body { background: var(--bg-color); color: #333; font-family: sans-serif; margin: 0; padding-bottom: 90px; }
+/* --- ANIMATIONS DE FUSION VERTICALE --- */
 
-.sticky-header {
-    position: fixed; top: 0; width: 100%; height: 60px;
-    background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
-    display: flex; align-items: center; padding: 0 15px;
-    border-bottom: 1px solid #eee; z-index: 2000; box-sizing: border-box;
+/* La jaquette s'écrase vers le milieu */
+.scale-out-center-ver {
+    animation: scale-out-center-ver 0.3s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
 }
 
-.sticky-header button { background: var(--brand-color); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; }
-
-.game-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; margin-top: 70px; }
-
-.game-card { position: relative; width: 100%; aspect-ratio: 2/3; border-radius: 12px; overflow: hidden; border: 1px solid #eee; background: #fff; }
-.game-card img { width: 100%; height: 100%; object-fit: contain; }
-
-#overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; z-index: 3000; }
-
-#floating-card {
-    position: fixed; top: 50%; left: 50%;
-    width: 80vw; height: auto;
-    transform: translate(-50%, -50%) scale(0);
-    z-index: 4000; display: none;
-}
-#floating-card img { width: 100%; height: auto; }
-
-.animate-zoom { animation: zoomRotate 1.2s cubic-bezier(0.34, 1.5, 0.64, 1) forwards; }
-@keyframes zoomRotate {
-    from { transform: translate(-50%, -50%) scale(0) rotateY(0deg); opacity: 0; }
-    to { transform: translate(-50%, -50%) scale(1) rotateY(360deg); opacity: 1; }
-}
-
-.animate-reverse { animation: zoomReverse 0.6s ease-in forwards; }
-@keyframes zoomReverse {
-    from { transform: translate(-50%, -50%) scale(1) rotateY(360deg); opacity: 1; }
-    to { transform: translate(-50%, -50%) scale(0) rotateY(0deg); opacity: 0; }
-}
-
-#full-detail { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: white; z-index: 5000; padding: 25px; box-sizing: border-box; 
-    overflow-y: auto; display: none;
-}
-
-/* Animation de la jaquette qui s'écrase vers le centre */
-.scale-in-ver-center-out {
-    animation: scale-in-ver-center-out 0.4s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
-}
-
-@keyframes scale-in-ver-center-out {
+@keyframes scale-out-center-ver {
     0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     100% { transform: translate(-50%, -50%) scaleY(0); opacity: 0; }
 }
 
-/* Animation de la fiche info qui s'ouvre depuis le centre */
-.scale-in-ver-center-in {
-    animation: scale-in-ver-center-in 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+/* La fiche info se déplie depuis le milieu */
+.scale-in-center-ver {
+    animation: scale-in-center-ver 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
-@keyframes scale-in-ver-center-in {
+@keyframes scale-in-center-ver {
     0% { transform: scaleY(0); opacity: 0; }
     100% { transform: scaleY(1); opacity: 1; }
 }
 
-/* On prépare le détail pour l'animation */
+/* Ajustement du conteneur de détails pour l'animation */
 #full-detail { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: white; z-index: 5000; padding: 25px; box-sizing: border-box; 
-    overflow-y: auto; display: none;
-    transform-origin: center; /* L'ouverture se fait par le milieu */
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: white; 
+    z-index: 5000; 
+    padding: 25px; 
+    box-sizing: border-box; 
+    overflow-y: auto; 
+    display: none;
+    transform-origin: center; /* Important : pour que ça s'ouvre du milieu */
 }
