@@ -1,10 +1,5 @@
 :root { --brand-color: #333; --bg-color: #ffffff; }
-
-body { 
-    background: var(--bg-color); color: #333; 
-    font-family: -apple-system, system-ui, sans-serif; 
-    margin: 0; padding-bottom: 90px; 
-}
+body { background: var(--bg-color); color: #333; font-family: sans-serif; margin: 0; padding-bottom: 90px; }
 
 .sticky-header {
     position: fixed; top: 0; width: 100%; height: 60px;
@@ -13,64 +8,37 @@ body {
     border-bottom: 1px solid #eee; z-index: 2000; box-sizing: border-box;
 }
 
-.sticky-header button { 
-    background: var(--brand-color); color: white; border: none; 
-    padding: 8px 15px; border-radius: 20px; font-weight: bold; 
-}
+.sticky-header button { background: var(--brand-color); color: white; border: none; padding: 8px 15px; border-radius: 20px; }
 
-.game-grid { 
-    display: grid; grid-template-columns: repeat(2, 1fr); 
-    gap: 15px; padding: 15px; margin-top: 70px; 
-    perspective: 1200px; 
-}
+.game-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; margin-top: 70px; perspective: 1200px; }
 
-/* CARTE */
 .game-card { 
     position: relative; width: 100%; aspect-ratio: 2/3; 
-    transform-style: preserve-3d; 
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2);
-    z-index: 1;
+    transform-style: preserve-3d; transition: transform 0.5s ease;
 }
 
-/* ÉTAPE 1 : ZOOM & 360 */
+/* LE ZOOM CENTRÉ : On utilise fixed et top/left 50% */
 .game-card.focused {
     position: fixed !important;
-    top: 50% !important; left: 50% !important;
-    width: 80vw !important; height: auto !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 85vw !important; /* Prend 85% de la largeur de l'écran */
+    height: auto !important;
+    aspect-ratio: auto !important;
+    margin: 0 !important;
     transform: translate(-50%, -50%) rotateY(360deg) !important;
     z-index: 4000 !important;
 }
 
-/* EFFET REBOND */
 .game-card.bounce { animation: bounce 0.4s ease; }
-@keyframes bounce { 
-    0%, 100% { transform: translate(-50%, -50%) scale(1); } 
-    50% { transform: translate(-50%, -50%) scale(0.85); } 
-}
+@keyframes bounce { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(0.8); } }
 
-.card-face { 
-    position: absolute; width: 100%; height: 100%; 
-    backface-visibility: hidden; -webkit-backface-visibility: hidden;
-    border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-    background: white; border: 1px solid #eee; overflow: hidden;
-}
+.card-face { position: absolute; width: 100%; height: 100%; border-radius: 12px; overflow: hidden; background: white; border: 1px solid #eee; }
+.card-face img { width: 100%; height: 100%; object-fit: contain; background: #f9f9f9; }
 
-/* IMAGE NON ROGNÉE */
-.card-face img { 
-    width: 100%; height: 100%; 
-    object-fit: contain; /* L'image s'adapte sans être coupée */
-    background: #f9f9f9;
-}
-
-#overlay { 
-    position: fixed; top:0; left:0; width:100%; height:100%; 
-    background:rgba(0,0,0,0.7); display:none; z-index: 3500; 
-}
+#overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; z-index: 3500; }
 
 #full-detail { 
     position: fixed; top:0; left:0; width:100%; height:100%; 
-    background:white; z-index: 5000; display:none; padding:25px; 
-    box-sizing:border-box; overflow-y:auto; 
+    background:white; z-index: 5000; display:none; padding:20px; box-sizing:border-box; overflow-y:auto; 
 }
-
-.console-header h3 { margin: 25px 15px 5px; color: var(--brand-color); border-left: 4px solid var(--brand-color); padding-left: 10px; }
