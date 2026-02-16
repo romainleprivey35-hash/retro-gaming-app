@@ -1,6 +1,6 @@
 async function fetchGames(brand) {
     const viewList = document.getElementById('view-list');
-    viewList.innerHTML = `<h2 style="text-align:center;">Chargement...</h2>`;
+    viewList.innerHTML = `<h2 style="text-align:center;">Chargement de ta collection...</h2>`;
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
 
     try {
@@ -9,37 +9,36 @@ async function fetchGames(brand) {
         const json = JSON.parse(text.substr(47).slice(0, -2));
         const rows = json.table.rows;
         
+        // Convertit n'importe quel type de lien Google Drive en image affichable
         const toDirectLink = (val) => {
             if (!val || typeof val !== 'string') return "";
-            // Si c'est déjà un lien direct (ex: wikimedia), on ne touche à rien
-            if (!val.includes("drive.google.com")) return val;
-
-            // On extrait l'ID de n'importe quel type de lien Drive (d/ID ou id=ID)
-            let id = "";
-            const parts = val.match(/[-\w]{25,}/);
-            if (parts) id = parts[0];
-
-            // On utilise le format vignette de Google qui est le plus fiable pour l'affichage web
-            return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w800` : "";
+            
+            // On extrait l'ID (la suite de lettres et chiffres de tes liens)
+            const match = val.match(/id=([-\w]+)/) || val.match(/\/d\/([-\w]+)/);
+            if (match && match[1]) {
+                // On utilise le format de miniature qui est autorisé par Google pour les sites web
+                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
+            }
+            return val; // Si c'est pas du Drive, on renvoie le lien tel quel
         };
 
         const groups = {};
         rows.forEach(row => {
-            const brandInSheet = row.c[2]?.v || ""; 
+            const brandInSheet = row.c[2]?.v || ""; // Colonne C: Constructeur
             if (brandInSheet.toLowerCase().includes(brand.toLowerCase())) {
-                const consoleName = row.c[4]?.v || "Autre"; 
+                const consoleName = row.c[4]?.v || "Autre"; // Colonne E: Console
                 if (!groups[consoleName]) groups[consoleName] = [];
                 
                 const getVal = (idx) => row.c[idx]?.v || "";
 
                 groups[consoleName].push({
-                    title: getVal(0),
-                    logoTitre: toDirectLink(getVal(1)),
-                    console: consoleName,
-                    keyArt: toDirectLink(getVal(5)),
-                    jaquette: toDirectLink(getVal(6)),
-                    price: getVal(12),
-                    isOwned: getVal(14)
+                    title: getVal(0),        // Col A
+                    logoTitre: toDirectLink(getVal(1)), // Col B (Logo Nom)
+                    console: consoleName,    // Col E
+                    keyArt: toDirectLink(getVal(5)),    // Col F (Key art)
+                    jaquette: toDirectLink(getVal(6)),  // Col G (Jaquette)
+                    price: getVal(12),       // Col M
+                    isOwned: getVal(14)      // Col O
                 });
             }
         });
@@ -50,17 +49,18 @@ async function fetchGames(brand) {
 }
 
 function displayResults(brand, groups) {
-    let html = `<h2 style="text-align:center; margin:20px 0;">${brand}</h2>`;
+    let html = `<h2 style="text-align:center; margin:20px 0; letter-spacing:1px;">${brand.toUpperCase()}</h2>`;
     for (const consoleName in groups) {
         const logoId = CONFIG.CONSOLE_LOGOS[consoleName] || "";
         html += `<div class="console-header">${logoId ? `<img src="https://drive.google.com/thumbnail?id=${logoId}&sz=w200" class="console-logo">` : ""}<h3>${consoleName}</h3></div>`;
         html += `<div class="game-grid">`;
+        
         groups[consoleName].forEach(game => {
             const isMissing = game.isOwned.includes("❌") || game.isOwned.toLowerCase().includes("non");
             const opacity = isMissing ? "0.3" : "1";
             
-            // On affiche la Jaquette, sinon le KeyArt, sinon le Logo
-            const mainImg = game.jaquette || game.keyArt || game.logoTitre || "https://via.placeholder.com/150x200?text=No+Image";
+            // Priorité à la jaquette pour la liste
+            const mainImg = game.jaquette || "https://via.placeholder.com/150x200?text=No+Image";
             
             const gameData = btoa(unescape(encodeURIComponent(JSON.stringify(game))));
             html += `
@@ -85,10 +85,10 @@ function openGameDetail(encodedData) {
     detailDiv.innerHTML = `
         <button class="close-detail-btn" onclick="document.getElementById('active-detail').remove()">✕</button>
         <img src="${game.keyArt || game.jaquette}" class="key-art-img">
-        <img src="${game.logoTitre || game.jaquette}" class="title-logo-img">
+        <img src="${game.logoTitre}" class="title-logo-img">
         <div class="detail-content">
-            <h1>${game.title}</h1>
-            <p>${game.console}</p>
+            <h1 style="margin:0;">${game.title}</h1>
+            <p style="color:#888;">${game.console}</p>
             <div style="background:#111; padding:20px; border-radius:15px; border:1px solid #333; margin:25px 0;">
                 <p style="margin:0; color:#00ff00; font-size:2em; font-weight:bold;">${game.price}€</p>
             </div>
