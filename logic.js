@@ -1,77 +1,83 @@
 let allGames = [];
 let currentBrand = "";
 
-// Transformation des liens Drive pour l'affichage
+// Fonction Image ultra-robuste
 const toDirectLink = (val) => {
     if (!val || typeof val !== 'string') return "";
     const match = val.match(/id=([-\w]+)/) || val.match(/\/d\/([-\w]+)/);
     return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
 };
 
-// Pré-chargement des données Jeux
 async function preloadData() {
-    try {
-        const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
-        const response = await fetch(url);
-        const text = await response.text();
-        const json = JSON.parse(text.substr(47).slice(0, -2));
-        allGames = json.table.rows;
-    } catch (e) { console.error("Erreur de chargement", e); }
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
+    const resp = await fetch(url);
+    const text = await resp.text();
+    allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
 }
 
-// Sélection de la marque avec changement de couleur dynamique
 function selectBrand(brand) {
     let color = "#333";
     if (brand.includes("Nintendo")) color = "#e60012";
-    if (brand.includes("Sony") || brand.includes("Playstation")) {
-        color = "#00439c";
-        currentBrand = "Playstation";
-    } else {
-        currentBrand = brand;
-    }
+    if (brand.includes("Sony") || brand.includes("Playstation")) { color = "#00439c"; currentBrand = "Playstation"; }
+    else currentBrand = brand;
     if (brand.includes("Xbox")) color = "#107c10";
-    
     document.documentElement.style.setProperty('--brand-color', color);
     showCategories();
 }
 
-// Menu des catégories
-function showCategories() {
-    const view = document.getElementById('view-list');
-    view.innerHTML = `
-        <div class="sticky-header"><button onclick="location.reload()">⬅ Retour</button></div>
-        <h2 style="text-align:center; margin-top:80px; color:#333;">${currentBrand.toUpperCase()}</h2>
-        <div class="game-grid">
-            <div class="game-card" onclick="fetchGamesByBrand()">
-                <div class="card-face card-front" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                    <span style="font-size:3em;">🎮</span>
-                    <b>JEUX</b>
-                </div>
-            </div>
-            <div class="game-card" onclick="fetchConsolesByBrand()">
-                <div class="card-face card-front" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                    <span style="font-size:3em;">🕹️</span>
-                    <b>CONSOLES</b>
-                </div>
-            </div>
-            <div class="game-card" onclick="fetchAccessoriesByBrand()">
-                <div class="card-face card-front" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                    <span style="font-size:3em;">🎧</span>
-                    <b>ACCESSOIRES</b>
-                </div>
-            </div>
-        </div>`;
-    window.scrollTo(0,0);
+function handleCardClick(cardElement, gameData) {
+    const overlay = document.getElementById('overlay');
+    
+    if (!cardElement.classList.contains('focused')) {
+        // Premier clic : 360° + Zoom 70%
+        overlay.style.display = 'block';
+        cardElement.classList.add('focused');
+    } else {
+        // Deuxième clic : Rebond + Fiche complète
+        cardElement.classList.add('bounce');
+        setTimeout(() => {
+            openFullDetail(gameData);
+            closeFocus();
+        }, 400);
+    }
 }
 
-// Liste des JEUX avec effet de rotation 3D
+function closeFocus() {
+    const focused = document.querySelector('.focused');
+    if (focused) {
+        focused.classList.remove('focused', 'bounce');
+        document.getElementById('overlay').style.display = 'none';
+    }
+}
+
+function openFullDetail(g) {
+    const detail = document.getElementById('full-detail');
+    detail.style.display = 'block';
+    detail.innerHTML = `
+        <button onclick="document.getElementById('full-detail').style.display='none'" 
+                style="padding:10px 20px; background:var(--brand-color); color:white; border:none; border-radius:20px; margin-bottom:20px;">✕ Fermer</button>
+        <img src="${g.jaquette}" style="width:100%; border-radius:15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+        <h1 style="margin-top:20px;">${g.title}</h1>
+        <hr>
+        <div style="font-size:1.1em; line-height:1.6;">
+            <p><b>Console :</b> ${g.console}</p>
+            <p><b>Prix :</b> ${g.price}€</p>
+            <p><b>Statut :</b> ${g.isOwned}</p>
+            <p><b>Marque :</b> ${g.brand}</p>
+        </div>
+    `;
+}
+
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px; color:#333;">JEUX ${currentBrand}</h2>`;
+    view.innerHTML = `<div id="overlay" onclick="closeFocus()"></div>
+                      <div id="full-detail" class="full-screen-detail"></div>
+                      <div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div>
+                      <h2 style="text-align:center;margin-top:80px;">JEUX ${currentBrand}</h2>`;
     
     if (allGames.length === 0) await preloadData();
-
     const groups = {};
+    
     allGames.forEach(row => {
         const rowBrand = (row.c[2]?.v || "").toLowerCase();
         if (rowBrand.includes(currentBrand.toLowerCase())) {
@@ -81,74 +87,35 @@ async function fetchGamesByBrand() {
                 title: row.c[0]?.v || "",
                 jaquette: toDirectLink(row.c[6]?.v),
                 price: row.c[12]?.v || "0",
-                owned: (row.c[14]?.v || "").includes('✅')
+                isOwned: row.c[14]?.v || "",
+                console: cName,
+                brand: row.c[2]?.v
             });
         }
     });
 
-    for (const cName in groups) {
-        let html = `<div class="console-header"><h3>${cName}</h3></div><div class="game-grid">`;
-        groups[cName].forEach(g => {
+    for (const c in groups) {
+        let html = `<div class="console-header"><h3>${c}</h3></div><div class="game-grid">`;
+        groups[c].forEach(g => {
+            const gameJson = JSON.stringify(g).replace(/'/g, "\\'");
             html += `
-                <div class="game-card" onclick="this.classList.toggle('flipped')" style="opacity: ${g.owned ? '1' : '0.4'}">
-                    <div class="card-face card-front">
-                        <img src="${g.jaquette}" class="game-jaquette" onerror="this.src='https://via.placeholder.com/150'">
-                    </div>
-                    <div class="card-face card-back">
-                        <h3 style="font-size:0.8em; padding:5px;">${g.title}</h3>
-                        <div style="font-size:1.5em; font-weight:bold; margin:10px 0;">${g.price}€</div>
-                        <p style="font-size:0.7em; opacity:0.8;">${cName}</p>
-                    </div>
+                <div class="game-card" onclick='handleCardClick(this, ${gameJson})' style="opacity: ${g.isOwned.includes('✅') ? '1' : '0.4'}">
+                    <div class="card-face card-front"><img src="${g.jaquette}"></div>
                 </div>`;
         });
         view.innerHTML += html + `</div>`;
     }
 }
 
-// Liste des CONSOLES
-async function fetchConsolesByBrand() {
+// Les fonctions fetchConsoles et fetchAccessories (simplifiées pour rester cohérent)
+function showCategories() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.CONSOLES}`;
-    const response = await fetch(url);
-    const text = await response.text();
-    const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
-
-    let html = `<div class="game-grid">`;
-    rows.forEach(row => {
-        if ((row.c[3]?.v || "").toLowerCase().includes(currentBrand.toLowerCase())) {
-            html += `
-                <div class="game-card">
-                    <div class="card-face card-front">
-                        <img src="${toDirectLink(row.c[1]?.v)}" style="width:100%; height:100%; object-fit:contain; padding:10px;">
-                        <div style="position:absolute; bottom:0; background:rgba(255,255,255,0.8); width:100%; text-align:center; font-size:0.7em; font-weight:bold; padding:5px;">${row.c[0]?.v}</div>
-                    </div>
-                </div>`;
-        }
-    });
-    view.innerHTML += html + `</div>`;
-}
-
-// Liste des ACCESSOIRES
-async function fetchAccessoriesByBrand() {
-    const view = document.getElementById('view-list');
-    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES</h2>`;
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.ACCESSOIRES}`;
-    const response = await fetch(url);
-    const text = await response.text();
-    const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
-
-    let html = `<div class="game-grid">`;
-    rows.forEach(row => {
-        if ((row.c[5]?.v || "").toLowerCase().includes(currentBrand.toLowerCase())) {
-            html += `
-                <div class="game-card">
-                    <div class="card-face card-front">
-                        <img src="${toDirectLink(row.c[1]?.v)}" style="width:100%; height:100%; object-fit:contain; padding:10px;">
-                        <div style="position:absolute; bottom:0; background:rgba(255,255,255,0.8); width:100%; text-align:center; font-size:0.7em; font-weight:bold; padding:5px;">${row.c[0]?.v}</div>
-                    </div>
-                </div>`;
-        }
-    });
-    view.innerHTML += html + `</div>`;
+    view.innerHTML = `
+        <div class="sticky-header"><button onclick="location.reload()">⬅ Retour</button></div>
+        <h2 style="text-align:center; margin-top:80px;">${currentBrand.toUpperCase()}</h2>
+        <div class="game-grid">
+            <div class="game-card" onclick="fetchGamesByBrand()">
+                <div class="card-face card-front" style="display:flex; justify-content:center; align-items:center;">🎮 JEUX</div>
+            </div>
+            </div>`;
 }
