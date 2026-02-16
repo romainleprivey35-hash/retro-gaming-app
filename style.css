@@ -6,7 +6,6 @@ body {
     padding-bottom: 80px;
 }
 
-/* Grille de jeux */
 .game-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -14,7 +13,6 @@ body {
     padding: 15px;
 }
 
-/* Carte de jeu */
 .game-card {
     background: #111;
     border-radius: 12px;
@@ -22,7 +20,6 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform 0.2s;
 }
 
 .game-jaquette {
@@ -42,16 +39,34 @@ body {
     font-weight: bold;
     height: 2.4em;
     overflow: hidden;
-    margin-bottom: 5px;
 }
 
-.game-price {
-    color: #00ff00;
-    font-weight: bold;
+.navbar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #111;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-top: 1px solid #333;
+    z-index: 1000;
 }
 
-/* --- FICHE DETAIL (Key Art Entier) --- */
+.nav-item {
+    text-align: center;
+    font-size: 0.7em;
+    color: #888;
+    cursor: pointer;
+}
 
+.nav-item i {
+    font-size: 1.5em;
+    display: block;
+    margin-bottom: 3px;
+}
+
+/* Fiche détail */
 .full-page-detail {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -60,30 +75,23 @@ body {
     overflow-y: auto;
 }
 
-.key-art-container {
-    width: 100%;
-    background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .key-art-img {
     width: 100%;
     height: auto;
-    max-height: 50vh; /* Prend max la moitié de l'écran en hauteur */
-    object-fit: contain; /* Affiche l'image en ENTIER */
+    max-height: 50vh;
+    object-fit: contain; /* Important : Image entière */
+    background: #000;
     display: block;
 }
 
 .title-logo-img {
     display: block;
     width: 70%;
-    max-width: 280px;
-    margin: -40px auto 20px auto; /* Superposition légère sur le Key Art */
-    filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.9));
+    max-width: 250px;
+    margin: -35px auto 20px;
     position: relative;
     z-index: 10;
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.8));
 }
 
 .detail-content {
@@ -94,23 +102,10 @@ body {
 .close-detail-btn {
     position: fixed;
     top: 20px; left: 20px;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.6);
     color: white;
-    border: 1px solid #444;
-    padding: 12px;
+    border: none;
+    padding: 10px 15px;
     border-radius: 50%;
-    font-size: 18px;
-    z-index: 100;
-    line-height: 1;
-}
-
-.console-header {
-    display: flex;
-    align-items: center;
-    padding: 20px 15px 5px;
-}
-
-.console-logo {
-    height: 25px;
-    margin-right: 12px;
+    z-index: 10000;
 }
