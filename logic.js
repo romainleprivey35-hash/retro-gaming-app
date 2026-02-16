@@ -42,37 +42,60 @@ function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
     const floating = document.getElementById('floating-card');
+    
     floating.innerHTML = `<img src="${imgSrc}">`;
+    floating.classList.remove('animate-reverse', 'fusion-out', 'bounce');
     overlay.style.display = 'block';
     floating.style.display = 'block';
-    floating.classList.remove('bounce');
-    floating.classList.add('animate-zoom');
+    
+    setTimeout(() => { floating.classList.add('animate-zoom'); }, 10);
+}
+
+function closeOverlay() {
+    const floating = document.getElementById('floating-card');
+    floating.classList.remove('animate-zoom');
+    floating.classList.add('animate-reverse');
+    
+    setTimeout(() => {
+        document.getElementById('overlay').style.display = 'none';
+        floating.style.display = 'none';
+        floating.classList.remove('animate-reverse');
+    }, 600); // 2x plus rapide (0.6s)
 }
 
 function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
-    floating.classList.remove('animate-zoom');
+    const detail = document.getElementById('full-detail');
+    
+    // 1. Rebond
     floating.classList.add('bounce');
     
     setTimeout(() => {
-        const detail = document.getElementById('full-detail');
+        // Préparer la fiche en fond
         detail.innerHTML = `
-            <button onclick="document.getElementById('full-detail').classList.remove('open')" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
+            <button onclick="this.parentElement.classList.remove('open'); setTimeout(()=>this.parentElement.style.display='none', 1000)" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
             <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:20px;">
             <h1 style="text-align:center;margin:0 0 20px 0;">${activeGameData.title}</h1>
             <div style="background:#f9f9f9; padding:20px; border-radius:15px; font-size:1.1em; border:1px solid #eee;">
-                <p style="margin:10px 0;"><b>Console :</b> ${activeGameData.console}</p>
-                <p style="margin:10px 0;"><b>Prix :</b> ${activeGameData.price}€</p>
-                <p style="margin:10px 0;"><b>Statut :</b> ${activeGameData.owned}</p>
+                <p><b>Console :</b> ${activeGameData.console}</p>
+                <p><b>Prix :</b> ${activeGameData.price}€</p>
+                <p><b>Statut :</b> ${activeGameData.owned}</p>
             </div>`;
-        detail.classList.add('open');
-        closeOverlay();
-    }, 400);
-}
+        
+        // 2. Lancer la FUSION (Rotation + Flou + Apparition fiche)
+        floating.classList.remove('bounce');
+        floating.classList.add('fusion-out'); // Image devient floue et tourne
+        detail.style.display = 'block';
+        setTimeout(() => { detail.classList.add('open'); }, 50); // Fiche apparaît en fondu
+        
+        // 3. Nettoyer après l'animation
+        setTimeout(() => {
+            document.getElementById('overlay').style.display = 'none';
+            floating.style.display = 'none';
+            floating.classList.remove('fusion-out');
+        }, 1200);
 
-function closeOverlay() {
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('floating-card').style.display = 'none';
+    }, 400); // Temps du rebond
 }
 
 async function fetchGamesByBrand() {
@@ -113,7 +136,7 @@ async function fetchGamesByBrand() {
     }
 }
 
-// CONSOLES ET ACCESSOIRES
+// CONSOLES ET ACCESSOIRES (Utilisent la même logique de clic)
 async function fetchConsolesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
