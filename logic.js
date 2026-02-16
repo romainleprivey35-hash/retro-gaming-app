@@ -84,7 +84,7 @@ function closeOverlay() {
     document.getElementById('overlay').style.display = 'none';
 }
 
-// --- RENDU DES GRILLES AVEC GESTION TRANSPARENCE ---
+// --- RENDU DES GRILLES AVEC DÉTECTION SOUPLE ---
 
 function renderGrid(groups, view) {
     for (const c in groups) {
@@ -95,7 +95,8 @@ function renderGrid(groups, view) {
         groups[c].forEach(g => {
             const card = document.createElement('div'); card.className = 'game-card';
             
-            if (g.owned && g.owned.toUpperCase() === 'NON') {
+            // Correction : On vérifie si le texte CONTIENT "NON"
+            if (g.owned && g.owned.toString().toUpperCase().includes('NON')) {
                 card.style.opacity = '0.4';
                 card.style.filter = 'contrast(0.8)';
             }
@@ -113,7 +114,8 @@ function renderSimpleGrid(items, view) {
     items.forEach(g => {
         const card = document.createElement('div'); card.className = 'game-card';
         
-        if (g.owned && g.owned.toUpperCase() === 'NON') {
+        // Correction : On vérifie si le texte CONTIENT "NON"
+        if (g.owned && g.owned.toString().toUpperCase().includes('NON')) {
             card.style.opacity = '0.4';
             card.style.filter = 'contrast(0.8)';
         }
