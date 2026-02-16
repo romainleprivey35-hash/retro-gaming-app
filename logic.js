@@ -107,6 +107,42 @@ async function fetchConsolesByBrand(brand) {
     view.innerHTML += html + `</div>`;
 }
 
+// ÉTAPE 3 : Affichage des ACCESSOIRES (Liste par marque)
+async function fetchAccessoriesByBrand(brand) {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES ${brand}</h2>`;
+    
+    // On utilise l'onglet défini dans CONFIG.TABS.ACCESSOIRES
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.ACCESSOIRES}`;
+    
+    try {
+        const resp = await fetch(url);
+        const text = await resp.text();
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
+
+        let html = `<div class="game-grid">`;
+        rows.forEach(row => {
+            const name = row.c[0]?.v || ""; // Colonne A : Nom de l'accessoire
+            const img = toDirectLink(row.c[1]?.v); // Colonne B : Image
+            const rowBrand = row.c[3]?.v || ""; // Colonne D : Marque (pour le filtre)
+            
+            if (rowBrand.toLowerCase().includes(brand.toLowerCase())) {
+                html += `
+                    <div class="game-card">
+                        <img src="${img}" class="game-jaquette" style="object-fit:contain;padding:10px;">
+                        <div class="game-info">
+                            <b>${name}</b>
+                        </div>
+                    </div>`;
+            }
+        });
+        view.innerHTML += html + `</div>`;
+    } catch (e) {
+        view.innerHTML += "<p style='text-align:center;color:red;'>Erreur : Vérifie que l'onglet 'Accessoires' existe bien dans ton Sheets.</p>";
+    }
+}
+
 // Les fonctions openGameDetail restent identiques...
 function openGameDetail(encoded) {
     const g = JSON.parse(decodeURIComponent(escape(atob(encoded))));
