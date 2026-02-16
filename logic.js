@@ -112,7 +112,6 @@ async function fetchAccessoriesByBrand(brand) {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES ${brand}</h2>`;
     
-    // On utilise l'onglet défini dans CONFIG.TABS.ACCESSOIRES
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.ACCESSOIRES}`;
     
     try {
@@ -123,23 +122,30 @@ async function fetchAccessoriesByBrand(brand) {
 
         let html = `<div class="game-grid">`;
         rows.forEach(row => {
-            const name = row.c[0]?.v || ""; // Colonne A : Nom de l'accessoire
-            const img = toDirectLink(row.c[1]?.v); // Colonne B : Image
-            const rowBrand = row.c[3]?.v || ""; // Colonne D : Marque (pour le filtre)
+            const name = row.c[0]?.v || "";               // Colonne A : Nom
+            const imgAccessoire = toDirectLink(row.c[1]?.v); // Colonne B : Image Accessoire
+            const consoleName = row.c[2]?.v || "";        // Colonne C : Nom de la console
+            const imgConsole = toDirectLink(row.c[3]?.v);   // Colonne D (ou E) : Image Console
+            const rowBrand = row.c[5]?.v || "";           // Colonne F : CONSTRUCTEUR (Le filtre !)
             
+            // On utilise la colonne F pour filtrer par marque
             if (rowBrand.toLowerCase().includes(brand.toLowerCase())) {
                 html += `
                     <div class="game-card">
-                        <img src="${img}" class="game-jaquette" style="object-fit:contain;padding:10px;">
+                        <img src="${imgAccessoire}" class="game-jaquette" style="object-fit:contain;padding:10px;">
                         <div class="game-info">
                             <b>${name}</b>
+                            <p style="font-size:0.8em; color:#888; margin:5px 0;">${consoleName}</p>
+                            <div style="margin-top:5px;">
+                                <img src="${imgConsole}" style="height:30px; object-fit:contain; opacity:0.9;" title="${consoleName}">
+                            </div>
                         </div>
                     </div>`;
             }
         });
         view.innerHTML += html + `</div>`;
     } catch (e) {
-        view.innerHTML += "<p style='text-align:center;color:red;'>Erreur : Vérifie que l'onglet 'Accessoires' existe bien dans ton Sheets.</p>";
+        view.innerHTML += "<p style='text-align:center;color:red;'>Erreur : Vérifie bien ton onglet 'Accessoires'.</p>";
     }
 }
 
