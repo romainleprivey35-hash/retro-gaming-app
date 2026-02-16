@@ -42,3 +42,31 @@ body { background: var(--bg-color); color: #333; font-family: sans-serif; margin
     background: white; z-index: 5000; padding: 25px; box-sizing: border-box; 
     overflow-y: auto; display: none;
 }
+
+/* Animation de la jaquette qui s'écrase vers le centre */
+.scale-in-ver-center-out {
+    animation: scale-in-ver-center-out 0.4s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
+}
+
+@keyframes scale-in-ver-center-out {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scaleY(0); opacity: 0; }
+}
+
+/* Animation de la fiche info qui s'ouvre depuis le centre */
+.scale-in-ver-center-in {
+    animation: scale-in-ver-center-in 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+
+@keyframes scale-in-ver-center-in {
+    0% { transform: scaleY(0); opacity: 0; }
+    100% { transform: scaleY(1); opacity: 1; }
+}
+
+/* On prépare le détail pour l'animation */
+#full-detail { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: white; z-index: 5000; padding: 25px; box-sizing: border-box; 
+    overflow-y: auto; display: none;
+    transform-origin: center; /* L'ouverture se fait par le milieu */
+}
