@@ -9,11 +9,9 @@ const toDirectLink = (val) => {
 
 async function preloadData() {
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
-    try {
-        const resp = await fetch(url);
-        const text = await resp.text();
-        allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
-    } catch(e) { console.error(e); }
+    const resp = await fetch(url);
+    const text = await resp.text();
+    allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
 }
 
 function selectBrand(brand) {
@@ -24,18 +22,6 @@ function selectBrand(brand) {
     if (brand.includes("Xbox")) color = "#107c10";
     document.documentElement.style.setProperty('--brand-color', color);
     showCategories();
-}
-
-function showCategories() {
-    const view = document.getElementById('view-list');
-    view.innerHTML = `
-        <div class="sticky-header"><button onclick="location.reload()">⬅ Retour</button></div>
-        <h2 style="text-align:center; margin-top:80px;">${currentBrand.toUpperCase()}</h2>
-        <div class="game-grid">
-            <div class="game-card" onclick="fetchGamesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;font-weight:bold;">🎮 JEUX</div></div>
-            <div class="game-card" onclick="fetchConsolesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;font-weight:bold;">🕹️ CONSOLES</div></div>
-            <div class="game-card" onclick="fetchAccessoriesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;font-weight:bold;">🎧 ACCESSOIRES</div></div>
-        </div>`;
 }
 
 function handleCardClick(card, data) {
@@ -50,11 +36,12 @@ function handleCardClick(card, data) {
             detail.style.display = 'block';
             detail.innerHTML = `
                 <button onclick="document.getElementById('full-detail').style.display='none'" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;">✕ FERMER</button>
-                <img src="${data.img}" style="width:100%; max-height:300px; object-fit:contain; margin-top:20px;">
-                <h1 style="text-align:center;">${data.title}</h1>
-                <div style="background:#f5f5f5; padding:15px; border-radius:10px; line-height:1.8;">
+                <img src="${data.img}" style="width:100%; max-height:350px; object-fit:contain; margin:20px 0;">
+                <h1 style="text-align:center;margin:0;">${data.title}</h1>
+                <div style="background:#f9f9f9; padding:20px; border-radius:10px; margin-top:20px;">
                     <p><b>Console :</b> ${data.console}</p>
                     <p><b>Prix :</b> ${data.price}€</p>
+                    <p><b>Propriétaire :</b> Romain</p>
                     <p><b>Statut :</b> ${data.owned}</p>
                 </div>
             `;
@@ -67,6 +54,18 @@ function closeFocus() {
     const f = document.querySelector('.focused');
     if(f) f.classList.remove('focused', 'bounce');
     document.getElementById('overlay').style.display = 'none';
+}
+
+function showCategories() {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `
+        <div class="sticky-header"><button onclick="location.reload()">⬅ Retour</button></div>
+        <h2 style="text-align:center; margin-top:80px;">${currentBrand.toUpperCase()}</h2>
+        <div class="game-grid">
+            <div class="game-card" onclick="fetchGamesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;">🎮 JEUX</div></div>
+            <div class="game-card" onclick="fetchConsolesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;">🕹️ CONSOLES</div></div>
+            <div class="game-card" onclick="fetchAccessoriesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;">🎧 ACCESSOIRES</div></div>
+        </div>`;
 }
 
 async function fetchGamesByBrand() {
@@ -82,20 +81,18 @@ async function fetchGamesByBrand() {
         }
     });
     for (const c in groups) {
-        const title = document.createElement('div'); title.className = 'console-header'; title.innerHTML = `<h3>${c}</h3>`;
-        view.appendChild(title);
-        const grid = document.createElement('div'); grid.className = 'game-grid';
+        view.innerHTML += `<div style="padding:15px 15px 0;"><b>${c}</b></div><div class="game-grid">`;
         groups[c].forEach(g => {
             const card = document.createElement('div'); card.className = 'game-card';
-            card.style.opacity = g.owned.includes('❌') ? '0.4' : '1';
+            card.style.opacity = g.owned.includes('✅') ? '1' : '0.4';
             card.onclick = (e) => { e.stopPropagation(); handleCardClick(card, g); };
             card.innerHTML = `<div class="card-face"><img src="${g.img}"></div>`;
-            grid.appendChild(card);
+            view.lastChild.appendChild(card);
         });
-        view.appendChild(grid);
     }
 }
 
+// Consoles et Accessoires avec le même système de clic
 async function fetchConsolesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeFocus()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
