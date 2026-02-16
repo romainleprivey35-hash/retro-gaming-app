@@ -1,12 +1,15 @@
 const CONFIG = {
+    // Ton ID de tableau est bien celui-ci
     SHEET_ID: '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU',
-    // Noms exacts des onglets dans ton Google Sheets
+    
+    // Vérifie bien l'orthographe et les majuscules ici :
     TABS: {
-        JEUX: 'Jeux',
-        CONSOLES: 'Consoles',
+        JEUX: 'Jeux',           // Nom de l'onglet des jeux
+        CONSOLES: 'Consoles',   // Nom de l'onglet avec A=Nom, B=Image, C=Logo Nom
         ACCESSOIRES: 'Accessoires'
     },
-    // On garde tes logos de consoles ici pour l'affichage des headers
+
+    // On garde tes logos pour les en-têtes (Headers) dans la liste des jeux
     CONSOLE_LOGOS: {
         "PS1": "1DV-N37sM1AA-fl5rYe1_Urr6hh9e6eTF",
         "PS2": "10h2eIupplXfFBvQQNWRptu1EC3xTkghc",
