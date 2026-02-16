@@ -3,36 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Retro Gaming App</title>
+    <title>Retro Gaming App - Romain</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <div id="view-list">
-        <div style="text-align:center; margin-top:50px;">
-            <h1>Bienvenue Romain</h1>
-            <p>Sélectionne une catégorie en bas pour commencer.</p>
+        <div style="text-align:center; margin-top:100px; padding:20px;">
+            <i class="fa-solid fa-gamepad" style="font-size: 4em; color: #333; margin-bottom: 20px;"></i>
+            <h1>MA COLLECTION</h1>
+            <p style="color: #888;">Salut Romain !<br>Sélectionne une marque en bas pour naviguer.</p>
         </div>
     </div>
 
     <nav class="navbar">
-        <div class="nav-item" onclick="fetchGames('Nintendo')">
+        <div class="nav-item" onclick="selectBrand('Nintendo')">
             <i class="fa-solid fa-circle" style="color: #e60012;"></i>
             <span>NINTENDO</span>
         </div>
         
-        <div class="nav-item" onclick="fetchGames('Playstation')">
+        <div class="nav-item" onclick="selectBrand('Playstation')">
             <i class="fa-brands fa-playstation" style="color: #003087;"></i>
             <span>SONY</span>
         </div>
 
-        <div class="nav-item" onclick="fetchConsoles()">
-            <i class="fa-solid fa-gamepad" style="color: #ffffff;"></i>
-            <span>CONSOLES</span>
-        </div>
-
-        <div class="nav-item" onclick="fetchGames('Xbox')">
+        <div class="nav-item" onclick="selectBrand('Xbox')">
             <i class="fa-brands fa-xbox" style="color: #107c10;"></i>
             <span>XBOX</span>
         </div>
@@ -40,5 +36,6 @@
 
     <script src="config.js"></script>
     <script src="logic.js"></script>
+
 </body>
 </html>
