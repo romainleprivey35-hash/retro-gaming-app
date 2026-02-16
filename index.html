@@ -3,25 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ma Collection Jeux</title>
+    <title>Ma Collection</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="view-list">
-        <h1 style="text-align:center; margin-top:80px;">Ma Collection</h1>
-        <div class="game-grid">
-            <div class="game-card brand-btn" onclick="selectBrand('Nintendo')">NINTENDO</div>
-            <div class="game-card brand-btn" onclick="selectBrand('Playstation')">PLAYSTATION</div>
-            <div class="game-card brand-btn" onclick="selectBrand('Xbox')">XBOX</div>
-        </div>
-    </div>
 
-    <div id="overlay" onclick="closeEverything()"></div>
-    
-    <div id="flip-container" onclick="event.stopPropagation(); handleFloatingClick()">
-        <div id="flip-card-inner">
-            <div class="side-front"></div>
-            <div class="side-back"></div>
+    <div id="view-list">
+        <h1 style="text-align:center; margin-top:100px;">Ma Collection</h1>
+        <div class="game-grid">
+            <div class="game-card" onclick="selectBrand('Nintendo')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">NINTENDO</div>
+            <div class="game-card" onclick="selectBrand('Playstation')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">PLAYSTATION</div>
+            <div class="game-card" onclick="selectBrand('Xbox')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">XBOX</div>
         </div>
     </div>
 
