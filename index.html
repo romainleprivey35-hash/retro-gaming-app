@@ -2,29 +2,43 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Retro App Romain</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Retro Gaming App</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <header><button id="back-btn" onclick="goBack()" style="display:none;">◀ RETOUR</button></header>
 
-    <div id="view-brands" class="menu-container">
-        <div class="pill pill-nintendo" onclick="openBrand('Nintendo')">
-            <img src="https://drive.google.com/thumbnail?id=1UjAmaGcJuACX5jIkaDu6OdHA4fkKokp-&sz=w500">
-        </div>
-        <div class="pill pill-sony" onclick="openBrand('PlayStation')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Playstation_logo_colour.svg">
-        </div>
-        <div class="pill pill-xbox" onclick="openBrand('Xbox')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg">
+    <div id="view-list">
+        <div style="text-align:center; margin-top:50px;">
+            <h1>Bienvenue Romain</h1>
+            <p>Sélectionne une catégorie en bas pour commencer.</p>
         </div>
     </div>
 
-    <div id="view-list" style="display:none; padding:20px;"></div>
+    <nav class="navbar">
+        <div class="nav-item" onclick="fetchGames('Nintendo')">
+            <i class="fa-solid fa-circle" style="color: #e60012;"></i>
+            <span>NINTENDO</span>
+        </div>
+        
+        <div class="nav-item" onclick="fetchGames('Playstation')">
+            <i class="fa-brands fa-playstation" style="color: #003087;"></i>
+            <span>SONY</span>
+        </div>
+
+        <div class="nav-item" onclick="fetchConsoles()">
+            <i class="fa-solid fa-gamepad" style="color: #ffffff;"></i>
+            <span>CONSOLES</span>
+        </div>
+
+        <div class="nav-item" onclick="fetchGames('Xbox')">
+            <i class="fa-brands fa-xbox" style="color: #107c10;"></i>
+            <span>XBOX</span>
+        </div>
+    </nav>
 
     <script src="config.js"></script>
-    <script stones src="navigation.js"></script>
     <script src="logic.js"></script>
 </body>
 </html>
