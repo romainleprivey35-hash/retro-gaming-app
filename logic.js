@@ -43,17 +43,16 @@ function handleCardClick(imgSrc, data) {
     const overlay = document.getElementById('overlay');
     const floating = document.getElementById('floating-card');
     floating.innerHTML = `<img src="${imgSrc}">`;
-    floating.className = ''; // Reset classes
+    floating.className = ''; 
     overlay.style.display = 'block';
     floating.style.display = 'block';
-    void floating.offsetWidth; // Force reflow
+    void floating.offsetWidth; 
     floating.classList.add('animate-zoom');
 }
 
 function closeOverlay() {
     const floating = document.getElementById('floating-card');
-    floating.classList.remove('animate-zoom');
-    floating.classList.add('animate-reverse');
+    floating.className = 'animate-reverse';
     setTimeout(() => {
         document.getElementById('overlay').style.display = 'none';
         floating.style.display = 'none';
@@ -64,9 +63,12 @@ function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
     
+    // 1. Début du rebond
     floating.classList.add('bounce');
     
+    // 2. Déclenchement de la fusion à 90% du rebond (environ 350ms)
     setTimeout(() => {
+        // On remplit la fiche info
         detail.innerHTML = `
             <button onclick="document.getElementById('full-detail').classList.remove('open'); setTimeout(()=>document.getElementById('full-detail').style.display='none', 800)" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
             <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:20px;">
@@ -77,21 +79,26 @@ function handleFloatingClick() {
                 <p><b>Statut :</b> ${activeGameData.owned}</p>
             </div>`;
         
+        // On retire le rebond et on lance la rotation/flou finale
         floating.classList.remove('animate-zoom', 'bounce');
         void floating.offsetWidth;
         floating.classList.add('fusion-out'); 
         
+        // On affiche la fiche en fondu (elle va apparaître DERRIÈRE la jaquette qui floute)
         detail.style.display = 'block';
-        setTimeout(() => { detail.classList.add('open'); }, 100); 
+        setTimeout(() => { 
+            detail.classList.add('open'); 
+        }, 50); 
         
+        // 3. Une fois la rotation finie, on nettoie le fond
         setTimeout(() => {
             document.getElementById('overlay').style.display = 'none';
             floating.style.display = 'none';
         }, 1200);
-    }, 400); 
+    }, 350); 
 }
 
-// FONCTIONS DE FETCH (RESTAURÉES)
+// RESTAURÉ : LOGIQUE DE FETCH SANS CHANGEMENT VISUEL
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
