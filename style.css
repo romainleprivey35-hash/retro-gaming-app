@@ -1,49 +1,76 @@
-/* Conteneur de la grille pour les jeux */
-.game-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 colonnes */
-    gap: 15px;
-    padding: 10px 0;
+body {
+    background-color: #000;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding-bottom: 50px;
 }
 
-/* Style de la carte de jeu */
+/* Grille de 2 colonnes */
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 10px;
+}
+
+/* Style de la Carte */
 .game-card {
-    background: #1a1a1a;
-    border-radius: 12px;
+    background: #111;
+    border-radius: 10px;
+    border: 1px solid #333;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    border: 1px solid #333;
-    transition: transform 0.2s;
 }
 
-/* Image de la jaquette (la carte) */
 .game-jaquette {
     width: 100%;
-    aspect-ratio: 3 / 4; /* Format vertical standard jeu vidéo */
+    aspect-ratio: 3 / 4;
     object-fit: cover;
+    background: #222; /* Fond de secours si l'image bug */
 }
 
-/* Infos sous la jaquette */
 .game-info {
     padding: 10px;
     text-align: center;
+    background: #1a1a1a;
 }
 
 .game-title {
-    color: white;
-    font-size: 0.9em;
+    font-size: 0.85em;
     font-weight: bold;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; /* Coupe le texte après 2 lignes */
-    -webkit-box-orient: vertical;
+    height: 2.4em;
     overflow: hidden;
     margin-bottom: 5px;
-    height: 2.4em; /* Garde une hauteur fixe pour l'alignement */
 }
 
 .game-price {
     color: #00ff00;
-    font-size: 0.85em;
     font-weight: bold;
+    font-size: 0.9em;
+}
+
+/* Headers de Consoles */
+.console-header {
+    display: flex;
+    align-items: center;
+    padding: 20px 10px 5px 10px;
+    margin-top: 20px;
+}
+
+.console-logo {
+    height: 30px;
+    margin-right: 12px;
+}
+
+/* Bouton Retour */
+#back-btn {
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+    padding: 8px 15px;
+    border-radius: 20px;
+    margin: 10px;
+    cursor: pointer;
 }
