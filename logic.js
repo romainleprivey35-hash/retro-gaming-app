@@ -63,12 +63,12 @@ function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
     
-    // 1. Début du rebond
+    // 1. On lance le rebond
     floating.classList.add('bounce');
     
-    // 2. Déclenchement de la fusion à 90% du rebond (environ 350ms)
+    // 2. À la fin du rebond (350ms), on lance la rotation de fusion
     setTimeout(() => {
-        // On remplit la fiche info
+        // Remplissage de la fiche
         detail.innerHTML = `
             <button onclick="document.getElementById('full-detail').classList.remove('open'); setTimeout(()=>document.getElementById('full-detail').style.display='none', 800)" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
             <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:20px;">
@@ -79,21 +79,20 @@ function handleFloatingClick() {
                 <p><b>Statut :</b> ${activeGameData.owned}</p>
             </div>`;
         
-        // On retire le rebond et on lance la rotation/flou finale
+        // On remplace le rebond par la rotation floue
         floating.classList.remove('animate-zoom', 'bounce');
         void floating.offsetWidth;
         floating.classList.add('fusion-out'); 
         
-        // On affiche la fiche en fondu (elle va apparaître DERRIÈRE la jaquette qui floute)
+        // On fait apparaître la fiche info par-dessous (elle est en z-index 5000)
         detail.style.display = 'block';
-        setTimeout(() => { 
-            detail.classList.add('open'); 
-        }, 50); 
+        setTimeout(() => { detail.classList.add('open'); }, 50); 
         
-        // 3. Une fois la rotation finie, on nettoie le fond
+        // 3. Une fois l'effet fini (1.2s), on cache les éléments de transition
         setTimeout(() => {
             document.getElementById('overlay').style.display = 'none';
             floating.style.display = 'none';
+            floating.classList.remove('fusion-out');
         }, 1200);
     }, 350); 
 }
