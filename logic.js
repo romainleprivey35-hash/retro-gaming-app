@@ -63,7 +63,7 @@ function handleFloatingClick() {
             <div style="background:#f9f9f9; padding:20px; border-radius:15px; border:1px solid #eee;">
                 <p><b>Console :</b> ${activeGameData.console}</p>
                 <p><b>Prix :</b> ${activeGameData.price}€</p>
-                <p><b>Possédé :</b> ${activeGameData.owned}</p>
+                <p><b>Achat :</b> ${activeGameData.owned}</p>
             </div>`;
         
         floating.style.display = 'none';
@@ -84,7 +84,49 @@ function closeOverlay() {
     document.getElementById('overlay').style.display = 'none';
 }
 
-// FONCTIONS FETCH (CONSOLES, JEUX, ACCESSOIRES)
+// --- RENDU DES GRILLES AVEC GESTION TRANSPARENCE ---
+
+function renderGrid(groups, view) {
+    for (const c in groups) {
+        const titleDiv = document.createElement('div');
+        titleDiv.style.padding = "15px 15px 0"; titleDiv.innerHTML = `<b>${c}</b>`;
+        view.appendChild(titleDiv);
+        const grid = document.createElement('div'); grid.className = 'game-grid';
+        groups[c].forEach(g => {
+            const card = document.createElement('div'); card.className = 'game-card';
+            
+            if (g.owned && g.owned.toUpperCase() === 'NON') {
+                card.style.opacity = '0.4';
+                card.style.filter = 'contrast(0.8)';
+            }
+            
+            card.onclick = () => handleCardClick(g.img, g);
+            card.innerHTML = `<img src="${g.img}">`;
+            grid.appendChild(card);
+        });
+        view.appendChild(grid);
+    }
+}
+
+function renderSimpleGrid(items, view) {
+    const grid = document.createElement('div'); grid.className = 'game-grid';
+    items.forEach(g => {
+        const card = document.createElement('div'); card.className = 'game-card';
+        
+        if (g.owned && g.owned.toUpperCase() === 'NON') {
+            card.style.opacity = '0.4';
+            card.style.filter = 'contrast(0.8)';
+        }
+        
+        card.onclick = () => handleCardClick(g.img, g);
+        card.innerHTML = `<img src="${g.img}">`;
+        grid.appendChild(card);
+    });
+    view.appendChild(grid);
+}
+
+// --- FONCTIONS FETCH ---
+
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
@@ -94,7 +136,13 @@ async function fetchGamesByBrand() {
         if ((row.c[2]?.v || "").toLowerCase().includes(currentBrand.toLowerCase())) {
             const c = row.c[4]?.v || "Autre";
             if (!groups[c]) groups[c] = [];
-            groups[c].push({ title: row.c[0]?.v, img: toDirectLink(row.c[6]?.v), price: row.c[12]?.v, owned: row.c[14]?.v || "", console: c });
+            groups[c].push({ 
+                title: row.c[0]?.v, 
+                img: toDirectLink(row.c[6]?.v), 
+                price: row.c[12]?.v, 
+                owned: row.c[14]?.v || "NON", 
+                console: c 
+            });
         }
     });
     renderGrid(groups, view);
@@ -108,7 +156,13 @@ async function fetchConsolesByBrand() {
     const text = await resp.text();
     const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
     const items = rows.filter(row => (row.c[3]?.v || "").toLowerCase().includes(currentBrand.toLowerCase()))
-                      .map(row => ({ title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[3]?.v, price: "N/A", owned: "✅" }));
+                      .map(row => ({ 
+                          title: row.c[0]?.v, 
+                          img: toDirectLink(row.c[1]?.v), 
+                          console: row.c[3]?.v, 
+                          price: "N/A", 
+                          owned: row.c[4]?.v || "NON" 
+                      }));
     renderSimpleGrid(items, view);
 }
 
@@ -120,33 +174,12 @@ async function fetchAccessoriesByBrand() {
     const text = await resp.text();
     const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
     const items = rows.filter(row => (row.c[5]?.v || "").toLowerCase().includes(currentBrand.toLowerCase()))
-                      .map(row => ({ title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[2]?.v, price: "N/A", owned: "✅" }));
+                      .map(row => ({ 
+                          title: row.c[0]?.v, 
+                          img: toDirectLink(row.c[1]?.v), 
+                          console: row.c[2]?.v, 
+                          price: "N/A", 
+                          owned: row.c[4]?.v || "NON" 
+                      }));
     renderSimpleGrid(items, view);
-}
-
-function renderGrid(groups, view) {
-    for (const c in groups) {
-        const titleDiv = document.createElement('div');
-        titleDiv.style.padding = "15px 15px 0"; titleDiv.innerHTML = `<b>${c}</b>`;
-        view.appendChild(titleDiv);
-        const grid = document.createElement('div'); grid.className = 'game-grid';
-        groups[c].forEach(g => {
-            const card = document.createElement('div'); card.className = 'game-card';
-            card.onclick = () => handleCardClick(g.img, g);
-            card.innerHTML = `<img src="${g.img}">`;
-            grid.appendChild(card);
-        });
-        view.appendChild(grid);
-    }
-}
-
-function renderSimpleGrid(items, view) {
-    const grid = document.createElement('div'); grid.className = 'game-grid';
-    items.forEach(g => {
-        const card = document.createElement('div'); card.className = 'game-card';
-        card.onclick = () => handleCardClick(g.img, g);
-        card.innerHTML = `<img src="${g.img}">`;
-        grid.appendChild(card);
-    });
-    view.appendChild(grid);
 }
