@@ -1,6 +1,12 @@
 const CONFIG = {
     SHEET_ID: '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU',
-    NINTENDO_LOGO: '1UjAmaGcJuACX5jIkaDu6OdHA4fkKokp-',
+    // Noms exacts des onglets dans ton Google Sheets
+    TABS: {
+        JEUX: 'Jeux',
+        CONSOLES: 'Consoles',
+        ACCESSOIRES: 'Accessoires'
+    },
+    // On garde tes logos de consoles ici pour l'affichage des headers
     CONSOLE_LOGOS: {
         "PS1": "1DV-N37sM1AA-fl5rYe1_Urr6hh9e6eTF",
         "PS2": "10h2eIupplXfFBvQQNWRptu1EC3xTkghc",
