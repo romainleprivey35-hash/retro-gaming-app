@@ -51,7 +51,6 @@ function handleCardClick(imgSrc, data) {
 }
 
 function handleFloatingClick() {
-    // On revient à l'action simple pour l'instant
     const detail = document.getElementById('full-detail');
     detail.innerHTML = `
         <button onclick="document.getElementById('full-detail').style.display='none'" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
@@ -72,6 +71,8 @@ function closeOverlay() {
     }, 600);
 }
 
+// --- LES 3 FONCTIONS DE CHARGEMENT ---
+
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
@@ -84,6 +85,34 @@ async function fetchGamesByBrand() {
             groups[c].push({ title: row.c[0]?.v, img: toDirectLink(row.c[6]?.v), price: row.c[12]?.v, owned: row.c[14]?.v || "", console: c });
         }
     });
+    renderGrid(groups, view);
+}
+
+async function fetchConsolesByBrand() {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.CONSOLES}`;
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    const items = rows.filter(row => (row.c[3]?.v || "").toLowerCase().includes(currentBrand.toLowerCase()))
+                      .map(row => ({ title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[3]?.v, price: "N/A", owned: "✅" }));
+    renderSimpleGrid(items, view);
+}
+
+async function fetchAccessoriesByBrand() {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES</h2>`;
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.ACCESSOIRES}`;
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    const items = rows.filter(row => (row.c[5]?.v || "").toLowerCase().includes(currentBrand.toLowerCase()))
+                      .map(row => ({ title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[2]?.v, price: "N/A", owned: "✅" }));
+    renderSimpleGrid(items, view);
+}
+
+function renderGrid(groups, view) {
     for (const c in groups) {
         const titleDiv = document.createElement('div');
         titleDiv.style.padding = "15px 15px 0"; titleDiv.innerHTML = `<b>${c}</b>`;
@@ -99,4 +128,13 @@ async function fetchGamesByBrand() {
     }
 }
 
-// (Remettre ici tes fonctions fetchConsolesByBrand et fetchAccessoriesByBrand si tu les as encore)
+function renderSimpleGrid(items, view) {
+    const grid = document.createElement('div'); grid.className = 'game-grid';
+    items.forEach(g => {
+        const card = document.createElement('div'); card.className = 'game-card';
+        card.onclick = () => handleCardClick(g.img, g);
+        card.innerHTML = `<img src="${g.img}">`;
+        grid.appendChild(card);
+    });
+    view.appendChild(grid);
+}
