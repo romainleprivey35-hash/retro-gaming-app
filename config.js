@@ -1,15 +1,14 @@
 const CONFIG = {
-    // Ton ID de tableau est bien celui-ci
+    // Ton ID de tableau Google Sheets
     SHEET_ID: '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU',
     
-    // Vérifie bien l'orthographe et les majuscules ici :
+    // Les noms EXACTS de tes onglets (attention à la majuscule)
     TABS: {
-        JEUX: 'Jeux',           // Nom de l'onglet des jeux
-        CONSOLES: 'Consoles',   // Nom de l'onglet avec A=Nom, B=Image, C=Logo Nom
-        ACCESSOIRES: 'Accessoires'
+        JEUX: 'Jeux',
+        CONSOLES: 'Consoles'
     },
 
-    // On garde tes logos pour les en-têtes (Headers) dans la liste des jeux
+    // Les logos qui s'affichent en haut des listes de jeux
     CONSOLE_LOGOS: {
         "PS1": "1DV-N37sM1AA-fl5rYe1_Urr6hh9e6eTF",
         "PS2": "10h2eIupplXfFBvQQNWRptu1EC3xTkghc",
@@ -17,13 +16,6 @@ const CONFIG = {
         "PS4": "1VjijUcf3nyaclZazZT8akg_4Ifo0UjGM",
         "PS5": "1F_qvq4AM8uvx1nKaRUdPWh5r1mjVqic8",
         "N64": "1iumJt5i-5Jd85ZPZLr3NR44hbhdohUh5",
-        "GameCube": "1SW-jXEJnlZ4nh3jXg3IVkNGK7QzZMSze",
-        "Wii": "1aAx82c4LPWz6U-JQ2jXf3fG0hwAOG_Bc",
-        "GBA": "11vgmA2xIMxNHbbYMcUIwXTNgt0BVKacp",
-        "GB": "1XEkPuCr2mmIvpsmjmpkrG1XumS-24wLb",
-        "GBC": "1dek_9N4wDwFBhSYmUoij7OhtFfCc4hcQ",
-        "DS": "1Gals-7-g_lNxOBult4FihHYiv2nKgkfP",
-        "Xbox": "15i7MRlq_QVyKUsQKWsFfMSkvqALFwb2I",
-        "PSP": "1zOJp5Yh0JRHhI-o4PfyFTdX_OH7j3Bmo"
+        "Xbox": "15i7MRlq_QVyKUsQKWsFfMSkvqALFwb2I"
     }
 };
