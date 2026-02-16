@@ -37,14 +37,14 @@ function showCategories() {
         </div>`;
 }
 
-// --- GESTION DES CLICS ET ANIMATIONS 3D ---
+// --- GESTION DES CLICS ET ANIMATIONS ---
 
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
     const floating = document.getElementById('floating-card');
     floating.innerHTML = `<img src="${imgSrc}">`;
-    floating.className = ''; 
+    floating.className = ''; // Reset classes
     overlay.style.display = 'block';
     floating.style.display = 'block';
     void floating.offsetWidth; 
@@ -55,6 +55,7 @@ function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
     
+    // Écrase la jaquette
     floating.classList.add('scale-out-center-ver');
 
     setTimeout(() => {
@@ -74,7 +75,7 @@ function handleFloatingClick() {
     }, 300);
 }
 
-// --- FONCTIONS DE FERMETURE (MARCHE ARRIÈRE) ---
+// --- FERMETURES AVEC EFFET MARCHE ARRIÈRE ---
 
 function closeOverlay() {
     const floating = document.getElementById('floating-card');
@@ -94,7 +95,6 @@ function closeOverlay() {
 function closeFullDetail() {
     const detail = document.getElementById('full-detail');
     const overlay = document.getElementById('overlay');
-    const floating = document.getElementById('floating-card');
     
     detail.classList.remove('scale-in-center-ver');
     void detail.offsetWidth;
@@ -103,12 +103,12 @@ function closeFullDetail() {
     setTimeout(() => {
         detail.style.display = 'none';
         overlay.style.display = 'none';
-        floating.style.display = 'none';
         detail.classList.remove('scale-out-center-ver-detail');
+        document.getElementById('floating-card').style.display = 'none';
     }, 400);
 }
 
-// --- RENDU DES GRILLES AVEC TRANSPARENCE ---
+// --- RENDU ET FILTRES (TRANSPARENCE) ---
 
 function renderGrid(groups, view) {
     for (const c in groups) {
@@ -117,4 +117,89 @@ function renderGrid(groups, view) {
         view.appendChild(titleDiv);
         const grid = document.createElement('div'); grid.className = 'game-grid';
         groups[c].forEach(g => {
-            const card = document.createElement('div
+            const card = document.createElement('div'); card.className = 'game-card';
+            if (g.owned && g.owned.toString().toUpperCase().includes('NON')) {
+                card.style.opacity = '0.4';
+                card.style.filter = 'contrast(0.8)';
+            }
+            card.onclick = () => handleCardClick(g.img, g);
+            card.innerHTML = `<img src="${g.img}">`;
+            grid.appendChild(card);
+        });
+        view.appendChild(grid);
+    }
+}
+
+function renderSimpleGrid(items, view) {
+    const grid = document.createElement('div'); grid.className = 'game-grid';
+    items.forEach(g => {
+        const card = document.createElement('div'); card.className = 'game-card';
+        if (g.owned && g.owned.toString().toUpperCase().includes('NON')) {
+            card.style.opacity = '0.4';
+            card.style.filter = 'contrast(0.8)';
+        }
+        card.onclick = () => handleCardClick(g.img, g);
+        card.innerHTML = `<img src="${g.img}">`;
+        grid.appendChild(card);
+    });
+    view.appendChild(grid);
+}
+
+// --- RÉCUPÉRATION DES DONNÉES ---
+
+async function fetchGamesByBrand() {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
+    if (allGames.length === 0) await preloadData();
+    const groups = {};
+    allGames.forEach(row => {
+        if ((row.c[2]?.v || "").toLowerCase().includes(currentBrand.toLowerCase())) {
+            const c = row.c[4]?.v || "Autre";
+            if (!groups[c]) groups[c] = [];
+            groups[c].push({ 
+                title: row.c[0]?.v, 
+                img: toDirectLink(row.c[6]?.v), 
+                price: row.c[12]?.v, 
+                owned: row.c[14]?.v || "NON", 
+                console: c 
+            });
+        }
+    });
+    renderGrid(groups, view);
+}
+
+async function fetchConsolesByBrand() {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.CONSOLES}`;
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    const items = rows.filter(row => (row.c[3]?.v || "").toLowerCase().includes(currentBrand.toLowerCase()))
+                      .map(row => ({ 
+                          title: row.c[0]?.v, 
+                          img: toDirectLink(row.c[1]?.v), 
+                          console: row.c[3]?.v, 
+                          price: "N/A", 
+                          owned: row.c[4]?.v || "NON" 
+                      }));
+    renderSimpleGrid(items, view);
+}
+
+async function fetchAccessoriesByBrand() {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES</h2>`;
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.ACCESSOIRES}`;
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    const items = rows.filter(row => (row.c[5]?.v || "").toLowerCase().includes(currentBrand.toLowerCase()))
+                      .map(row => ({ 
+                          title: row.c[0]?.v, 
+                          img: toDirectLink(row.c[1]?.v), 
+                          console: row.c[2]?.v, 
+                          price: "N/A", 
+                          owned: row.c[4]?.v || "NON" 
+                      }));
+    renderSimpleGrid(items, view);
+}
