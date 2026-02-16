@@ -6,70 +6,77 @@
 body {
     background-color: var(--bg-color);
     color: #333;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding-bottom: 90px;
-    -webkit-font-smoothing: antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; padding-bottom: 90px;
+    overflow-x: hidden;
 }
 
-/* HEADER FIXE */
 .sticky-header {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 60px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    display: flex; align-items: center;
-    padding: 0 15px; border-bottom: 1px solid #eee;
-    z-index: 2000; box-sizing: border-box;
+    position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+    display: flex; align-items: center; padding: 0 15px;
+    border-bottom: 1px solid #eee; z-index: 2000; box-sizing: border-box;
 }
 
 .sticky-header button {
-    background: var(--brand-color);
-    color: white; border: none;
-    padding: 8px 18px; border-radius: 20px;
-    font-weight: bold; font-size: 0.85em;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background: var(--brand-color); color: white; border: none;
+    padding: 8px 18px; border-radius: 20px; font-weight: bold;
 }
 
-/* GRILLE DE CARTES */
 .game-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px; padding: 15px;
-    margin-top: 10px;
-    /* La perspective donne de la profondeur à la rotation */
-    perspective: 1200px; 
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 15px; padding: 15px; margin-top: 70px;
+    perspective: 1500px;
 }
 
-/* CONTENEUR DE LA CARTE 3D */
+/* LA CARTE */
 .game-card {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    cursor: pointer;
-    /* Prépare l'animation 3D */
+    position: relative; width: 100%; aspect-ratio: 2/3;
     transform-style: preserve-3d;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer; z-index: 1;
 }
 
-/* CLASSE APPLIQUÉE AU CLIC POUR TOURNER */
-.game-card.flipped {
-    transform: rotateY(180deg);
+/* ÉTAPE 1 : ZOOM & 360° */
+.game-card.focused {
+    position: fixed;
+    top: 50%; left: 50%;
+    width: 70vw; height: auto;
+    transform: translate(-50%, -50%) rotateY(360deg);
+    z-index: 3000;
 }
 
-/* FACES DE LA CARTE */
+/* ÉTAPE 2 : REBOND */
+.game-card.bounce {
+    animation: bounceEffect 0.4s ease;
+}
+
+@keyframes bounceEffect {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(0.8); }
+    100% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
 .card-face {
-    position: absolute;
-    width: 100%; height: 100%;
-    border-radius: 12px;
-    /* Cache le dos quand on regarde le devant */
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    overflow: hidden;
-    background: white;
-    border: 1px solid #eee;
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    background: white; overflow: hidden; border: 1px solid #eee;
 }
 
-/* FACE AVANT (Recto) */
+.card-front img { width: 100%; height: 100%; object-fit: cover; }
+
+/* OVERLAY POUR FERMER LE FOCUS */
+#overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 2500; display: none;
+}
+
+/* FICHE DÉTAIL PLEIN ÉCRAN */
+.full-screen-detail {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: white; z-index: 4000; display: none;
+    overflow-y: auto; padding: 20px; box-sizing: border-box;
+}
+
+.console-header h3 { color: var(--brand-color); margin: 25px 15px 5px; }
