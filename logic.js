@@ -57,14 +57,13 @@ function handleFloatingClick() {
     setTimeout(() => {
         const detail = document.getElementById('full-detail');
         detail.innerHTML = `
-            <div style="width:50px; height:5px; background:#ddd; border-radius:10px; margin: 0 auto 20px;"></div>
-            <button onclick="document.getElementById('full-detail').classList.remove('open')" style="background:var(--brand-color);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;">✕ FERMER</button>
-            <img src="${activeGameData.img}" style="width:100%; max-height:300px; object-fit:contain; margin:20px 0; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));">
-            <h1 style="text-align:center;margin:0;">${activeGameData.title}</h1>
-            <div style="background:#f9f9f9; padding:20px; border-radius:15px; margin-top:20px; font-size:1.1em;">
-                <p><b>Console :</b> ${activeGameData.console}</p>
-                <p><b>Prix :</b> ${activeGameData.price}€</p>
-                <p><b>Propriété :</b> ${activeGameData.owned}</p>
+            <button onclick="document.getElementById('full-detail').classList.remove('open')" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
+            <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:20px;">
+            <h1 style="text-align:center;margin:0 0 20px 0;">${activeGameData.title}</h1>
+            <div style="background:#f9f9f9; padding:20px; border-radius:15px; font-size:1.1em; border:1px solid #eee;">
+                <p style="margin:10px 0;"><b>Console :</b> ${activeGameData.console}</p>
+                <p style="margin:10px 0;"><b>Prix :</b> ${activeGameData.price}€</p>
+                <p style="margin:10px 0;"><b>Statut :</b> ${activeGameData.owned}</p>
             </div>`;
         detail.classList.add('open');
         closeOverlay();
@@ -114,7 +113,7 @@ async function fetchGamesByBrand() {
     }
 }
 
-// CONSOLES ET ACCESSOIRES (Même logique de clic)
+// CONSOLES ET ACCESSOIRES
 async function fetchConsolesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
