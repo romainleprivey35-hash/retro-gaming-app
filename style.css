@@ -22,7 +22,7 @@ body { background: var(--bg-color); color: #333; font-family: sans-serif; margin
     width: 80vw; height: auto;
     transform: translate(-50%, -50%);
     z-index: 4000; display: none;
-    pointer-events: auto;
+    will-change: transform, opacity;
 }
 
 #floating-card img { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6)); }
@@ -40,12 +40,21 @@ body { background: var(--bg-color); color: #333; font-family: sans-serif; margin
     100% { transform: translate(-50%, -50%) scale(1.1); }
 }
 
-/* LA FICHE INFO AVEC EFFET SLIDE UP */
+/* FICHE INFO CORRIGÉE (Plus d'à-coups) */
 #full-detail { 
-    position: fixed; bottom: -100%; left: 0; width: 100%; height: 100%; 
-    background: white; z-index: 5000; padding: 25px; box-sizing: border-box; 
-    overflow-y: auto; transition: bottom 0.5s cubic-bezier(0.32, 1, 0.23, 1);
-    border-radius: 20px 20px 0 0;
+    position: fixed; 
+    top: 100%; /* On part du bas */
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: white; 
+    z-index: 5000; 
+    padding: 25px; 
+    box-sizing: border-box; 
+    overflow-y: auto; 
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: transform;
 }
 
-#full-detail.open { bottom: 0; }
+/* On utilise transform au lieu de bottom pour une fluidité parfaite sur mobile */
+#full-detail.open { transform: translateY(-100%); }
