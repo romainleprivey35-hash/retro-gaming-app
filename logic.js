@@ -63,12 +63,11 @@ function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
     
-    // 1. On lance le rebond
+    // 1. Déclenchement du rebond
     floating.classList.add('bounce');
     
-    // 2. À la fin du rebond (350ms), on lance la rotation de fusion
+    // 2. À 50% du rebond (200ms), on lance la suite de l'aventure
     setTimeout(() => {
-        // Remplissage de la fiche
         detail.innerHTML = `
             <button onclick="document.getElementById('full-detail').classList.remove('open'); setTimeout(()=>document.getElementById('full-detail').style.display='none', 800)" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
             <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:20px;">
@@ -79,25 +78,23 @@ function handleFloatingClick() {
                 <p><b>Statut :</b> ${activeGameData.owned}</p>
             </div>`;
         
-        // On remplace le rebond par la rotation floue
+        // On remplace le rebond par la rotation finale floue qui s'agrandit
         floating.classList.remove('animate-zoom', 'bounce');
         void floating.offsetWidth;
         floating.classList.add('fusion-out'); 
         
-        // On fait apparaître la fiche info par-dessous (elle est en z-index 5000)
+        // La fiche info apparaît en fondu pendant que l'image tourne
         detail.style.display = 'block';
-        setTimeout(() => { detail.classList.add('open'); }, 50); 
+        setTimeout(() => { detail.classList.add('open'); }, 100); 
         
-        // 3. Une fois l'effet fini (1.2s), on cache les éléments de transition
         setTimeout(() => {
             document.getElementById('overlay').style.display = 'none';
             floating.style.display = 'none';
-            floating.classList.remove('fusion-out');
-        }, 1200);
-    }, 350); 
+        }, 1400);
+    }, 200); // 200ms = 50% du rebond
 }
 
-// RESTAURÉ : LOGIQUE DE FETCH SANS CHANGEMENT VISUEL
+// LOGIQUE DE FETCH (IDENTIQUE)
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
