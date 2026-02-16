@@ -1,121 +1,75 @@
-let allGames = [];
-let currentBrand = "";
+// ... (On garde tes fonctions de fetch et preload habituelles) ...
 
-// 1. Initialisation
-const toDirectLink = (val) => {
-    if (!val || typeof val !== 'string') return "";
-    const match = val.match(/id=([-\w]+)/) || val.match(/\/d\/([-\w]+)/);
-    return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
-};
-
-async function preloadData() {
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
-    const resp = await fetch(url);
-    const text = await resp.text();
-    allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
-}
-
-// 2. Navigation
-function selectBrand(brand) {
-    currentBrand = brand;
-    let color = "#333";
-    if (brand.includes("Nintendo")) color = "#e60012";
-    if (brand.includes("Sony") || brand.includes("Playstation")) color = "#00439c";
-    if (brand.includes("Xbox")) color = "#107c10";
-    document.documentElement.style.setProperty('--brand-color', color);
-    showCategories();
-}
-
-function showCategories() {
-    const view = document.getElementById('view-list');
-    view.innerHTML = `
-        <div class="sticky-header"><button onclick="location.reload()">⬅ Retour</button></div>
-        <h2 style="text-align:center; margin-top:80px;">${currentBrand.toUpperCase()}</h2>
-        <div class="game-grid">
-            <div class="game-card brand-btn" onclick="fetchGamesByBrand()">🎮 JEUX</div>
-            <div class="game-card brand-btn" onclick="fetchConsolesByBrand()">🕹️ CONSOLES</div>
-            <div class="game-card brand-btn" onclick="fetchAccessoriesByBrand()">🎧 ACCESSOIRES</div>
-        </div>`;
-}
-
-// 3. Logique d'animation (Fusion)
 function handleCardClick(imgSrc, data) {
+    activeGameData = data;
     const overlay = document.getElementById('overlay');
-    const container = document.getElementById('flip-container');
-    const front = container.querySelector('.side-front');
-    const back = container.querySelector('.side-back');
-    
-    // Reset l'état
-    container.classList.remove('zoom', 'is-flipped');
-    
-    // Remplir les faces
-    front.innerHTML = `<img src="${imgSrc}" style="width:100%;">`;
-    back.innerHTML = `
-        <button onclick="closeEverything()" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
-        <img src="${imgSrc}" style="width:100%; max-height:200px; object-fit:contain; margin-bottom:15px;">
-        <h2 style="text-align:center;">${data.title}</h2>
-        <div style="background:#f5f5f5; padding:15px; border-radius:12px;">
-            <p><b>Console :</b> ${data.console}</p>
-            <p><b>Prix :</b> ${data.price}€</p>
-            <p><b>Possédé :</b> ${data.owned}</p>
-        </div>
-    `;
-    
+    const floating = document.getElementById('floating-card');
+    floating.innerHTML = `<img src="${imgSrc}">`;
+    floating.className = ''; 
     overlay.style.display = 'block';
-    container.style.display = 'block';
-    
-    setTimeout(() => { container.classList.add('zoom'); }, 50);
+    floating.style.display = 'block';
+    void floating.offsetWidth; 
+    floating.classList.add('animate-zoom');
 }
 
 function handleFloatingClick() {
-    const container = document.getElementById('flip-container');
-    container.classList.add('bounce');
+    const floating = document.getElementById('floating-card');
+    const detail = document.getElementById('full-detail');
     
+    // 1. On lance le rebond
+    floating.classList.add('bounce');
+    
+    // 2. À 50% du rebond (200ms), on enchaîne la rotation de fusion
     setTimeout(() => {
-        container.classList.remove('bounce');
-        container.classList.add('is-flipped');
-    }, 200); // 50% du rebond
+        // Préparation de la fiche info
+        detail.innerHTML = `
+            <button onclick="document.getElementById('full-detail').classList.remove('open'); setTimeout(()=>document.getElementById('full-detail').style.display='none', 600)" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
+            <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:20px;">
+            <h1 style="text-align:center;">${activeGameData.title}</h1>
+            <div style="background:#f9f9f9; padding:20px; border-radius:15px; border:1px solid #eee;">
+                <p><b>Console :</b> ${activeGameData.console}</p>
+                <p><b>Prix :</b> ${activeGameData.price}€</p>
+                <p><b>Statut :</b> ${activeGameData.owned}</p>
+            </div>`;
+        
+        // On remplace l'animation par la fusion
+        floating.classList.remove('bounce');
+        void floating.offsetWidth;
+        floating.classList.add('fusion-out');
+        
+        // On affiche la fiche info en fondu
+        detail.style.display = 'block';
+        setTimeout(() => { detail.classList.add('open'); }, 100);
+
+        // Nettoyage après l'effet
+        setTimeout(() => {
+            document.getElementById('overlay').style.display = 'none';
+            floating.style.display = 'none';
+        }, 1200);
+    }, 200); 
 }
 
-function closeEverything() {
-    const container = document.getElementById('flip-container');
-    container.classList.remove('zoom', 'is-flipped');
+function closeOverlay() {
+    const floating = document.getElementById('floating-card');
+    floating.className = 'animate-reverse';
     setTimeout(() => {
         document.getElementById('overlay').style.display = 'none';
-        container.style.display = 'none';
+        floating.style.display = 'none';
     }, 600);
 }
 
-// 4. Chargement des données
+// RESTAURATION DES FONCTIONS FETCH (Structure simple)
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2><div style="text-align:center;">Chargement...</div>`;
+    // On réinjecte les conteneurs dont on a besoin
+    view.innerHTML = `
+        <div id="overlay" onclick="closeOverlay()"></div>
+        <div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div>
+        <div id="full-detail"></div>
+        <div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div>
+        <h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
     
     if (allGames.length === 0) await preloadData();
-    view.querySelector('div:last-child').remove();
-
-    const groups = {};
-    allGames.forEach(row => {
-        if ((row.c[2]?.v || "").toLowerCase().includes(currentBrand.toLowerCase())) {
-            const c = row.c[4]?.v || "Autre";
-            if (!groups[c]) groups[c] = [];
-            groups[c].push({ title: row.c[0]?.v, img: toDirectLink(row.c[6]?.v), price: row.c[12]?.v, owned: row.c[14]?.v || "", console: c });
-        }
-    });
-
-    for (const c in groups) {
-        const titleDiv = document.createElement('div');
-        titleDiv.style.padding = "15px 15px 0"; titleDiv.innerHTML = `<b>${c}</b>`;
-        view.appendChild(titleDiv);
-        const grid = document.createElement('div'); grid.className = 'game-grid';
-        groups[c].forEach(g => {
-            const card = document.createElement('div'); 
-            card.className = 'game-card';
-            card.style.opacity = g.owned.includes('✅') ? '1' : '0.4';
-            card.onclick = () => handleCardClick(g.img, g);
-            card.innerHTML = `<img src="${g.img}">`;
-            grid.appendChild(card);
-        });
-        view.appendChild(grid);
-    }
+    // ... reste de ta logique de boucle pour afficher les jeux ...
+    // (Utilise bien card.onclick = () => handleCardClick(g.img, g);)
 }
