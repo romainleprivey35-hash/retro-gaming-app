@@ -48,3 +48,23 @@ body { background: var(--bg-color); color: #333; font-family: sans-serif; margin
     0% { transform: scaleY(0); opacity: 0; }
     100% { transform: scaleY(1); opacity: 1; }
 }
+
+/* RETRAIT DE LA JAQUETTE (Marche arrière) */
+.animate-reverse { 
+    animation: zoomReverse 0.6s ease-in forwards; 
+}
+
+@keyframes zoomReverse {
+    from { transform: translate(-50%, -50%) scale(1) rotateY(360deg); opacity: 1; }
+    to { transform: translate(-50%, -50%) scale(0) rotateY(0deg); opacity: 0; }
+}
+
+/* REPLIAGE DE LA FICHE (Marche arrière) */
+.scale-out-center-ver-detail {
+    animation: scale-out-center-ver-detail 0.4s ease-in forwards;
+}
+
+@keyframes scale-out-center-ver-detail {
+    0% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(0); opacity: 0; }
+}
