@@ -37,13 +37,15 @@ function showCategories() {
         </div>`;
 }
 
-// --- ANIMATIONS ---
+// --- CLICS ET ANIMATIONS ---
 
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
+    const viewList = document.getElementById('view-list');
     const overlay = document.getElementById('overlay');
     const floating = document.getElementById('floating-card');
-    document.getElementById('view-list').classList.remove('unblur-fade'); 
+    
+    viewList.classList.remove('unblur-fade'); 
     floating.innerHTML = `<img src="${imgSrc}">`;
     floating.className = ''; 
     overlay.style.display = 'block';
@@ -72,24 +74,27 @@ function handleFloatingClick() {
     }, 300);
 }
 
-// --- FERMETURES ADOUCIES ---
+// --- FERMETURES SIMULTANÉES (L'EFFET SMOOTH EST ICI) ---
 
 function closeOverlay() {
     const floating = document.getElementById('floating-card');
     const overlay = document.getElementById('overlay');
     const viewList = document.getElementById('view-list');
     
+    // On lance tout en même temps
     floating.classList.remove('animate-zoom');
     void floating.offsetWidth; 
     floating.classList.add('animate-reverse');
     
+    viewList.classList.remove('unblur-fade');
+    void viewList.offsetWidth;
+    viewList.classList.add('unblur-fade');
+
     setTimeout(() => {
         floating.style.display = 'none';
         overlay.style.display = 'none';
         floating.classList.remove('animate-reverse');
-        // Effet de flou inversé sur la liste
-        viewList.classList.add('unblur-fade');
-    }, 550);
+    }, 600);
 }
 
 function closeFullDetail() {
@@ -97,21 +102,24 @@ function closeFullDetail() {
     const overlay = document.getElementById('overlay');
     const viewList = document.getElementById('view-list');
     
+    // On lance tout en même temps
     detail.classList.remove('scale-in-center-ver');
     void detail.offsetWidth;
     detail.classList.add('scale-out-center-ver-detail');
     
+    viewList.classList.remove('unblur-fade');
+    void viewList.offsetWidth;
+    viewList.classList.add('unblur-fade');
+
     setTimeout(() => {
         detail.style.display = 'none';
         overlay.style.display = 'none';
         document.getElementById('floating-card').style.display = 'none';
         detail.classList.remove('scale-out-center-ver-detail');
-        // Effet de flou inversé sur la liste
-        viewList.classList.add('unblur-fade');
-    }, 350);
+    }, 400);
 }
 
-// --- RENDU DES GRILLES ---
+// --- RENDU ET LOGIQUE SHEET ---
 
 function renderGrid(groups, view) {
     for (const c in groups) {
@@ -145,8 +153,6 @@ function renderSimpleGrid(items, view) {
     });
     view.appendChild(grid);
 }
-
-// --- FETCH DATA ---
 
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
