@@ -6,7 +6,6 @@ const toDirectLink = (val) => {
     return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
 };
 
-// Charge les jeux au démarrage pour être sûr d'avoir les stats
 async function preloadData() {
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
     try {
@@ -14,7 +13,7 @@ async function preloadData() {
         const text = await response.text();
         const json = JSON.parse(text.substr(47).slice(0, -2));
         allGames = json.table.rows;
-    } catch (e) { console.error("Erreur chargement jeux", e); }
+    } catch (e) { console.error("Erreur preload", e); }
 }
 
 async function fetchGames(brand) {
@@ -59,8 +58,9 @@ async function fetchConsoles() {
         rows.forEach(row => {
             const name = row.c[0]?.v || "";
             if(!name) return;
-            const imgC = toDirectLink(row.c[1]?.v);
-            const logoC = toDirectLink(row.c[2]?.v);
+            const imgC = toDirectLink(row.c[1]?.v); // Colonne B
+            const logoC = toDirectLink(row.c[2]?.v); // Colonne C
+
             const stats = allGames.filter(g => (g.c[4]?.v || "").trim() === name.trim());
             const owned = stats.filter(g => (g.c[14]?.v || "").includes("✅")).length;
             const total = stats.length;
@@ -71,12 +71,12 @@ async function fetchConsoles() {
                     <img src="${imgC}" class="game-jaquette" style="object-fit:contain; padding:15px; background:#0a0a0a;">
                     <div class="game-info">
                         <div class="game-title">${name}</div>
-                        <div style="font-size:0.8em; color:#00ff00;">${owned} / ${total} JEUX</div>
+                        <div style="font-size:0.8em; color:#00ff00; font-weight:bold;">${owned} / ${total} JEUX</div>
                     </div>
                 </div>`;
         });
         viewList.innerHTML = html + `</div>`;
-    } catch (e) { viewList.innerHTML = "Erreur : Vérifie que l'onglet 'Consoles' existe bien."; }
+    } catch (e) { viewList.innerHTML = "Erreur de chargement de l'onglet Consoles."; }
 }
 
 function openConsoleDetail(encoded) {
@@ -85,14 +85,17 @@ function openConsoleDetail(encoded) {
     div.className = "full-page-detail"; div.id = "active-detail";
     div.innerHTML = `
         <button class="close-detail-btn" onclick="document.getElementById('active-detail').remove()">✕</button>
-        <div style="background:#000; padding:40px 20px; text-align:center;"><img src="${d.logoC}" style="width:80%; max-width:250px;"></div>
+        <div style="background:#000; padding:40px 20px; text-align:center;">
+            <img src="${d.logoC}" style="width:80%; max-width:250px;" onerror="this.style.display='none'">
+        </div>
         <div style="text-align:center; padding:20px;">
-            <img src="${d.imgC}" style="width:80%; max-height:250px; object-fit:contain;">
+            <img src="${d.imgC}" style="width:80%; max-height:250px; object-fit:contain; margin-bottom:20px;">
             <h1>${d.name}</h1>
             <div style="background:#111; padding:20px; border-radius:15px; border:1px solid #333; margin:20px;">
-                <p style="color:#00ff00; font-size:1.5em; font-weight:bold;">${d.owned} / ${d.total}</p>
-                <p style="color:#888;">Jeux en collection</p>
+                <p style="color:#00ff00; font-size:1.8em; font-weight:bold; margin:0;">${d.owned} / ${d.total}</p>
+                <p style="color:#888; margin:5px 0 0 0;">Jeux en collection</p>
             </div>
+            <p style="color:#666; font-size:0.9em;">Complétion : ${Math.round((d.owned/d.total)*100) || 0}%</p>
         </div>`;
     document.body.appendChild(div);
 }
@@ -104,7 +107,7 @@ function displayResults(brand, groups) {
         groups[c].forEach(g => {
             const data = btoa(unescape(encodeURIComponent(JSON.stringify(g))));
             html += `<div class="game-card" style="opacity:${g.isOwned.includes('❌') ? '0.3':'1'}" onclick="openGameDetail('${data}')">
-                <img src="${g.jaquette}" class="game-jaquette"><div class="game-info"><b>${g.title}</b><br>${g.price}€</div></div>`;
+                <img src="${g.jaquette}" class="game-jaquette"><div class="game-info"><b>${g.title}</b><br><span style="color:#0f0">${g.price}€</span></div></div>`;
         });
         html += `</div>`;
     }
@@ -119,7 +122,10 @@ function openGameDetail(encoded) {
         <button class="close-detail-btn" onclick="document.getElementById('active-detail').remove()">✕</button>
         <img src="${g.keyArt || g.jaquette}" class="key-art-img">
         <img src="${g.logoTitre}" class="title-logo-img">
-        <div class="detail-content"><h1>${g.title}</h1><p>${g.console}</p>
-        <div style="background:#111; padding:20px; border-radius:15px;"><b>${g.price}€</b></div></div>`;
+        <div class="detail-content"><h1>${g.title}</h1><p style="color:#888">${g.console}</p>
+        <div style="background:#111; padding:20px; border-radius:15px; margin:20px 0;">
+            <span style="font-size:2em; color:#0f0;">${g.price}€</span>
+        </div>
+        <p>Statut : ${g.isOwned}</p></div>`;
     document.body.appendChild(div);
 }
