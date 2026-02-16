@@ -1,3 +1,4 @@
+// Les fonctions de base (preload, directLink, selectBrand) restent identiques
 let allGames = [];
 let currentBrand = "";
 
@@ -63,38 +64,41 @@ function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
     
-    // 1. Déclenchement du rebond
+    // 1. Rebond
     floating.classList.add('bounce');
     
-    // 2. À 50% du rebond (200ms), on lance la suite de l'aventure
+    // 2. Déclenchement à 50% du rebond (200ms)
     setTimeout(() => {
         detail.innerHTML = `
             <button onclick="document.getElementById('full-detail').classList.remove('open'); setTimeout(()=>document.getElementById('full-detail').style.display='none', 800)" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
-            <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:20px;">
-            <h1 style="text-align:center;margin:0 0 20px 0;">${activeGameData.title}</h1>
-            <div style="background:#f9f9f9; padding:20px; border-radius:15px; font-size:1.1em; border:1px solid #eee;">
+            <img src="${activeGameData.img}" style="width:100%; max-height:200px; object-fit:contain; margin-bottom:20px;">
+            <h1 style="text-align:center;margin:0 0 10px 0;">${activeGameData.title}</h1>
+            <div style="background:#f9f9f9; padding:20px; border-radius:15px; font-size:1.1em;">
                 <p><b>Console :</b> ${activeGameData.console}</p>
                 <p><b>Prix :</b> ${activeGameData.price}€</p>
                 <p><b>Statut :</b> ${activeGameData.owned}</p>
             </div>`;
         
-        // On remplace le rebond par la rotation finale floue qui s'agrandit
+        // Lancer la rotation de la jaquette
         floating.classList.remove('animate-zoom', 'bounce');
         void floating.offsetWidth;
         floating.classList.add('fusion-out'); 
         
-        // La fiche info apparaît en fondu pendant que l'image tourne
+        // Lancer la rotation de la fiche (elle part de 80vw et finit à 100vw)
         detail.style.display = 'block';
-        setTimeout(() => { detail.classList.add('open'); }, 100); 
+        setTimeout(() => { 
+            detail.classList.add('open'); 
+        }, 10); 
         
+        // Nettoyage
         setTimeout(() => {
             document.getElementById('overlay').style.display = 'none';
             floating.style.display = 'none';
         }, 1400);
-    }, 200); // 200ms = 50% du rebond
+    }, 200); 
 }
 
-// LOGIQUE DE FETCH (IDENTIQUE)
+// FETCH FUNCTIONS (Inchangées pour garder ton visuel)
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
