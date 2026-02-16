@@ -1,4 +1,5 @@
 let allGames = [];
+let currentBrand = "";
 
 const toDirectLink = (val) => {
     if (!val || typeof val !== 'string') return "";
@@ -16,116 +17,105 @@ async function preloadData() {
     } catch (e) { console.error("Erreur preload", e); }
 }
 
-async function fetchGames(brand) {
-    const viewList = document.getElementById('view-list');
-    viewList.innerHTML = `<h2 style="text-align:center;">Chargement...</h2>`;
+// ÉTAPE 1 : Menu des Marques (Déjà géré par la navbar, mais on prépare la suite)
+function selectBrand(brand) {
+    currentBrand = brand;
+    showCategories();
+}
+
+// ÉTAPE 2 : Menu des Catégories (Mode Cartes)
+function showCategories() {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `
+        <div class="sticky-header"><button onclick="location.reload()">⬅ Retour</button></div>
+        <h2 style="text-align:center; margin-top:80px;">${currentBrand.toUpperCase()}</h2>
+        <div class="game-grid">
+            <div class="game-card" onclick="fetchGamesByBrand('${currentBrand}')">
+                <div class="category-icon">🎮</div>
+                <div class="game-info"><b>JEUX</b></div>
+            </div>
+            <div class="game-card" onclick="fetchConsolesByBrand('${currentBrand}')">
+                <div class="category-icon">🕹️</div>
+                <div class="game-info"><b>CONSOLES</b></div>
+            </div>
+            <div class="game-card" onclick="fetchAccessoriesByBrand('${currentBrand}')">
+                <div class="category-icon">🎧</div>
+                <div class="game-info"><b>ACCESSOIRES</b></div>
+            </div>
+        </div>
+    `;
+    window.scrollTo(0,0);
+}
+
+// ÉTAPE 3 : Affichage des JEUX (Classés par consoles)
+async function fetchGamesByBrand(brand) {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX ${brand}</h2>`;
+    
     if (allGames.length === 0) await preloadData();
 
     const groups = {};
     allGames.forEach(row => {
-        const brandInSheet = row.c[2]?.v || "";
-        if (brandInSheet.toLowerCase().includes(brand.toLowerCase())) {
-            const consoleName = row.c[4]?.v || "Autre";
-            if (!groups[consoleName]) groups[consoleName] = [];
-            groups[consoleName].push({
+        const b = row.c[2]?.v || "";
+        if (b.toLowerCase().includes(brand.toLowerCase())) {
+            const cName = row.c[4]?.v || "Autre";
+            if (!groups[cName]) groups[cName] = [];
+            groups[cName].push({
                 title: row.c[0]?.v || "",
-                logoTitre: toDirectLink(row.c[1]?.v),
-                console: consoleName,
-                keyArt: toDirectLink(row.c[5]?.v),
                 jaquette: toDirectLink(row.c[6]?.v),
                 price: row.c[12]?.v || "0",
-                isOwned: row.c[14]?.v || ""
+                isOwned: row.c[14]?.v || "",
+                logoTitre: toDirectLink(row.c[1]?.v),
+                keyArt: toDirectLink(row.c[5]?.v),
+                console: cName
             });
         }
     });
-    displayResults(brand, groups);
-}
 
-async function fetchConsoles() {
-    const viewList = document.getElementById('view-list');
-    viewList.innerHTML = `<h2 style="text-align:center;">Mes Consoles...</h2>`;
-    if (allGames.length === 0) await preloadData();
-
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.CONSOLES}`;
-
-    try {
-        const response = await fetch(url);
-        const text = await response.text();
-        const json = JSON.parse(text.substr(47).slice(0, -2));
-        const rows = json.table.rows;
-
-        let html = `<h2 style="text-align:center; margin:20px 0;">MA COLLECTION</h2><div class="game-grid">`;
-        rows.forEach(row => {
-            const name = row.c[0]?.v || "";
-            if(!name) return;
-            const imgC = toDirectLink(row.c[1]?.v); // Colonne B
-            const logoC = toDirectLink(row.c[2]?.v); // Colonne C
-
-            const stats = allGames.filter(g => (g.c[4]?.v || "").trim() === name.trim());
-            const owned = stats.filter(g => (g.c[14]?.v || "").includes("✅")).length;
-            const total = stats.length;
-
-            const data = btoa(unescape(encodeURIComponent(JSON.stringify({name, imgC, logoC, total, owned}))));
-            html += `
-                <div class="game-card" onclick="openConsoleDetail('${data}')">
-                    <img src="${imgC}" class="game-jaquette" style="object-fit:contain; padding:15px; background:#0a0a0a;">
-                    <div class="game-info">
-                        <div class="game-title">${name}</div>
-                        <div style="font-size:0.8em; color:#00ff00; font-weight:bold;">${owned} / ${total} JEUX</div>
-                    </div>
-                </div>`;
-        });
-        viewList.innerHTML = html + `</div>`;
-    } catch (e) { viewList.innerHTML = "Erreur de chargement de l'onglet Consoles."; }
-}
-
-function openConsoleDetail(encoded) {
-    const d = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-    const div = document.createElement('div');
-    div.className = "full-page-detail"; div.id = "active-detail";
-    div.innerHTML = `
-        <button class="close-detail-btn" onclick="document.getElementById('active-detail').remove()">✕</button>
-        <div style="background:#000; padding:40px 20px; text-align:center;">
-            <img src="${d.logoC}" style="width:80%; max-width:250px;" onerror="this.style.display='none'">
-        </div>
-        <div style="text-align:center; padding:20px;">
-            <img src="${d.imgC}" style="width:80%; max-height:250px; object-fit:contain; margin-bottom:20px;">
-            <h1>${d.name}</h1>
-            <div style="background:#111; padding:20px; border-radius:15px; border:1px solid #333; margin:20px;">
-                <p style="color:#00ff00; font-size:1.8em; font-weight:bold; margin:0;">${d.owned} / ${d.total}</p>
-                <p style="color:#888; margin:5px 0 0 0;">Jeux en collection</p>
-            </div>
-            <p style="color:#666; font-size:0.9em;">Complétion : ${Math.round((d.owned/d.total)*100) || 0}%</p>
-        </div>`;
-    document.body.appendChild(div);
-}
-
-function displayResults(brand, groups) {
-    let html = `<h2 style="text-align:center; margin:20px 0;">${brand.toUpperCase()}</h2>`;
-    for (const c in groups) {
-        html += `<div class="console-header"><h3>${c}</h3></div><div class="game-grid">`;
-        groups[c].forEach(g => {
+    let html = "";
+    for (const consoleName in groups) {
+        html += `<div class="console-header"><h3>${consoleName}</h3></div><div class="game-grid">`;
+        groups[consoleName].forEach(g => {
             const data = btoa(unescape(encodeURIComponent(JSON.stringify(g))));
             html += `<div class="game-card" style="opacity:${g.isOwned.includes('❌') ? '0.3':'1'}" onclick="openGameDetail('${data}')">
-                <img src="${g.jaquette}" class="game-jaquette"><div class="game-info"><b>${g.title}</b><br><span style="color:#0f0">${g.price}€</span></div></div>`;
+                <img src="${g.jaquette}" class="game-jaquette"><div class="game-info"><b>${g.title}</b></div></div>`;
         });
         html += `</div>`;
     }
-    document.getElementById('view-list').innerHTML = html;
+    view.innerHTML += html;
 }
 
+// ÉTAPE 3 : Affichage des CONSOLES (Liste par marque)
+async function fetchConsolesByBrand(brand) {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES ${brand}</h2>`;
+    
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.CONSOLES}`;
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+
+    let html = `<div class="game-grid">`;
+    rows.forEach(row => {
+        const name = row.c[0]?.v || "";
+        const rowBrand = row.c[3]?.v || ""; // ON SUPPOSE QUE LA MARQUE EST EN COLONNE D (3)
+        if (rowBrand.toLowerCase().includes(brand.toLowerCase())) {
+            const img = toDirectLink(row.c[1]?.v);
+            html += `<div class="game-card"><img src="${img}" class="game-jaquette" style="object-fit:contain;padding:10px;"><div class="game-info"><b>${name}</b></div></div>`;
+        }
+    });
+    view.innerHTML += html + `</div>`;
+}
+
+// Les fonctions openGameDetail restent identiques...
 function openGameDetail(encoded) {
     const g = JSON.parse(decodeURIComponent(escape(atob(encoded))));
     const div = document.createElement('div');
     div.className = "full-page-detail"; div.id = "active-detail";
     div.innerHTML = `
-        <button class="close-detail-btn" onclick="document.getElementById('active-detail').remove()">✕</button>
+        <button class="close-detail-btn" onclick="document.getElementById('active-detail').remove()">✕ Fermer</button>
         <img src="${g.keyArt || g.jaquette}" class="key-art-img">
         <img src="${g.logoTitre}" class="title-logo-img">
-        <div class="detail-content"><h1>${g.title}</h1><p style="color:#888">${g.console}</p>
-        <div style="background:#111; padding:20px; border-radius:15px; margin:20px 0;">
-            <span style="font-size:2em; color:#0f0;">${g.price}€</span>
-        </div>
-        <p>Statut : ${g.isOwned}</p></div>`;
+        <div class="detail-content"><h1>${g.title}</h1><p>${g.console}</p><div class="price-tag">${g.price}€</div></div>`;
     document.body.appendChild(div);
 }
