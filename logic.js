@@ -20,7 +20,10 @@ async function preloadData() {
 
 // NAVIGATION (Ne pas changer)
 function selectBrand(brand) {
-    currentBrand = brand;
+    // On harmonise : si on clique sur Sony, on cherche "Playstation" ou "Sony"
+    if (brand === 'Sony') currentBrand = 'Playstation';
+    else currentBrand = brand;
+    
     showCategories();
 }
 
