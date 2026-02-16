@@ -42,8 +42,6 @@ function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
     const floating = document.getElementById('floating-card');
-    
-    // On met juste l'image, sans le conteneur game-card pour ne pas avoir de fond blanc
     floating.innerHTML = `<img src="${imgSrc}">`;
     overlay.style.display = 'block';
     floating.style.display = 'block';
@@ -58,16 +56,17 @@ function handleFloatingClick() {
     
     setTimeout(() => {
         const detail = document.getElementById('full-detail');
-        detail.style.display = 'block';
         detail.innerHTML = `
-            <button onclick="document.getElementById('full-detail').style.display='none'" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;">✕ FERMER</button>
-            <img src="${activeGameData.img}" style="width:100%; max-height:350px; object-fit:contain; margin:20px 0; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));">
-            <h1 style="text-align:center;">${activeGameData.title}</h1>
-            <div style="background:#f9f9f9; padding:20px; border-radius:10px; margin-top:20px;">
+            <div style="width:50px; height:5px; background:#ddd; border-radius:10px; margin: 0 auto 20px;"></div>
+            <button onclick="document.getElementById('full-detail').classList.remove('open')" style="background:var(--brand-color);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;">✕ FERMER</button>
+            <img src="${activeGameData.img}" style="width:100%; max-height:300px; object-fit:contain; margin:20px 0; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));">
+            <h1 style="text-align:center;margin:0;">${activeGameData.title}</h1>
+            <div style="background:#f9f9f9; padding:20px; border-radius:15px; margin-top:20px; font-size:1.1em;">
                 <p><b>Console :</b> ${activeGameData.console}</p>
                 <p><b>Prix :</b> ${activeGameData.price}€</p>
-                <p><b>Statut :</b> ${activeGameData.owned}</p>
+                <p><b>Propriété :</b> ${activeGameData.owned}</p>
             </div>`;
+        detail.classList.add('open');
         closeOverlay();
     }, 400);
 }
@@ -75,7 +74,6 @@ function handleFloatingClick() {
 function closeOverlay() {
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('floating-card').style.display = 'none';
-    document.getElementById('floating-card').classList.remove('animate-zoom', 'bounce');
 }
 
 async function fetchGamesByBrand() {
@@ -102,7 +100,6 @@ async function fetchGamesByBrand() {
         titleDiv.style.padding = "15px 15px 0";
         titleDiv.innerHTML = `<b>${c}</b>`;
         view.appendChild(titleDiv);
-        
         const grid = document.createElement('div');
         grid.className = 'game-grid';
         groups[c].forEach(g => {
@@ -117,7 +114,7 @@ async function fetchGamesByBrand() {
     }
 }
 
-// CONSOLES ET ACCESSOIRES
+// CONSOLES ET ACCESSOIRES (Même logique de clic)
 async function fetchConsolesByBrand() {
     const view = document.getElementById('view-list');
     view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
