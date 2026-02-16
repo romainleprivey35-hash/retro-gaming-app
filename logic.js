@@ -9,9 +9,11 @@ const toDirectLink = (val) => {
 
 async function preloadData() {
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
-    const resp = await fetch(url);
-    const text = await resp.text();
-    allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    try {
+        const resp = await fetch(url);
+        const text = await resp.text();
+        allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    } catch(e) { console.error(e); }
 }
 
 function selectBrand(brand) {
@@ -30,9 +32,9 @@ function showCategories() {
         <div class="sticky-header"><button onclick="location.reload()">⬅ Retour</button></div>
         <h2 style="text-align:center; margin-top:80px;">${currentBrand.toUpperCase()}</h2>
         <div class="game-grid">
-            <div class="game-card" onclick="fetchGamesByBrand()"><div class="card-face card-front" style="display:flex;align-items:center;justify-content:center;">🎮 JEUX</div></div>
-            <div class="game-card" onclick="fetchConsolesByBrand()"><div class="card-face card-front" style="display:flex;align-items:center;justify-content:center;">🕹️ CONSOLES</div></div>
-            <div class="game-card" onclick="fetchAccessoriesByBrand()"><div class="card-face card-front" style="display:flex;align-items:center;justify-content:center;">🎧 ACCESSOIRES</div></div>
+            <div class="game-card" onclick="fetchGamesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;font-weight:bold;">🎮 JEUX</div></div>
+            <div class="game-card" onclick="fetchConsolesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;font-weight:bold;">🕹️ CONSOLES</div></div>
+            <div class="game-card" onclick="fetchAccessoriesByBrand()"><div class="card-face" style="display:flex;align-items:center;justify-content:center;font-weight:bold;">🎧 ACCESSOIRES</div></div>
         </div>`;
 }
 
@@ -47,12 +49,14 @@ function handleCardClick(card, data) {
             const detail = document.getElementById('full-detail');
             detail.style.display = 'block';
             detail.innerHTML = `
-                <button onclick="this.parentElement.style.display='none'" style="background:var(--brand-color);color:white;border:none;padding:10px;border-radius:10px;width:100%;">Fermer</button>
-                <img src="${data.img}" style="width:100%;margin-top:20px;border-radius:10px;">
-                <h1>${data.title}</h1>
-                <p><b>Console :</b> ${data.console}</p>
-                <p><b>Prix :</b> ${data.price}€</p>
-                <p><b>Possédé :</b> ${data.owned}</p>
+                <button onclick="document.getElementById('full-detail').style.display='none'" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;">✕ FERMER</button>
+                <img src="${data.img}" style="width:100%; max-height:300px; object-fit:contain; margin-top:20px;">
+                <h1 style="text-align:center;">${data.title}</h1>
+                <div style="background:#f5f5f5; padding:15px; border-radius:10px; line-height:1.8;">
+                    <p><b>Console :</b> ${data.console}</p>
+                    <p><b>Prix :</b> ${data.price}€</p>
+                    <p><b>Statut :</b> ${data.owned}</p>
+                </div>
             `;
             closeFocus();
         }, 400);
@@ -74,19 +78,21 @@ async function fetchGamesByBrand() {
         if ((row.c[2]?.v || "").toLowerCase().includes(currentBrand.toLowerCase())) {
             const c = row.c[4]?.v || "Autre";
             if (!groups[c]) groups[c] = [];
-            groups[c].push({ title: row.c[0]?.v, img: toDirectLink(row.c[6]?.v), price: row.c[12]?.v, owned: row.c[14]?.v, console: c });
+            groups[c].push({ title: row.c[0]?.v, img: toDirectLink(row.c[6]?.v), price: row.c[12]?.v, owned: row.c[14]?.v || "", console: c });
         }
     });
     for (const c in groups) {
-        view.innerHTML += `<div class="console-header"><h3>${c}</h3></div><div class="game-grid">`;
+        const title = document.createElement('div'); title.className = 'console-header'; title.innerHTML = `<h3>${c}</h3>`;
+        view.appendChild(title);
+        const grid = document.createElement('div'); grid.className = 'game-grid';
         groups[c].forEach(g => {
-            const btn = document.createElement('div');
-            btn.className = 'game-card';
-            btn.style.opacity = g.owned.includes('✅') ? '1' : '0.4';
-            btn.onclick = () => handleCardClick(btn, g);
-            btn.innerHTML = `<div class="card-face card-front"><img src="${g.img}"></div>`;
-            view.lastChild.appendChild(btn);
+            const card = document.createElement('div'); card.className = 'game-card';
+            card.style.opacity = g.owned.includes('❌') ? '0.4' : '1';
+            card.onclick = (e) => { e.stopPropagation(); handleCardClick(card, g); };
+            card.innerHTML = `<div class="card-face"><img src="${g.img}"></div>`;
+            grid.appendChild(card);
         });
+        view.appendChild(grid);
     }
 }
 
@@ -100,11 +106,11 @@ async function fetchConsolesByBrand() {
     const grid = document.createElement('div'); grid.className = 'game-grid';
     rows.forEach(row => {
         if ((row.c[3]?.v || "").toLowerCase().includes(currentBrand.toLowerCase())) {
-            const g = { title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[3]?.v, price: "?", owned: "✅" };
-            const btn = document.createElement('div'); btn.className = 'game-card';
-            btn.onclick = () => handleCardClick(btn, g);
-            btn.innerHTML = `<div class="card-face card-front"><img src="${g.img}" style="object-fit:contain;padding:10px;"></div>`;
-            grid.appendChild(btn);
+            const g = { title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[3]?.v, price: "N/A", owned: "✅" };
+            const card = document.createElement('div'); card.className = 'game-card';
+            card.onclick = (e) => { e.stopPropagation(); handleCardClick(card, g); };
+            card.innerHTML = `<div class="card-face"><img src="${g.img}"></div>`;
+            grid.appendChild(card);
         }
     });
     view.appendChild(grid);
@@ -120,11 +126,11 @@ async function fetchAccessoriesByBrand() {
     const grid = document.createElement('div'); grid.className = 'game-grid';
     rows.forEach(row => {
         if ((row.c[5]?.v || "").toLowerCase().includes(currentBrand.toLowerCase())) {
-            const g = { title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[2]?.v, price: "?", owned: "✅" };
-            const btn = document.createElement('div'); btn.className = 'game-card';
-            btn.onclick = () => handleCardClick(btn, g);
-            btn.innerHTML = `<div class="card-face card-front"><img src="${g.img}" style="object-fit:contain;padding:10px;"></div>`;
-            grid.appendChild(btn);
+            const g = { title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[2]?.v, price: "N/A", owned: "✅" };
+            const card = document.createElement('div'); card.className = 'game-card';
+            card.onclick = (e) => { e.stopPropagation(); handleCardClick(card, g); };
+            card.innerHTML = `<div class="card-face"><img src="${g.img}"></div>`;
+            grid.appendChild(card);
         }
     });
     view.appendChild(grid);
