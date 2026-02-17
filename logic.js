@@ -92,49 +92,44 @@ function selectBrand(brand) {
 
 async function renderCategory(category) {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement des ${category}...</h2>`;
+    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement de l'onglet ${category}...</h2>`;
 
-    // Ton ID de Sheet directement ici
+    // ON UTILISE UNIQUEMENT TON SHEET
     const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU"; 
-    
-    // On force le nom de l'onglet pour qu'il corresponde à tes boutons
-    // Si tes onglets s'appellent JEUX (tout en majuscules), change "category" par "category.toUpperCase()"
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${category}`;
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
     
     try {
         const resp = await fetch(url);
         const text = await resp.text();
-        
-        // On nettoie le JSON de Google
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
+        // On filtre par rapport à la marque sélectionnée au tout début (Colonne C)
         const items = rows.map(row => ({
-            title: row.c[0]?.v,              // Col A
-            brand: row.c[2]?.v || "",        // Col C
-            consoleName: row.c[4]?.v || "",  // Col E
-            img: toDirectLink(row.c[6]?.v),  // Col G
-            price: row.c[12]?.v,             // Col M
-            owned: row.c[14]?.v || "NON"     // Col O
+            title: row.c[0]?.v,              // Nom (Col A)
+            brand: row.c[2]?.v || "",        // Marque (Col C)
+            consoleName: row.c[4]?.v || "",  // Console (Col E)
+            img: toDirectLink(row.c[6]?.v),  // Image (Col G)
+            price: row.c[12]?.v,             // Prix (Col M)
+            owned: row.c[14]?.v || "NON"     // Possédé (Col O)
         })).filter(item => {
-            // On vérifie que le titre existe et que la marque correspond
+            // On vérifie que la ligne n'est pas vide et que la marque correspond
             return item.title && item.brand.toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
         if (items.length === 0) {
-            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément trouvé pour "${currentBrand}" dans l'onglet "${category}".</h2>`;
+            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Rien trouvé pour "${currentBrand}" dans l'onglet "${category}".</h2>`;
         } else {
-            // On garde ton tri par année
+            // On garde ton tri par année de console
             items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
             renderGrid(items);
         }
 
-        // Le bouton retour qui revient aux catégories
-        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATÉGORIES</button>`;
+        // Le bouton retour qui revient aux logos des catégories
+        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
     
     } catch (e) {
-        // Si ça plante, on affiche le nom de l'onglet qui pose problème
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : L'onglet "${category}" est introuvable.<br><br>Vérifie bien le nom en bas de ton Excel.</h2>`;
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : Impossible de lire l'onglet "${category}".</h2>`;
     }
 }
 
