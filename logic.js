@@ -37,7 +37,7 @@ function showCategories() {
         </div>`;
 }
 
-// --- CLICS ET ANIMATIONS ---
+// --- ANIMATIONS ---
 
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
@@ -57,7 +57,9 @@ function handleCardClick(imgSrc, data) {
 function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
+    
     floating.classList.add('scale-out-center-ver');
+
     setTimeout(() => {
         detail.innerHTML = `
             <button onclick="closeFullDetail()" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
@@ -68,27 +70,26 @@ function handleFloatingClick() {
                 <p><b>Prix :</b> ${activeGameData.price}€</p>
                 <p><b>Achat :</b> ${activeGameData.owned}</p>
             </div>`;
+        
         floating.style.display = 'none';
         detail.style.display = 'block';
         detail.classList.add('scale-in-center-ver');
     }, 300);
 }
 
-// --- FERMETURES SIMULTANÉES (L'EFFET SMOOTH EST ICI) ---
-
 function closeOverlay() {
     const floating = document.getElementById('floating-card');
     const overlay = document.getElementById('overlay');
     const viewList = document.getElementById('view-list');
     
-    // On lance tout en même temps
     floating.classList.remove('animate-zoom');
     void floating.offsetWidth; 
     floating.classList.add('animate-reverse');
     
-    viewList.classList.remove('unblur-fade');
-    void viewList.offsetWidth;
-    viewList.classList.add('unblur-fade');
+    // Le flou commence un tout petit peu après pour la fluidité
+    setTimeout(() => {
+        viewList.classList.add('unblur-fade');
+    }, 100);
 
     setTimeout(() => {
         floating.style.display = 'none';
@@ -102,14 +103,13 @@ function closeFullDetail() {
     const overlay = document.getElementById('overlay');
     const viewList = document.getElementById('view-list');
     
-    // On lance tout en même temps
     detail.classList.remove('scale-in-center-ver');
     void detail.offsetWidth;
     detail.classList.add('scale-out-center-ver-detail');
     
-    viewList.classList.remove('unblur-fade');
-    void viewList.offsetWidth;
-    viewList.classList.add('unblur-fade');
+    setTimeout(() => {
+        viewList.classList.add('unblur-fade');
+    }, 100);
 
     setTimeout(() => {
         detail.style.display = 'none';
@@ -119,7 +119,7 @@ function closeFullDetail() {
     }, 400);
 }
 
-// --- RENDU ET LOGIQUE SHEET ---
+// --- LOGIQUE RENDU ---
 
 function renderGrid(groups, view) {
     for (const c in groups) {
@@ -153,6 +153,8 @@ function renderSimpleGrid(items, view) {
     });
     view.appendChild(grid);
 }
+
+// --- FETCH FUNCTIONS ---
 
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
