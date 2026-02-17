@@ -59,12 +59,27 @@ function selectBrand(brand) {
     document.getElementById('ui-header').style.display = 'block';
     document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
     
+    // On cherche les IDs des logos de catégories directement dans les données du Sheet
+    // On suppose ici que tu as des lignes dédiées ou que l'info est présente dans les colonnes
+    const brandData = allGames.find(row => (row.c[2]?.v || "").toLowerCase() === brand.toLowerCase());
+    
+    // On récupère les IDs (adapte l'index de colonne si besoin, ici exemple avec col D, E, F pour les logos)
+    const logoJeux = brandData?.c[15]?.v; // Remplace 15 par l'index de ta colonne logo Jeux
+    const logoConsoles = brandData?.c[16]?.v; // Remplace 16 par l'index col logo Consoles
+    const logoAccessoires = brandData?.c[17]?.v; // Remplace 17 par l'index col logo Accessoires
+
     const view = document.getElementById('view-list');
     view.innerHTML = `
         <div class="menu-full">
-            <div class="brand-section" onclick="renderCategory('Jeux')"><h1 style="font-size:40px;">JEUX</h1></div>
-            <div class="brand-section" onclick="renderCategory('Consoles')"><h1 style="font-size:40px;">CONSOLES</h1></div>
-            <div class="brand-section" onclick="renderCategory('Accessoires')"><h1 style="font-size:40px;">ACCESSOIRES</h1></div>
+            <div class="brand-section" onclick="renderCategory('Jeux')">
+                ${logoJeux ? `<img src="${toDirectLink(logoJeux)}">` : '<h1 style="font-size:40px;">JEUX</h1>'}
+            </div>
+            <div class="brand-section" onclick="renderCategory('Consoles')">
+                ${logoConsoles ? `<img src="${toDirectLink(logoConsoles)}">` : '<h1 style="font-size:40px;">CONSOLES</h1>'}
+            </div>
+            <div class="brand-section" onclick="renderCategory('Accessoires')">
+                ${logoAccessoires ? `<img src="${toDirectLink(logoAccessoires)}">` : '<h1 style="font-size:40px;">ACCESSOIRES</h1>'}
+            </div>
         </div>`;
 }
 
