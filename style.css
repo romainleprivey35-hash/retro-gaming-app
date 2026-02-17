@@ -1,14 +1,7 @@
 :root { --brand-color: #333; }
-body { background: #ffffff; color: #333; font-family: sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+body { background: #ffffff; color: #333; font-family: sans-serif; margin: 0; padding: 0; }
 
-/* Style du Badge de Version */
-#version-tag { 
-    position: fixed; bottom: 10px; right: 10px; 
-    font-size: 10px; color: red; font-weight: bold; 
-    z-index: 99999; background: white; padding: 2px 5px; border: 1px solid red;
-}
-
-#ui-header { position: fixed; top: 20px; left: 20px; z-index: 10000; }
+#ui-header { position: fixed; top: 30px; left: 20px; z-index: 10000; }
 #ui-header button { background: var(--brand-color); color: white; border: none; padding: 12px 20px; border-radius: 50px; font-weight: bold; }
 
 .menu-container { height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
@@ -31,6 +24,5 @@ body { background: #ffffff; color: #333; font-family: sans-serif; margin: 0; pad
 .scale-in-ver-center { display: flex !important; animation: scale-in-ver-center 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
 .scale-out-ver-center { animation: scale-in-ver-center 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both; }
 @keyframes scale-in-ver-center { 0% { transform: scaleY(0); opacity: 0; } 100% { transform: scaleY(1); opacity: 1; } }
-
 .animate-zoom { animation: zoomRotate 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 @keyframes zoomRotate { from { transform: translate(-50%, -50%) scale(0) rotateY(0deg); } to { transform: translate(-50%, -50%) scale(1) rotateY(360deg); } }
