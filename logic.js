@@ -37,8 +37,6 @@ function showCategories() {
         </div>`;
 }
 
-// --- ANIMATIONS ---
-
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const viewList = document.getElementById('view-list');
@@ -57,9 +55,7 @@ function handleCardClick(imgSrc, data) {
 function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
-    
     floating.classList.add('scale-out-center-ver');
-
     setTimeout(() => {
         detail.innerHTML = `
             <button onclick="closeFullDetail()" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
@@ -70,9 +66,9 @@ function handleFloatingClick() {
                 <p><b>Prix :</b> ${activeGameData.price}€</p>
                 <p><b>Achat :</b> ${activeGameData.owned}</p>
             </div>`;
-        
         floating.style.display = 'none';
         detail.style.display = 'block';
+        detail.classList.remove('scale-out-center-ver-detail');
         detail.classList.add('scale-in-center-ver');
     }, 300);
 }
@@ -81,16 +77,10 @@ function closeOverlay() {
     const floating = document.getElementById('floating-card');
     const overlay = document.getElementById('overlay');
     const viewList = document.getElementById('view-list');
-    
     floating.classList.remove('animate-zoom');
     void floating.offsetWidth; 
     floating.classList.add('animate-reverse');
-    
-    // Le flou commence un tout petit peu après pour la fluidité
-    setTimeout(() => {
-        viewList.classList.add('unblur-fade');
-    }, 100);
-
+    setTimeout(() => { viewList.classList.add('unblur-fade'); }, 100);
     setTimeout(() => {
         floating.style.display = 'none';
         overlay.style.display = 'none';
@@ -102,24 +92,16 @@ function closeFullDetail() {
     const detail = document.getElementById('full-detail');
     const overlay = document.getElementById('overlay');
     const viewList = document.getElementById('view-list');
-    
     detail.classList.remove('scale-in-center-ver');
     void detail.offsetWidth;
     detail.classList.add('scale-out-center-ver-detail');
-    
-    setTimeout(() => {
-        viewList.classList.add('unblur-fade');
-    }, 100);
-
+    setTimeout(() => { viewList.classList.add('unblur-fade'); }, 100);
     setTimeout(() => {
         detail.style.display = 'none';
         overlay.style.display = 'none';
         document.getElementById('floating-card').style.display = 'none';
-        detail.classList.remove('scale-out-center-ver-detail');
     }, 400);
 }
-
-// --- LOGIQUE RENDU ---
 
 function renderGrid(groups, view) {
     for (const c in groups) {
@@ -154,11 +136,9 @@ function renderSimpleGrid(items, view) {
     view.appendChild(grid);
 }
 
-// --- FETCH FUNCTIONS ---
-
 async function fetchGamesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
+    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">JEUX</h2>`;
     if (allGames.length === 0) await preloadData();
     const groups = {};
     allGames.forEach(row => {
@@ -173,7 +153,7 @@ async function fetchGamesByBrand() {
 
 async function fetchConsolesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
+    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">CONSOLES</h2>`;
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.CONSOLES}`;
     const resp = await fetch(url);
     const text = await resp.text();
@@ -185,7 +165,7 @@ async function fetchConsolesByBrand() {
 
 async function fetchAccessoriesByBrand() {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<div id="overlay" onclick="closeOverlay()"></div><div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div><div id="full-detail"></div><div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES</h2>`;
+    view.innerHTML = `<div class="sticky-header"><button onclick="showCategories()">⬅ Retour</button></div><h2 style="text-align:center;margin-top:80px;">ACCESSOIRES</h2>`;
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.ACCESSOIRES}`;
     const resp = await fetch(url);
     const text = await resp.text();
