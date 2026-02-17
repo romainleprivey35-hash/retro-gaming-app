@@ -4,9 +4,9 @@ let activeGameData = null;
 
 // --- MODIFICATION : IDENTIFIANTS IMAGES DRIVE POUR LES MARQUES ---
 const BRAND_LOGOS = {
-    nintendo: "1S0LebnGPPp6IeEqicri2ya6-1EHzeUTm",    // Logo Nintendo (Drive)
-    playstation: "1Koyt_vHAn_Bq9mYyC_zD-C17G9X7zV_2", // Logo Playstation (Drive)
-    xbox: "1Yf_FfU-vK3m8vI_Z7Y_R8z-VvXw9z_Qx"         // Logo Xbox (Drive)
+    nintendo: "11g1hLkCEY-wLQgMOHuDdRcmBbq33Lkn7",    // Logo Nintendo (Drive)
+    playstation: "1XzZYJwDRWiPBpW-16TGYPcTYSGRB-fC0", // Logo Playstation (Drive)
+    xbox: "1SzJdKKuHIv5M3bGNc9noed8mN60fNm9y"         // Logo Xbox (Drive)
 };
 
 const CONSOLE_CONFIG = {
