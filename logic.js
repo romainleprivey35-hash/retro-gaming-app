@@ -1,11 +1,10 @@
 const SHEET_ID = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU";
 let currentBrand = "";
 
-// Initialisation - Écran des marques
 function init() {
     currentBrand = "";
     const view = document.getElementById('view-list');
-    document.getElementById('ui-header').innerHTML = "<h1>SELECTIONNE UNE MARQUE</h1>";
+    document.getElementById('ui-header').innerHTML = "<h1>SÉLECTIONNE UNE MARQUE</h1>";
     
     view.innerHTML = `
         <div class="brand-selection">
@@ -16,28 +15,18 @@ function init() {
     `;
 }
 
-// Choix de la catégorie
 function selectBrand(brand) {
     currentBrand = brand;
-    const view = document.getElementById('view-list');
-    document.getElementById('ui-header').innerHTML = `<h1>${brand.toUpperCase()}</h1>`;
-
-    view.innerHTML = `
-        <div class="categories-container">
-            <div class="cat-card" onclick="renderCategory('Jeux')">JEUX</div>
-            <div class="cat-card" onclick="renderCategory('Consoles')">CONSOLES</div>
-            <div class="cat-card" onclick="renderCategory('Accessoires')">ACCESSOIRES</div>
-        </div>
-        <button class="btn-back" onclick="init()">RETOUR</button>
-    `;
+    // On lance directement l'affichage des jeux comme avant
+    renderCategory('Jeux');
 }
 
-// La fonction que tu aimais, adaptée pour tes 3 onglets
 async function renderCategory(category) {
     const view = document.getElementById('view-list');
     view.innerHTML = `<h2 class="loading">Chargement...</h2>`;
 
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
+    // URL fixe sur l'onglet Jeux qui fonctionnait
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`;
     
     try {
         const resp = await fetch(url);
@@ -45,36 +34,33 @@ async function renderCategory(category) {
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
-        // On définit la colonne Constructeur selon l'onglet (C=2, D=3, F=5)
-        let colConst = 2; 
-        if (category === "Consoles") colConst = 3;
-        if (category === "Accessoires") colConst = 5;
-
         const items = rows.map(row => {
             if (!row.c) return null;
             return {
-                title: row.c[0]?.v,              // Col A
-                constructor: row.c[colConst]?.v, // Col dynamique
-                consoleName: row.c[4]?.v,        // Col E
-                img: toDirectLink(row.c[6]?.v),  // Col G
-                price: row.c[12]?.v,             // Col M
-                owned: row.c[14]?.v              // Col O
+                title: row.c[0]?.v,
+                constructor: row.c[2]?.v, // Colonne C pour les Jeux
+                consoleName: row.c[4]?.v,
+                img: toDirectLink(row.c[6]?.v),
+                price: row.c[12]?.v,
+                owned: row.c[14]?.v
             };
         }).filter(item => {
             return item && item.title && item.constructor?.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
-        renderGrid(items); // Appelle ton design de cartes
+        // Cette fonction renderGrid est celle qui contient tout ton design/effets
+        renderGrid(items);
         
-        document.getElementById('ui-header').innerHTML = `<button class="btn-back" onclick="selectBrand('${currentBrand}')">RETOUR</button>`;
+        document.getElementById('ui-header').innerHTML = `<button class="btn-back" onclick="init()">⬅ RETOUR</button>`;
 
     } catch (e) {
-        console.error("Erreur de chargement");
+        console.error("Erreur");
     }
 }
 
 function toDirectLink(id) {
     if (!id) return "";
+    if (id.includes('http')) return id;
     return `https://drive.google.com/uc?export=view&id=${id}`;
 }
 
