@@ -7,12 +7,14 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="ui-header"></div>
-    <div id="view-list"></div>
-    <div id="overlay" onclick="closeOverlay()"></div>
-    <div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div>
-    <div id="full-detail"></div>
-
+    <div id="view-list">
+        <h1 style="text-align:center; margin-top:100px;">Ma Collection</h1>
+        <div class="game-grid">
+            <div class="game-card" onclick="selectBrand('Nintendo')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">NINTENDO</div>
+            <div class="game-card" onclick="selectBrand('Playstation')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">PLAYSTATION</div>
+            <div class="game-card" onclick="selectBrand('Xbox')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">XBOX</div>
+        </div>
+    </div>
     <script src="config.js"></script>
     <script src="logic.js"></script>
 </body>
