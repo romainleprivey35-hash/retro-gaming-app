@@ -1,53 +1,129 @@
-// ... (garder CONSOLE_ORDER et les autres fonctions) ...
+let allGames = [];
+let currentBrand = "";
+let activeGameData = null;
+
+const CONSOLE_ORDER = {
+    "NES": 1, "SNES": 2, "N64": 3, "GameCube": 4, "Wii": 5, "Wii U": 6, "Switch": 7,
+    "PS1": 10, "PS2": 11, "PS3": 12, "PS4": 13, "PS5": 14,
+    "Xbox": 20, "Xbox 360": 21, "Xbox One": 22, "Xbox Series": 23
+};
+
+const toDirectLink = (id) => {
+    if (!id) return "";
+    const match = id.toString().match(/id=([-\w]+)/);
+    return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : id;
+};
+
+window.onload = () => { 
+    console.log("App lancée");
+    renderMainMenu(); 
+    preloadData(); 
+};
+
+async function preloadData() {
+    try {
+        const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
+        const resp = await fetch(url);
+        const text = await resp.text();
+        const jsonData = JSON.parse(text.substr(47).slice(0, -2));
+        allGames = jsonData.table.rows;
+        console.log("Données chargées :", allGames.length, "jeux");
+    } catch (e) { 
+        console.error("Erreur Sheets :", e);
+    }
+}
+
+function renderMainMenu() {
+    const view = document.getElementById('view-list');
+    view.innerHTML = `
+        <div class="menu-container">
+            <h1 style="text-align:center; margin-top:60px;">Ma Collection</h1>
+            <div class="pill-menu">
+                <div class="pill nintendo" onclick="selectBrand('Nintendo')">NINTENDO</div>
+                <div class="pill playstation" onclick="selectBrand('Playstation')">PLAYSTATION</div>
+                <div class="pill xbox" onclick="selectBrand('Xbox')">XBOX</div>
+            </div>
+        </div>`;
+    document.getElementById('ui-header').style.display = 'none';
+}
+
+function selectBrand(brand) {
+    currentBrand = brand;
+    const colors = { 'Nintendo': '#e60012', 'Playstation': '#00439c', 'Xbox': '#107c10' };
+    document.documentElement.style.setProperty('--brand-color', colors[brand]);
+    
+    // Protection si les colonnes ont bougé dans ton Sheets
+    let filtered = allGames.map(r => {
+        return {
+            title: r.c[0]?.v || "Sans titre",
+            brand: r.c[2]?.v || "",
+            console: r.c[4]?.v || "Inconnue",
+            img: toDirectLink(r.c[6]?.v || ""),
+            owned: (r.c[14]?.v || "NON").toUpperCase()
+        };
+    }).filter(game => game.brand.toLowerCase().includes(brand.toLowerCase()));
+
+    // Tri chronologique
+    filtered.sort((a, b) => (CONSOLE_ORDER[a.console] || 999) - (CONSOLE_ORDER[b.console] || 999));
+
+    renderGrid(filtered);
+}
 
 function renderGrid(items) {
     const view = document.getElementById('view-list');
     view.innerHTML = '<div class="game-grid"></div>';
     const grid = view.querySelector('.game-grid');
-    
     let lastConsole = "";
 
+    document.getElementById('ui-header').style.display = 'block';
+    document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
+
     items.forEach(item => {
-        // AJOUT DU MUR VIRTUEL SI LA CONSOLE CHANGE
         if (item.console !== lastConsole) {
-            const separator = document.createElement('div');
-            separator.className = 'console-separator';
-            separator.innerText = item.console;
-            grid.appendChild(separator);
+            const sep = document.createElement('div');
+            sep.className = 'console-separator';
+            sep.innerText = item.console;
+            grid.appendChild(sep);
             lastConsole = item.console;
         }
 
         const div = document.createElement('div');
-        div.className = 'game-card';
-        if(item.owned === "NON") div.classList.add('not-owned');
-
+        div.className = 'game-card' + (item.owned === "NON" ? ' not-owned' : '');
         div.onclick = () => {
             activeGameData = item;
             const card = document.getElementById('floating-card');
-            // On vide le contenu précédent pour éviter les doublons en bas
             card.innerHTML = `<img src="${item.img}" style="width:100%; border-radius:15px; display:block;">`;
             card.style.display = 'block';
             card.className = 'animate-zoom';
             document.getElementById('overlay').style.display = 'block';
         };
-        
-        div.innerHTML = `<img src="${item.img}">`;
+        div.innerHTML = `<img src="${item.img}" loading="lazy">`;
         grid.appendChild(div);
     });
 }
 
-// Nettoyage de la fonction click pour éviter l'affichage fantôme
+// Fonctions de fermeture standards
+function closeOverlay() {
+    document.getElementById('floating-card').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+}
+
 function handleFloatingClick() {
     const detail = document.getElementById('full-detail');
-    document.getElementById('floating-card').classList.add('scale-out-ver-center');
-    
+    document.getElementById('floating-card').style.display = 'none';
+    detail.innerHTML = `
+        <button onclick="closeFullDetail()" style="position:absolute; top:20px; background:var(--brand-color); color:white; border:none; padding:15px; border-radius:10px; width:80%; z-index:6000;">✕ FERMER</button>
+        <img src="${activeGameData.img}" style="max-height:40%; border-radius:10px; margin-bottom:20px; margin-top:60px;">
+        <h2 style="text-align:center;">${activeGameData.title}</h2>
+        <p><b>Console :</b> ${activeGameData.console}</p>`;
+    detail.className = 'scale-in-ver-center';
+}
+
+function closeFullDetail() {
+    const detail = document.getElementById('full-detail');
+    detail.className = 'scale-out-ver-center';
     setTimeout(() => {
-        document.getElementById('floating-card').style.display = 'none';
-        detail.innerHTML = `
-            <button onclick="closeFullDetail()" style="position:absolute; top:20px; background:var(--brand-color); color:white; border:none; padding:15px; border-radius:10px; width:80%;">✕ FERMER</button>
-            <img src="${activeGameData.img}" style="max-height:40%; border-radius:10px; margin-bottom:20px;">
-            <h2 style="text-align:center;">${activeGameData.title}</h2>
-            <p><b>Console :</b> ${activeGameData.console}</p>`;
-        detail.className = 'scale-in-ver-center';
+        detail.style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
     }, 400);
 }
