@@ -92,73 +92,44 @@ function selectBrand(brand) {
 
 async function renderCategory(category) {
     const view = document.getElementById('view-list');
-    // On affiche un petit message le temps que l'onglet charge
     view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement des ${category}...</h2>`;
 
-    // 1. On va chercher les données dans l'onglet qui porte le nom de la catégorie (Jeux, Consoles ou Accessoires)
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${category}`;
+    // On récupère l'ID du sheet directement (au cas où CONFIG poserait problème)
+    const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU"; 
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
     
     try {
         const resp = await fetch(url);
         const text = await resp.text();
-        const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+        
+        // On vérifie si on reçoit bien des données
+        const jsonData = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = jsonData.table.rows;
 
-        // 2. On transforme les lignes en objets et on filtre par MARQUE
         const items = rows.map(row => ({
-            title: row.c[0]?.v,              // Col A
-            brand: row.c[2]?.v || "",        // Col C (Marque)
-            consoleName: row.c[4]?.v || "",  // Col E (Console)
-            img: toDirectLink(row.c[6]?.v),  // Col G (Image)
-            price: row.c[12]?.v,             // Col M (Prix)
-            owned: row.c[14]?.v || "NON"     // Col O (Possédé)
+            title: row.c[0]?.v,              
+            brand: row.c[2]?.v || "",        
+            consoleName: row.c[4]?.v || "",  
+            img: toDirectLink(row.c[6]?.v),  
+            price: row.c[12]?.v,             
+            owned: row.c[14]?.v || "NON"     
         })).filter(item => {
-            // On vérifie que le titre existe et que la marque correspond au choix du début
-            return item.title && item.brand.toLowerCase().trim().includes(currentBrand.toLowerCase().trim());
+            // Filtre : on veut le titre ET que la marque corresponde
+            return item.title && item.brand.toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
-        // 3. Tri par année (comme tu aimes)
-        items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
-        
-        // 4. On affiche la grille
-        renderGrid(items);
+        if (items.length === 0) {
+            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément trouvé pour "${currentBrand}" dans l'onglet "${category}".</h2>`;
+        } else {
+            items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
+            renderGrid(items);
+        }
 
-        // Bouton retour vers les catégories de la marque
         document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATÉGORIES</button>`;
     
     } catch (e) {
-        console.error("Erreur de chargement :", e);
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Impossible de charger l'onglet "${category}". Vérifie le nom de l'onglet dans ton Sheets.</h2>`;
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : Vérifie que l'onglet "${category}" existe bien dans ton Google Sheets.</h2>`;
     }
-}
-function renderGrid(items) {
-    const view = document.getElementById('view-list');
-    view.innerHTML = '';
-    let lastConsole = "";
-    let currentGrid = null;
-
-    items.forEach(item => {
-        if (item.consoleName !== lastConsole) {
-            const header = document.createElement('div');
-            header.className = 'console-logo-header';
-            const logoId = CONSOLE_CONFIG[item.consoleName]?.logo;
-            
-            header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
-                : `<h2 style="color:white; font-size: 24px;">${item.consoleName}</h2>`;
-            
-            view.appendChild(header);
-            currentGrid = document.createElement('div');
-            currentGrid.className = 'game-grid';
-            view.appendChild(currentGrid);
-            lastConsole = item.consoleName;
-        }
-
-        const div = document.createElement('div');
-        div.className = 'game-card' + (item.owned.toString().toUpperCase().includes('NON') ? ' not-owned' : '');
-        div.onclick = () => handleCardClick(item.img, item);
-        div.innerHTML = `<img src="${item.img}">`;
-        currentGrid.appendChild(div);
-    });
 }
 
 function handleCardClick(imgSrc, data) {
