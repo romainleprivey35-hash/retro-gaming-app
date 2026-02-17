@@ -168,12 +168,9 @@ body {
 
 /* Effet Jeux Non Possédés : Flou + Grisaille (Haut de gamme) */
 
-.not-owned { 
-
-    opacity: 0.3; 
-
-    filter: grayscale(1) blur(2px) !important; 
-
+.not-owned {
+    filter: blur(2px) saturate(30%) brightness(0.6);
+    opacity: 0.8;
 }
 
 
