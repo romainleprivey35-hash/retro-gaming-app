@@ -8,11 +8,13 @@
 </head>
 <body>
     <div id="view-list">
-        <h1 style="text-align:center; margin-top:100px;">Ma Collection</h1>
-        <div class="game-grid">
-            <div class="game-card" onclick="selectBrand('Nintendo')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">NINTENDO</div>
-            <div class="game-card" onclick="selectBrand('Playstation')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">PLAYSTATION</div>
-            <div class="game-card" onclick="selectBrand('Xbox')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">XBOX</div>
+        <div class="menu-container">
+            <h1 class="main-title">Ma Collection</h1>
+            <div class="pill-menu">
+                <div class="pill nintendo" onclick="selectBrand('Nintendo')">NINTENDO</div>
+                <div class="pill playstation" onclick="selectBrand('Playstation')">PLAYSTATION</div>
+                <div class="pill xbox" onclick="selectBrand('Xbox')">XBOX</div>
+            </div>
         </div>
     </div>
 
