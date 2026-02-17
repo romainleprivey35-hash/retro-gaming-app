@@ -2,11 +2,11 @@ let allGames = [];
 let currentBrand = "";
 let activeGameData = null;
 
-// IDs des logos (on ne touche plus à ça)
+// --- MODIFICATION : IDENTIFIANTS IMAGES DRIVE POUR LES MARQUES ---
 const BRAND_LOGOS = {
-    nintendo: "1S0LebnGPPp6IeEqicri2ya6-1EHzeUTm",
-    playstation: "1Koyt_vHAn_Bq9mYyC_zD-C17G9X7zV_2", 
-    xbox: "1Yf_FfU-vK3m8vI_Z7Y_R8z-VvXw9z_Qx"
+    nintendo: "1S0LebnGPPp6IeEqicri2ya6-1EHzeUTm",    // Logo Nintendo (Drive)
+    playstation: "1Koyt_vHAn_Bq9mYyC_zD-C17G9X7zV_2", // Logo Playstation (Drive)
+    xbox: "1Yf_FfU-vK3m8vI_Z7Y_R8z-VvXw9z_Qx"         // Logo Xbox (Drive)
 };
 
 const CONSOLE_CONFIG = {
@@ -15,11 +15,13 @@ const CONSOLE_CONFIG = {
     "N64": { year: 1996, logo: "1zZ_zYm_hQ7_Q8z9vXW_Q9z_Q" },
     "GC": { year: 2001, logo: "1xX_zYm_hQ7_Q8z9vXW_Q9z_Q" }
 };
+// --- FIN DE LA MODIFICATION ---
 
 const toDirectLink = (val) => {
     if (!val) return "";
     const match = val.toString().match(/id=([-\w]+)/);
-    return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
+    const id = match ? match[1] : val;
+    return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
 };
 
 async function preloadData() {
@@ -31,7 +33,6 @@ async function preloadData() {
 
 window.onload = () => { preloadData(); renderMainMenu(); };
 
-// --- ACCUEIL (3 PILULES PLEIN ÉCRAN) ---
 function renderMainMenu() {
     document.getElementById('ui-header').style.display = 'none';
     const view = document.getElementById('view-list');
@@ -57,7 +58,6 @@ function selectBrand(brand) {
         owned: row.c[14]?.v || "NON"
     })).filter(g => g.brand.toLowerCase().includes(brand.toLowerCase()));
 
-    // Tri chronologique par console
     games.sort((a, b) => (CONSOLE_CONFIG[a.console]?.year || 9999) - (CONSOLE_CONFIG[b.console]?.year || 9999));
 
     renderGrid(games);
@@ -71,7 +71,6 @@ function renderGrid(items) {
 
     items.forEach(item => {
         if (item.console !== lastConsole) {
-            // Header Logo Console
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             const logoId = CONSOLE_CONFIG[item.console]?.logo;
@@ -92,7 +91,6 @@ function renderGrid(items) {
     });
 }
 
-// --- TES FONCTIONS D'ANIMATION (RESTAURÉES) ---
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
@@ -106,7 +104,6 @@ function handleCardClick(imgSrc, data) {
 function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
-    // On garde ton animation de transition vers le détail
     floating.style.display = 'none';
     detail.innerHTML = `
         <button onclick="closeFullDetail()" style="background:#222;color:white;border:1px solid #444;padding:15px;border-radius:50px;width:100%;margin-bottom:20px;">✕ FERMER</button>
