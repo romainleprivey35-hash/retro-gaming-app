@@ -1,72 +1,39 @@
-:root { --brand-color: #333; }
-body { background: #ffffff; color: #333; font-family: sans-serif; margin: 0; padding: 0; }
-.no-scroll { overflow: hidden !important; position: fixed; width: 100%; }
-
-/* Bouton Retour */
-#ui-header { position: fixed; top: 20px; left: 20px; z-index: 10000; }
-#ui-header button {
-    background: var(--brand-color); color: white; border: none; 
-    padding: 12px 20px; border-radius: 50px; font-weight: bold;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-/* Menu Pilules */
-.menu-container { height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
-.pill-menu { flex: 1; display: flex; flex-direction: column; gap: 15px; margin-top: 60px; }
-.pill { flex: 1; display: flex; align-items: center; justify-content: center; border-radius: 20px; color: white !important; font-weight: bold; font-size: 1.5rem; }
-.nintendo { background: #e60012 !important; }
-.playstation { background: #00439c !important; }
-.xbox { background: #107c10 !important; }
-
-/* Grid */
-.game-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; padding-top: 100px; }
-.game-card { aspect-ratio: 2/3; border-radius: 12px; overflow: hidden; border: 1px solid #eee; background: #fff; }
-.game-card img { width: 100%; height: 100%; object-fit: contain; }
-
-/* Overlays */
-#overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0); display: none; z-index: 3000; transition: background 0.4s; }
-#overlay.active { background: rgba(0,0,0,0.85); }
-
+/* Force le centrage absolu sur l'écran */
 #floating-card { 
-    position: fixed; top: 50% !important; left: 50% !important; width: 80vw; 
+    position: fixed; 
+    top: 50% !important; 
+    left: 50% !important; 
+    width: 80vw; 
+    /* Le secret est ici : on déplace de -50% pour que le CENTRE de l'image soit à 50% de l'écran */
     transform: translate(-50%, -50%) scale(0); 
-    z-index: 4000; display: none; transform-origin: center center;
+    z-index: 4000; 
+    display: none; 
+    transform-origin: center center !important;
 }
 
 #full-detail { 
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-    background: white; z-index: 5000; display: none;
-    flex-direction: column; align-items: center; justify-content: center;
-    padding: 25px; box-sizing: border-box; transform-origin: center center;
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh; 
+    background: white; 
+    z-index: 5000; 
+    display: none;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    transform-origin: center center !important; /* Pour que le rideau s'ouvre du milieu */
 }
 
-/* --- TES ANIMATIONS ANIMISTA --- */
-
-/* L'effet de dépliage vertical (Entrée fiche ou Réouverture liste) */
-.scale-in-ver-center {
-    display: flex !important;
-    animation: scale-in-ver-center 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-}
-
-/* L'effet inverse (Fermeture fiche) */
-.scale-out-ver-center {
-    animation: scale-in-ver-center 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) alternate-reverse both;
-}
-
+/* Ton animation Animista corrigée pour le milieu */
 @keyframes scale-in-ver-center {
-    0% { transform: scaleY(0); opacity: 0; filter: blur(20px); }
-    100% { transform: scaleY(1); opacity: 1; filter: blur(0); }
-}
-
-/* Zoom Jaquette */
-.animate-zoom { animation: zoomRotate 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-@keyframes zoomRotate { 
-    from { transform: translate(-50%, -50%) scale(0) rotateY(0deg); opacity: 0; } 
-    to { transform: translate(-50%, -50%) scale(1) rotateY(360deg); opacity: 1; } 
-}
-
-.animate-reverse { animation: zoomReverse 0.5s ease-in forwards; }
-@keyframes zoomReverse { 
-    from { transform: translate(-50%, -50%) scale(1) rotateY(360deg); opacity: 1; } 
-    to { transform: translate(-50%, -50%) scale(0) rotateY(0deg); opacity: 0; } 
+    0% { 
+        transform: scaleY(0); 
+        opacity: 0; 
+    }
+    100% { 
+        transform: scaleY(1); 
+        opacity: 1; 
+    }
 }
