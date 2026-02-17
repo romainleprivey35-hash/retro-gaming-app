@@ -59,18 +59,13 @@ function selectBrand(brand) {
     document.getElementById('ui-header').style.display = 'block';
     document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
     
-    const games = allGames.map(row => ({
-        title: row.c[0]?.v,
-        brand: row.c[2]?.v || "",      
-        consoleName: row.c[4]?.v || "", 
-        img: toDirectLink(row.c[6]?.v), 
-        price: row.c[12]?.v,            
-        owned: row.c[14]?.v || "NON"    
-    })).filter(g => g.brand.toLowerCase().includes(brand.toLowerCase()));
-
-    games.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
-
-    renderGrid(games);
+    const view = document.getElementById('view-list');
+    view.innerHTML = `
+        <div class="menu-full">
+            <div class="brand-section" onclick="renderCategory('Jeux')"><h1 style="font-size:40px;">JEUX</h1></div>
+            <div class="brand-section" onclick="renderCategory('Consoles')"><h1 style="font-size:40px;">CONSOLES</h1></div>
+            <div class="brand-section" onclick="renderCategory('Accessoires')"><h1 style="font-size:40px;">ACCESSOIRES</h1></div>
+        </div>`;
 }
 
 function renderGrid(items) {
