@@ -103,11 +103,11 @@ async function renderCategory(category) {
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
-        // Définition manuelle des colonnes selon tes instructions
+        // Définition des colonnes selon tes instructions
         let constCol;
         if (category === "Jeux") constCol = 2;        // Colonne C
-        if (category === "Accessoires") constCol = 5; // Colonne F
-        if (category === "Consoles") constCol = 3;    // Colonne D
+        else if (category === "Accessoires") constCol = 5; // Colonne F
+        else if (category === "Consoles") constCol = 3;    // Colonne D
 
         const items = rows.map(row => ({
             title: row.c[0]?.v,              // Nom (Col A)
@@ -117,14 +117,14 @@ async function renderCategory(category) {
             price: row.c[12]?.v,             // Prix (Col M)
             owned: row.c[14]?.v || "NON"     // Possédé (Col O)
         })).filter(item => {
-            // On filtre par la marque sélectionnée (Nintendo, Playstation, Xbox)
+            // Filtrage par la marque sélectionnée (ex: "Nintendo")
             return item.title && item.constructor.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
         if (items.length === 0) {
-            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément trouvé.</h2>`;
+            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément trouvé pour "${currentBrand}".</h2>`;
         } else {
-            items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
+            // Utilisation de la structure de grille que tu as déjà 
             renderGrid(items);
         }
 
