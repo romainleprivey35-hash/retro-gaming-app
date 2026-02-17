@@ -1,7 +1,7 @@
 let allGames = [];
 let currentBrand = "";
 let activeGameData = null;
-let lastScrollY = 0; // Pour mémoriser la position
+let lastScrollY = 0;
 
 const toDirectLink = (val) => {
     if (!val || typeof val !== 'string') return "";
@@ -9,12 +9,31 @@ const toDirectLink = (val) => {
     return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
 };
 
-preloadData();
+// Initialisation au chargement
+window.onload = () => {
+    preloadData();
+    renderMainMenu();
+};
+
 async function preloadData() {
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
     const resp = await fetch(url);
     const text = await resp.text();
     allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+}
+
+function renderMainMenu() {
+    document.getElementById('ui-header').style.display = 'none'; // Pas de retour sur le menu principal
+    const view = document.getElementById('view-list');
+    view.innerHTML = `
+        <div class="menu-container">
+            <h1 style="text-align:center; margin-top:40px;">Ma Collection</h1>
+            <div class="pill-menu">
+                <div class="pill nintendo" onclick="selectBrand('Nintendo')">NINTENDO</div>
+                <div class="pill playstation" onclick="selectBrand('Playstation')">PLAYSTATION</div>
+                <div class="pill xbox" onclick="selectBrand('Xbox')">XBOX</div>
+            </div>
+        </div>`;
 }
 
 function selectBrand(brand) {
@@ -28,11 +47,12 @@ function selectBrand(brand) {
 }
 
 function showCategories() {
-    document.getElementById('ui-header').innerHTML = `<button onclick="location.reload()">⬅ RETOUR</button>`;
+    document.getElementById('ui-header').style.display = 'block';
+    document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
     const view = document.getElementById('view-list');
     view.innerHTML = `
         <div class="menu-container">
-            <h1 class="main-title" style="margin-top:80px;">${currentBrand.toUpperCase()}</h1>
+            <h1 style="text-align:center; margin-top:80px;">${currentBrand.toUpperCase()}</h1>
             <div class="pill-menu">
                 <div class="pill" style="background:var(--brand-color)" onclick="fetchGamesByBrand()">🎮 JEUX</div>
                 <div class="pill" style="background:var(--brand-color)" onclick="fetchConsolesByBrand()">🕹️ CONSOLES</div>
@@ -54,7 +74,9 @@ function toggleScroll(lock) {
 
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
+    document.getElementById('ui-header').style.display = 'none'; // Masque le retour
     toggleScroll(true);
+    
     const overlay = document.getElementById('overlay');
     const floating = document.getElementById('floating-card');
     document.getElementById('view-list').classList.remove('scale-in-ver-center');
@@ -71,13 +93,16 @@ function handleCardClick(imgSrc, data) {
 function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
+    
     floating.classList.add('scale-out-ver-detail');
     setTimeout(() => {
         detail.innerHTML = `
             <button onclick="closeFullDetail()" style="background:var(--brand-color);color:white;border:none;padding:15px;border-radius:10px;width:100%;font-weight:bold;margin-bottom:20px;">✕ FERMER</button>
-            <img src="${activeGameData.img}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:15px;">
-            <h1 style="text-align:center;">${activeGameData.title}</h1>
-            <div style="background:#f4f4f4; padding:20px; border-radius:15px;">
+            <div style="display:flex; justify-content:center; align-items:center; min-height:200px;">
+                <img src="${activeGameData.img}" style="max-width:100%; max-height:250px; object-fit:contain; border-radius:10px;">
+            </div>
+            <h1 style="text-align:center; margin-top:20px;">${activeGameData.title}</h1>
+            <div style="background:#f4f4f4; padding:20px; border-radius:15px; margin-top:20px;">
                 <p><b>Console :</b> ${activeGameData.console}</p>
                 <p><b>Prix :</b> ${activeGameData.price}€</p>
                 <p><b>Possédé :</b> ${activeGameData.owned}</p>
@@ -96,6 +121,7 @@ function closeOverlay() {
     setTimeout(() => {
         floating.style.display = 'none';
         overlay.style.display = 'none';
+        document.getElementById('ui-header').style.display = 'block'; // Réaffiche retour
         toggleScroll(false);
     }, 500);
 }
@@ -103,17 +129,27 @@ function closeOverlay() {
 function closeFullDetail() {
     const detail = document.getElementById('full-detail');
     const viewList = document.getElementById('view-list');
+    
+    detail.classList.remove('scale-in-ver-center');
     detail.classList.add('scale-out-ver-detail');
     document.getElementById('overlay').classList.remove('active');
+
     setTimeout(() => {
         detail.style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
+        
+        // LA MAGIE : La liste se déploie
+        viewList.classList.remove('scale-in-ver-center');
+        void viewList.offsetWidth;
         viewList.classList.add('scale-in-ver-center');
+        
+        document.getElementById('ui-header').style.display = 'block'; 
         toggleScroll(false);
     }, 500);
 }
 
 function renderGeneralGrid(items, title) {
+    document.getElementById('ui-header').style.display = 'block';
     document.getElementById('ui-header').innerHTML = `<button onclick="showCategories()">⬅ RETOUR</button>`;
     const view = document.getElementById('view-list');
     view.innerHTML = `<h2 style="text-align:center; margin-top:100px;">${title}</h2>`;
