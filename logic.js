@@ -14,11 +14,7 @@ const toDirectLink = (id) => {
     return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : id;
 };
 
-window.onload = () => { 
-    console.log("App lancée");
-    renderMainMenu(); 
-    preloadData(); 
-};
+window.onload = () => { renderMainMenu(); preloadData(); };
 
 async function preloadData() {
     try {
@@ -27,13 +23,11 @@ async function preloadData() {
         const text = await resp.text();
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         allGames = jsonData.table.rows;
-        console.log("Données chargées :", allGames.length, "jeux");
-    } catch (e) { 
-        console.error("Erreur Sheets :", e);
-    }
+    } catch (e) { console.error("Erreur Sheets :", e); }
 }
 
 function renderMainMenu() {
+    document.getElementById('ui-header').style.display = 'none';
     const view = document.getElementById('view-list');
     view.innerHTML = `
         <div class="menu-container">
@@ -44,7 +38,6 @@ function renderMainMenu() {
                 <div class="pill xbox" onclick="selectBrand('Xbox')">XBOX</div>
             </div>
         </div>`;
-    document.getElementById('ui-header').style.display = 'none';
 }
 
 function selectBrand(brand) {
@@ -52,20 +45,15 @@ function selectBrand(brand) {
     const colors = { 'Nintendo': '#e60012', 'Playstation': '#00439c', 'Xbox': '#107c10' };
     document.documentElement.style.setProperty('--brand-color', colors[brand]);
     
-    // Protection si les colonnes ont bougé dans ton Sheets
-    let filtered = allGames.map(r => {
-        return {
-            title: r.c[0]?.v || "Sans titre",
-            brand: r.c[2]?.v || "",
-            console: r.c[4]?.v || "Inconnue",
-            img: toDirectLink(r.c[6]?.v || ""),
-            owned: (r.c[14]?.v || "NON").toUpperCase()
-        };
-    }).filter(game => game.brand.toLowerCase().includes(brand.toLowerCase()));
+    let filtered = allGames.map(r => ({
+        title: r.c[0]?.v || "Sans titre",
+        brand: r.c[2]?.v || "",
+        console: r.c[4]?.v || "Inconnue",
+        img: toDirectLink(r.c[6]?.v || ""),
+        owned: (r.c[14]?.v || "NON").toUpperCase()
+    })).filter(game => game.brand.toLowerCase().includes(brand.toLowerCase()));
 
-    // Tri chronologique
     filtered.sort((a, b) => (CONSOLE_ORDER[a.console] || 999) - (CONSOLE_ORDER[b.console] || 999));
-
     renderGrid(filtered);
 }
 
@@ -92,7 +80,7 @@ function renderGrid(items) {
         div.onclick = () => {
             activeGameData = item;
             const card = document.getElementById('floating-card');
-            card.innerHTML = `<img src="${item.img}" style="width:100%; border-radius:15px; display:block;">`;
+            card.innerHTML = `<img src="${item.img}">`;
             card.style.display = 'block';
             card.className = 'animate-zoom';
             document.getElementById('overlay').style.display = 'block';
@@ -102,21 +90,16 @@ function renderGrid(items) {
     });
 }
 
-// Fonctions de fermeture standards
-function closeOverlay() {
-    document.getElementById('floating-card').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-}
-
 function handleFloatingClick() {
     const detail = document.getElementById('full-detail');
     document.getElementById('floating-card').style.display = 'none';
     detail.innerHTML = `
-        <button onclick="closeFullDetail()" style="position:absolute; top:20px; background:var(--brand-color); color:white; border:none; padding:15px; border-radius:10px; width:80%; z-index:6000;">✕ FERMER</button>
+        <button onclick="closeFullDetail()" style="position:absolute; top:20px; background:var(--brand-color); color:white; border:none; padding:15px; border-radius:10px; width:80%;">✕ FERMER</button>
         <img src="${activeGameData.img}" style="max-height:40%; border-radius:10px; margin-bottom:20px; margin-top:60px;">
         <h2 style="text-align:center;">${activeGameData.title}</h2>
         <p><b>Console :</b> ${activeGameData.console}</p>`;
     detail.className = 'scale-in-ver-center';
+    detail.style.display = 'flex';
 }
 
 function closeFullDetail() {
@@ -126,4 +109,9 @@ function closeFullDetail() {
         detail.style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
     }, 400);
+}
+
+function closeOverlay() {
+    document.getElementById('floating-card').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
 }
