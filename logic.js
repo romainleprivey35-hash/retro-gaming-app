@@ -1,60 +1,47 @@
-// CONFIGURATION DE TON FICHIER
 const SHEET_ID = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU";
 let currentBrand = "";
 
-// 1. AU CHARGEMENT : AFFICHE LES MARQUES
-window.onload = function() {
-    init();
-};
-
+// Initialisation de l'affichage des marques
 function init() {
-    currentBrand = "";
     const view = document.getElementById('view-list');
-    document.getElementById('ui-header').innerHTML = "<h1>SELECTIONNE UNE MARQUE</h1>";
+    document.getElementById('ui-header').innerHTML = "<h1>SÉLECTIONNE UNE MARQUE</h1>";
     
+    // Ton design de boutons de marques
     view.innerHTML = `
-        <div style="display:flex; justify-content:center; gap:30px; margin-top:50px;">
-            <div onclick="selectBrand('Nintendo')" style="cursor:pointer; background:#fff; padding:20px; border-radius:10px;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg" width="150">
+        <div class="brand-grid">
+            <div class="brand-card" onclick="selectBrand('Nintendo')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg" alt="Nintendo">
             </div>
-            <div onclick="selectBrand('Playstation')" style="cursor:pointer; background:#fff; padding:20px; border-radius:10px;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/PlayStation_logo.svg" width="150">
+            <div class="brand-card" onclick="selectBrand('Playstation')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/PlayStation_logo.svg" alt="Playstation">
             </div>
-            <div onclick="selectBrand('Xbox')" style="cursor:pointer; background:#fff; padding:20px; border-radius:10px;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Xbox_logo_2012.svg" width="150">
+            <div class="brand-card" onclick="selectBrand('Xbox')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Xbox_logo_2012.svg" alt="Xbox">
             </div>
         </div>
     `;
 }
 
-// 2. APRES CLIC MARQUE : AFFICHE LES 3 CATEGORIES
+// Sélection de la marque et affichage des catégories (Jeux, Consoles, etc.)
 function selectBrand(brand) {
     currentBrand = brand;
     const view = document.getElementById('view-list');
     document.getElementById('ui-header').innerHTML = `<h1>${brand.toUpperCase()}</h1>`;
 
     view.innerHTML = `
-        <div style="display:flex; justify-content:center; gap:50px; margin-top:50px; color:white; font-weight:bold;">
-            <div onclick="renderCategory('Jeux')" style="cursor:pointer; text-align:center;">
-                <div style="font-size:50px;">🎮</div><br>JEUX
-            </div>
-            <div onclick="renderCategory('Consoles')" style="cursor:pointer; text-align:center;">
-                <div style="font-size:50px;">🕹️</div><br>CONSOLES
-            </div>
-            <div onclick="renderCategory('Accessoires')" style="cursor:pointer; text-align:center;">
-                <div style="font-size:50px;">🔌</div><br>ACCESSOIRES
-            </div>
+        <div class="categories-grid">
+            <div class="category-card" onclick="renderCategory('Jeux')">🎮 JEUX</div>
+            <div class="category-card" onclick="renderCategory('Consoles')">🕹️ CONSOLES</div>
+            <div class="category-card" onclick="renderCategory('Accessoires')">🔌 ACCESSOIRES</div>
         </div>
-        <div style="text-align:center; margin-top:50px;">
-            <button onclick="init()" style="padding:10px 20px; cursor:pointer;">⬅ RETOUR</button>
-        </div>
+        <button class="back-btn" onclick="init()">⬅ RETOUR</button>
     `;
 }
 
-// 3. RECUPERATION ET FILTRAGE DES DONNEES
+// LA FONCTION QUI FILTRE (C'est celle-ci qui marchait)
 async function renderCategory(category) {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<h2 style="color:white; text-align:center;">Chargement de l'onglet ${category}...</h2>`;
+    view.innerHTML = `<h2 class="loading-text">Chargement de ${category}...</h2>`;
 
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
     
@@ -64,46 +51,44 @@ async function renderCategory(category) {
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
-        // Colonnes Constructeur : Jeux=C(2), Consoles=D(3), Accessoires=F(5)
-        let colConst;
-        if (category === "Jeux") colConst = 2;
-        else if (category === "Consoles") colConst = 3;
-        else if (category === "Accessoires") colConst = 5;
+        // On définit la colonne Constructeur selon l'onglet
+        let colConstructeur = 2; // Par défaut C pour les Jeux
+        if (category === "Consoles") colConstructeur = 3;    // D
+        if (category === "Accessoires") colConstructeur = 5; // F
 
         const items = rows.map(row => {
             if (!row.c) return null;
             return {
-                title: row.c[0]?.v,              // A
-                constructor: row.c[colConst]?.v || "", 
-                consoleName: row.c[4]?.v || "",  // E
-                img: row.c[6]?.v,                // G (on verra pour le lien plus tard)
-                price: row.c[12]?.v || 0,        // M
-                owned: row.c[14]?.v || "NON"     // O
+                title: row.c[0]?.v,              // Nom en A
+                constructor: row.c[colConstructeur]?.v || "", 
+                consoleName: row.c[4]?.v || "",  // Console en E
+                img: toDirectLink(row.c[6]?.v),  // Image en G
+                price: row.c[12]?.v || 0,        // Prix en M
+                owned: row.c[14]?.v || "NON"     // Possédé en O
             };
         }).filter(item => {
             return item && item.title && item.constructor.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
         if (items.length === 0) {
-            view.innerHTML = `<h2 style="color:white; text-align:center;">Aucun résultat pour ${currentBrand}.</h2>`;
+            view.innerHTML = `<h2 class="no-result">Aucun élément trouvé</h2>`;
         } else {
-            // AFFICHAGE SIMPLE POUR TESTER
-            view.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:20px; padding:20px;">`;
-            items.forEach(item => {
-                view.innerHTML += `
-                    <div style="background:rgba(255,255,255,0.1); color:white; padding:15px; border-radius:10px; text-align:center;">
-                        <p style="font-weight:bold;">${item.title}</p>
-                        <p style="font-size:12px;">${item.consoleName}</p>
-                        <p style="color:#2ecc71;">${item.price}€</p>
-                    </div>
-                `;
-            });
-            view.innerHTML += `</div>`;
+            renderGrid(items); // Ta fonction qui dessine les cartes
         }
-        
-        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATEGORIES</button>`;
+
+        document.getElementById('ui-header').innerHTML = `<button class="back-btn" onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
 
     } catch (e) {
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : Vérifie ton fichier Sheet.</h2>`;
+        console.error(e);
     }
 }
+
+// Ta fonction utilitaire pour les images Drive
+function toDirectLink(id) {
+    if (!id) return "https://via.placeholder.com/150";
+    if (id.includes('http')) return id;
+    return `https://drive.google.com/uc?export=view&id=${id}`;
+}
+
+// Initialise l'app au chargement
+window.onload = init;
