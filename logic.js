@@ -1,19 +1,29 @@
+// Variables Globales
 let allGames = [];
 let currentBrand = "";
 let activeGameData = null;
 let lastScrollY = 0;
 
+// Conversion lien Drive
 const toDirectLink = (val) => {
     if (!val || typeof val !== 'string') return "";
     const match = val.match(/id=([-\w]+)/) || val.match(/\/d\/([-\w]+)/);
     return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
 };
 
-// Se lance dès que la page est prête
-window.onload = () => {
-    preloadData();
-    renderMainMenu();
-};
+// --- DEMARRAGE SECURISE ---
+function initApp() {
+    console.log("Application démarrée");
+    renderMainMenu(); // On affiche le menu TOUT DE SUITE
+    preloadData();    // On charge les données après
+}
+
+// On lance l'init dès que possible
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 async function preloadData() {
     try {
@@ -21,11 +31,18 @@ async function preloadData() {
         const resp = await fetch(url);
         const text = await resp.text();
         allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
-    } catch(e) { console.error("Erreur chargement Google Sheet"); }
+        console.log("Données chargées :", allGames.length);
+    } catch(e) { 
+        console.error("Erreur Google Sheet : Vérifiez votre CONFIG.SHEET_ID"); 
+    }
 }
 
+// --- AFFICHAGE DES MENUS ---
+
 function renderMainMenu() {
-    document.getElementById('ui-header').style.display = 'none';
+    const header = document.getElementById('ui-header');
+    if(header) header.style.display = 'none';
+    
     const view = document.getElementById('view-list');
     view.innerHTML = `
         <div class="menu-container">
@@ -49,8 +66,10 @@ function selectBrand(brand) {
 }
 
 function showCategories() {
-    document.getElementById('ui-header').style.display = 'block';
-    document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
+    const header = document.getElementById('ui-header');
+    header.style.display = 'block';
+    header.innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
+    
     const view = document.getElementById('view-list');
     view.innerHTML = `
         <div class="menu-container">
@@ -62,6 +81,8 @@ function showCategories() {
             </div>
         </div>`;
 }
+
+// --- GESTION DU SCROLL ET ANIMATIONS ---
 
 function toggleScroll(lock) {
     if (lock) {
@@ -148,17 +169,26 @@ function closeFullDetail() {
     }, 500);
 }
 
+// --- RENDU DES GRILLES ---
+
 function renderGeneralGrid(items, title) {
-    document.getElementById('ui-header').style.display = 'block';
-    document.getElementById('ui-header').innerHTML = `<button onclick="showCategories()">⬅ RETOUR</button>`;
+    const header = document.getElementById('ui-header');
+    header.style.display = 'block';
+    header.innerHTML = `<button onclick="showCategories()">⬅ RETOUR</button>`;
+    
     const view = document.getElementById('view-list');
     view.innerHTML = `<h2 style="text-align:center; margin-top:100px;">${title}</h2>`;
+    
     const grid = document.createElement('div');
     grid.className = 'game-grid';
+    
     items.forEach(g => {
         const card = document.createElement('div');
         card.className = 'game-card';
-        if (g.owned?.toString().toUpperCase().includes('NON')) { card.style.opacity = '0.35'; card.style.filter = 'grayscale(100%)'; }
+        if (g.owned?.toString().toUpperCase().includes('NON')) { 
+            card.style.opacity = '0.35'; 
+            card.style.filter = 'grayscale(100%)'; 
+        }
         card.onclick = () => handleCardClick(g.img, g);
         card.innerHTML = `<img src="${g.img}">`;
         grid.appendChild(card);
@@ -188,4 +218,6 @@ async function fetchAccessoriesByBrand() {
     const text = await resp.text();
     const rows = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
     const items = rows.filter(row => (row.c[5]?.v || "").toLowerCase().includes(currentBrand.toLowerCase()))
-                      .map(row => ({
+                      .map(row => ({ title: row.c[0]?.v, img: toDirectLink(row.c[1]?.v), console: row.c[2]?.v, owned: row.c[4]?.v || "NON", price: "N/A" }));
+    renderGeneralGrid(items, "ACCESSOIRES");
+}
