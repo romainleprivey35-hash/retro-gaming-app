@@ -101,35 +101,28 @@ async function renderCategory(category) {
         const resp = await fetch(url);
         const text = await resp.text();
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
-        
-        const headers = jsonData.table.cols; // Les en-têtes de ton tableau
         const rows = jsonData.table.rows;
 
-        // --- DÉTECTION AUTOMATIQUE DES COLONNES ---
-        // On cherche l'index (0, 1, 2...) de chaque colonne par son nom
-        const idx = {
-            title: headers.findIndex(c => c.label.toLowerCase().includes("titre") || c.label.toLowerCase().includes("nom")),
-            constructor: headers.findIndex(c => c.label.toLowerCase().includes("constructeur")),
-            console: headers.findIndex(c => c.label.toLowerCase().includes("console")),
-            img: headers.findIndex(c => c.label.toLowerCase().includes("photo") || c.label.toLowerCase().includes("image")),
-            price: headers.findIndex(c => c.label.toLowerCase().includes("prix") || c.label.toLowerCase().includes("cote actuelle")),
-            owned: headers.findIndex(c => c.label.toLowerCase().includes("possédé") || c.label.toLowerCase().includes("possession"))
-        };
+        // Définition manuelle des colonnes selon tes instructions
+        let constCol;
+        if (category === "Jeux") constCol = 2;        // Colonne C
+        if (category === "Accessoires") constCol = 5; // Colonne F
+        if (category === "Consoles") constCol = 3;    // Colonne D
 
         const items = rows.map(row => ({
-            title: row.c[idx.title]?.v,
-            constructor: row.c[idx.constructor]?.v || "",
-            consoleName: row.c[idx.console]?.v || "",
-            img: toDirectLink(row.c[idx.img]?.v),
-            price: row.c[idx.price]?.v || "0",
-            owned: row.c[idx.owned]?.v || "NON"
+            title: row.c[0]?.v,              // Nom (Col A)
+            constructor: row.c[constCol]?.v || "", // Constructeur (C, F ou D)
+            consoleName: row.c[4]?.v || "",  // Console (Col E)
+            img: toDirectLink(row.c[6]?.v),  // Image (Col G)
+            price: row.c[12]?.v,             // Prix (Col M)
+            owned: row.c[14]?.v || "NON"     // Possédé (Col O)
         })).filter(item => {
-            // FILTRE : On compare le Constructeur trouvé avec la marque choisie (Nintendo, Playstation, Xbox)
-            return item.title && item.constructor.toString().toLowerCase().trim().includes(currentBrand.toLowerCase().trim());
+            // On filtre par la marque sélectionnée (Nintendo, Playstation, Xbox)
+            return item.title && item.constructor.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
         if (items.length === 0) {
-            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément "${currentBrand}" trouvé.</h2>`;
+            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément trouvé.</h2>`;
         } else {
             items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
             renderGrid(items);
@@ -141,7 +134,6 @@ async function renderCategory(category) {
         view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de lecture de l'onglet "${category}".</h2>`;
     }
 }
-
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
