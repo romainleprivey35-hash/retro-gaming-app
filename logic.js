@@ -10,22 +10,22 @@ const BRAND_LOGOS = {
 };
 
 // 2. CONFIGURATION DES CONSOLES (COLONNE E)
-// Les IDs sont récupérés de ton dossier Drive "Logo consoles"
+// IDs récupérés directement de tes liens Drive
 const CONSOLE_CONFIG = {
-    "GB": { year: 1989, logo: "1C0M-S62C27Yf6S7pY9X-0u8R0n6v9x3F" },
-    "PS1": { year: 1994, logo: "1_2v7X0n9M8c7V6b5N4m3L2k1J0h9g8f7" },
-    "N64": { year: 1996, logo: "1z9x8c7v6b5n4m3l2k1j0h9g8f7d6s5a4" },
-    "GBC": { year: 1998, logo: "1p0o9i8u7y6t5r4e3w2q1a0s9d8f7g6h5" },
-    "PS2": { year: 2000, logo: "1m2n3b4v5c6x7z8l9k0j9h8g7f6d5s4a3" },
-    "GBA": { year: 2001, logo: "1a2s3d4f5g6h7j8k9l0m9n8b7v6c5x4z3" },
-    "Xbox": { year: 2001, logo: "1q2w3e4r5t6y7u8i9o0p9a8s7d6f5g4h" },
-    "GameCube": { year: 2002, logo: "1z2x3c4v5b6n7m8l9k0j9h8g7f6d5s4a" },
-    "DS": { year: 2004, logo: "1p9o8i7u6y5t4r3e2w1q0a9s8d7f6g5h4" },
-    "PSP": { year: 2004, logo: "1m0n9b8v7c6x5z4l3k2j1h0g9f8d7s6a" },
-    "WII": { year: 2006, logo: "1q0w9e8r7t6y5u4i3o2p1a0s9d8f7g6h" },
-    "PS3": { year: 2006, logo: "1z0x9c8v7b6n5m4l3k2j1h0g9f8d7s6a" },
-    "PS4": { year: 2013, logo: "1a0s9d8f7g6h5j4k3l2m1n0b9v8c7x6z5" },
-    "PS5": { year: 2020, logo: "1p0o9i8u7y6t5r4e3w2q1a0s9d8f7g6h5" }
+    "GB": { year: 1989, logo: "1XEkPuCr2mmIvpsmjmpkrG1XumS-24wLb" }, // Game Boy (OriginalDMG) [cite: 11]
+    "PS1": { year: 1994, logo: "1DV-N37sM1AA-fl5rYe1_Urr6hh9e6eTF" }, // PlayStation 1 (PS1 FAT) [cite: 5]
+    "N64": { year: 1996, logo: "1iumJt5i-5Jd85ZPZLr3NR44hbhdohUh5" }, // Nintendo 64 [cite: 15]
+    "GBC": { year: 1998, logo: "1dek_9N4wDwFBhSYmUoij7OhtFfCc4hcQ" }, // Game Boy Color [cite: 13]
+    "PS2": { year: 2000, logo: "10h2eIupplXfFBvQQNWRptu1EC3xTkghc" }, // PlayStation 2 (PS2 FAT) [cite: 1]
+    "GBA": { year: 2001, logo: "11vgmA2xIMxNHbbYMcUIwXTNgt0BVKacp" }, // Game Boy Advance [cite: 2]
+    "Xbox": { year: 2001, logo: "15i7MRlq_QVyKUsQKWsFfMSkvqALFwb2I" }, // Xbox (Première Gén.) [cite: 4]
+    "GameCube": { year: 2002, logo: "1SW-jXEJnlZ4nh3jXg3IVkNGK7QzZMSze" }, // Nintendo GameCube [cite: 9]
+    "DS": { year: 2004, logo: "1Gals-7-g_lNxOBult4FihHYiv2nKgkfP" }, // Nintendo DS Lite [cite: 7]
+    "PSP": { year: 2004, logo: "1zOJp5Yh0JRHhI-o4PfyFTdX_OH7j3Bmo" }, // PSP 3004 [cite: 17]
+    "WII": { year: 2006, logo: "1aAx82c4LPWz6U-JQ2jXf3fG0hwAOG_Bc" }, // Wii [cite: 12]
+    "PS3": { year: 2006, logo: "1eqVPNUIqNwzdPs4j6ALB922qNvSJozFA" }, // PlayStation 3 (PS3 FAT) [cite: 14]
+    "PS4": { year: 2013, logo: "1VjijUcf3nyaclZazZT8akg_4Ifo0UjGM" }, // PlayStation 4 (PS4 FAT) [cite: 10]
+    "PS5": { year: 2020, logo: "1F_qvq4AM8uvx1nKaRUdPWh5r1mjVqic8" }  // Playstation 5 (PS5 FAT) [cite: 6]
 };
 
 const toDirectLink = (val) => {
@@ -86,7 +86,7 @@ function renderGrid(items) {
             const logoId = CONSOLE_CONFIG[item.consoleName]?.logo;
             
             header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 60px; margin: 20px 0;">` 
+                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
                 : `<h2 style="color:white; font-size: 24px;">${item.consoleName}</h2>`;
             
             view.appendChild(header);
@@ -104,7 +104,6 @@ function renderGrid(items) {
     });
 }
 
-// TES ANIMATIONS (Zoom, Rotation, etc.)
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
