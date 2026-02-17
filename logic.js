@@ -94,19 +94,26 @@ function renderCategory(category) {
     const items = allGames.map(row => ({
         title: row.c[0]?.v,
         brand: row.c[2]?.v || "",      
-        type: row.c[3]?.v || "",        
+        type: row.c[3]?.v || "",        // Colonne D (Catégorie)
         consoleName: row.c[4]?.v || "", 
         img: toDirectLink(row.c[6]?.v), 
         price: row.c[12]?.v,            
         owned: row.c[14]?.v || "NON"    
-    })).filter(item => 
-        item.brand.toLowerCase().includes(currentBrand.toLowerCase()) && 
-        item.type.toLowerCase() === category.toLowerCase()
-    );
+    })).filter(item => {
+        // On rend le test très souple pour éviter les erreurs de majuscules ou d'espaces
+        const matchBrand = item.brand.toLowerCase().trim().includes(currentBrand.toLowerCase().trim());
+        const matchType = item.type.toLowerCase().trim().includes(category.toLowerCase().trim());
+        
+        // On ignore aussi les lignes qui servent de logos (qui n'ont pas de titre en colonne A)
+        return matchBrand && matchType && item.title;
+    });
 
+    // Tri par année de console
     items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
+    
     renderGrid(items);
 
+    // Bouton de retour vers le menu des catégories
     document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATÉGORIES</button>`;
 }
 
