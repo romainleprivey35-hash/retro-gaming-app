@@ -92,9 +92,8 @@ function selectBrand(brand) {
 
 async function renderCategory(category) {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement de l'onglet ${category}...</h2>`;
+    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement...</h2>`;
 
-    // ON UTILISE UNIQUEMENT TON SHEET
     const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU"; 
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
     
@@ -102,34 +101,44 @@ async function renderCategory(category) {
         const resp = await fetch(url);
         const text = await resp.text();
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
+        
+        const headers = jsonData.table.cols; // Les en-têtes de ton tableau
         const rows = jsonData.table.rows;
 
-        // On filtre par rapport à la marque sélectionnée au tout début (Colonne C)
+        // --- DÉTECTION AUTOMATIQUE DES COLONNES ---
+        // On cherche l'index (0, 1, 2...) de chaque colonne par son nom
+        const idx = {
+            title: headers.findIndex(c => c.label.toLowerCase().includes("titre") || c.label.toLowerCase().includes("nom")),
+            constructor: headers.findIndex(c => c.label.toLowerCase().includes("constructeur")),
+            console: headers.findIndex(c => c.label.toLowerCase().includes("console")),
+            img: headers.findIndex(c => c.label.toLowerCase().includes("photo") || c.label.toLowerCase().includes("image")),
+            price: headers.findIndex(c => c.label.toLowerCase().includes("prix") || c.label.toLowerCase().includes("cote actuelle")),
+            owned: headers.findIndex(c => c.label.toLowerCase().includes("possédé") || c.label.toLowerCase().includes("possession"))
+        };
+
         const items = rows.map(row => ({
-            title: row.c[0]?.v,              // Nom (Col A)
-            brand: row.c[2]?.v || "",        // Marque (Col C)
-            consoleName: row.c[4]?.v || "",  // Console (Col E)
-            img: toDirectLink(row.c[6]?.v),  // Image (Col G)
-            price: row.c[12]?.v,             // Prix (Col M)
-            owned: row.c[14]?.v || "NON"     // Possédé (Col O)
+            title: row.c[idx.title]?.v,
+            constructor: row.c[idx.constructor]?.v || "",
+            consoleName: row.c[idx.console]?.v || "",
+            img: toDirectLink(row.c[idx.img]?.v),
+            price: row.c[idx.price]?.v || "0",
+            owned: row.c[idx.owned]?.v || "NON"
         })).filter(item => {
-            // On vérifie que la ligne n'est pas vide et que la marque correspond
-            return item.title && item.brand.toLowerCase().trim() === currentBrand.toLowerCase().trim();
+            // FILTRE : On compare le Constructeur trouvé avec la marque choisie (Nintendo, Playstation, Xbox)
+            return item.title && item.constructor.toString().toLowerCase().trim().includes(currentBrand.toLowerCase().trim());
         });
 
         if (items.length === 0) {
-            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Rien trouvé pour "${currentBrand}" dans l'onglet "${category}".</h2>`;
+            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément "${currentBrand}" trouvé.</h2>`;
         } else {
-            // On garde ton tri par année de console
             items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
             renderGrid(items);
         }
 
-        // Le bouton retour qui revient aux logos des catégories
         document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
     
     } catch (e) {
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : Impossible de lire l'onglet "${category}".</h2>`;
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de lecture de l'onglet "${category}".</h2>`;
     }
 }
 
