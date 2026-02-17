@@ -1,8 +1,12 @@
 :root { --brand-color: #333; }
 body { background: #ffffff; color: #333; font-family: sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
 
-/* Badge Version */
-#version-tag { position: fixed; bottom: 10px; right: 10px; font-size: 0.7rem; color: #ccc; z-index: 1000; pointer-events: none; }
+/* Style du Badge de Version */
+#version-tag { 
+    position: fixed; bottom: 10px; right: 10px; 
+    font-size: 10px; color: red; font-weight: bold; 
+    z-index: 99999; background: white; padding: 2px 5px; border: 1px solid red;
+}
 
 #ui-header { position: fixed; top: 20px; left: 20px; z-index: 10000; }
 #ui-header button { background: var(--brand-color); color: white; border: none; padding: 12px 20px; border-radius: 50px; font-weight: bold; }
@@ -10,19 +14,20 @@ body { background: #ffffff; color: #333; font-family: sans-serif; margin: 0; pad
 .menu-container { height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
 .pill-menu { flex: 1; display: flex; flex-direction: column; gap: 15px; margin-top: 60px; }
 .pill { flex: 1; display: flex; align-items: center; justify-content: center; border-radius: 20px; color: white !important; font-weight: bold; font-size: 1.5rem; text-transform: uppercase; }
+
 .nintendo { background: #e60012 !important; }
 .playstation { background: #00439c !important; }
 .xbox { background: #107c10 !important; }
 
-.game-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; padding-top: 100px; }
-.game-card { aspect-ratio: 2/3; border-radius: 12px; overflow: hidden; border: 1px solid #eee; background: #fff; }
+.game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; padding-top: 100px; }
+.game-card { aspect-ratio: 2/3; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
 .game-card img { width: 100%; height: 100%; object-fit: contain; }
 
 #overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; z-index: 3000; }
 #floating-card { position: fixed; top: 50%; left: 50%; width: 80vw; transform: translate(-50%, -50%) scale(0); z-index: 4000; display: none; }
 #full-detail { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: white; z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 25px; box-sizing: border-box; }
 
-/* ANIMATIONS ANIMISTA */
+/* ANIMATIONS */
 .scale-in-ver-center { display: flex !important; animation: scale-in-ver-center 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
 .scale-out-ver-center { animation: scale-in-ver-center 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both; }
 @keyframes scale-in-ver-center { 0% { transform: scaleY(0); opacity: 0; } 100% { transform: scaleY(1); opacity: 1; } }
