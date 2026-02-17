@@ -1,165 +1,152 @@
-/* --- BASE DE L'APPLICATION --- */
-:root { 
-    --brand-color: #ffffff; 
+/* --- CONFIGURATION GÉNÉRALE --- */
+body {
+    background-color: #000;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    overflow-x: hidden;
 }
 
-body { 
-    background: #000; 
-    color: #fff; 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    margin: 0; 
-    padding: 0; 
-    overflow-x: hidden; 
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* --- ACCUEIL : 3 PILULES PLEIN ÉCRAN (33% chacun) --- */
-.menu-full { 
-    height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    background: #000; 
-}
-
-.brand-section { 
-    flex: 1; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    cursor: pointer; 
-    border-bottom: 1px solid #111;
-    transition: background 0.3s;
-}
-
-.brand-section:active {
-    background: #111;
-}
-
-/* Logos des marques avec Halo Blanc */
-.brand-section img { 
-    height: 40%; 
-    max-width: 70%; 
-    object-fit: contain; 
-    filter: drop-shadow(0 0 15px rgba(255,255,255,0.6)); 
-}
-
-/* --- SECTIONS CONSOLES (LOGO NOM CONSOLE) --- */
-.console-logo-header {
-    width: 100%; 
-    display: flex; 
+/* --- MENU PRINCIPAL (MARQUES) --- */
+.menu-full {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 90vh;
     justify-content: center;
-    padding: 60px 0 20px 0; /* Espace pour le logo console */
 }
 
-.console-logo-header img { 
-    height: 55px; 
-    max-width: 80%; 
+.brand-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s ease;
+    border: 1px solid #222;
+}
+
+.brand-section:hover {
+    transform: scale(1.02);
+    background: #1a1a1a;
+}
+
+.brand-section img {
+    max-width: 250px;
+    max-height: 100px;
     object-fit: contain;
-    filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));
 }
 
 /* --- GRILLE DE JEUX --- */
-.game-grid { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 15px; 
-    padding: 15px; 
+.console-logo-header {
+    width: 100%;
+    text-align: center;
+    padding: 40px 0 20px 0;
+    border-bottom: 1px solid #222;
+    margin-bottom: 30px;
 }
 
-.game-card { 
-    position: relative; 
-    aspect-ratio: 2/3; 
-    border-radius: 15px; /* Arrondi modéré haut de gamme */
-    overflow: hidden; 
-    background: transparent;
+.console-logo-header img {
+    max-height: 80px;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
 }
 
-/* Halo blanc sur les jaquettes flottantes */
-.game-card img { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: contain; 
-    filter: drop-shadow(0 0 8px rgba(255,255,255,0.5)); 
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    padding: 20px 0;
 }
 
-/* Effet Jeux Non Possédés : Flou + Grisaille (Haut de gamme) */
-.not-owned { 
-    opacity: 0.3; 
-    filter: grayscale(1) blur(2px) !important; 
+.game-card {
+    aspect-ratio: 3/4;
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid #222;
 }
 
-/* --- INTERFACE & BOUTONS --- */
-#ui-header { 
-    position: fixed; 
-    top: 30px; 
-    left: 20px; 
-    z-index: 9500; 
-    display: none; 
+.game-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    z-index: 10;
+    border-color: #555;
 }
 
-#ui-header button { 
-    background: rgba(255,255,255,0.1); 
-    color: white; 
-    border: 1px solid #444; 
-    padding: 10px 24px; 
-    border-radius: 50px; 
-    backdrop-filter: blur(8px); 
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 1px;
+.game-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-/* --- SYSTÈME DE POPUP (ANIMATION 3D) --- */
-#overlay { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    background: rgba(0,0,0,0.95); 
-    display: none; 
-    z-index: 9000; 
+/* --- PARTIE MODIFIÉE : EFFET JEUX NON POSSÉDÉS --- */
+.not-owned {
+    filter: blur(2px) saturate(30%) brightness(0.6);
+    opacity: 0.8;
 }
 
-#floating-card { 
-    position: fixed !important; 
-    top: 50% !important; 
-    left: 50% !important; 
-    width: 85vw; 
-    max-width: 450px; 
-    transform: translate(-50%, -50%) scale(0); 
-    z-index: 10000; 
-    display: none; 
+.not-owned:hover {
+    filter: blur(0px) saturate(100%) brightness(1); /* On retire l'effet au survol pour voir le jeu */
+    opacity: 1;
 }
 
-#floating-card img { 
-    width: 100%; 
-    border-radius: 20px; 
-    filter: drop-shadow(0 0 30px rgba(255,255,255,0.4)); 
+/* --- OVERLAY ET DÉTAILS --- */
+#overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(10px);
+    display: none;
+    z-index: 100;
 }
 
-/* Animation de zoom/rotation fluide */
-.animate-zoom { 
-    animation: zoomRotate 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; 
+#floating-card {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 400px;
+    z-index: 101;
+    display: none;
+    cursor: pointer;
 }
 
-@keyframes zoomRotate { 
-    from { transform: translate(-50%, -50%) scale(0) rotateY(0deg); } 
-    to { transform: translate(-50%, -50%) scale(1) rotateY(360deg); } 
+#floating-card img {
+    width: 100%;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(255,255,255,0.1);
 }
 
-/* Détails du jeu */
-#full-detail { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    background: #000; 
-    z-index: 11000; 
-    padding: 30px; 
-    box-sizing: border-box; 
-    display: none; 
+#full-detail {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #000;
+    z-index: 102;
+    display: none;
+    padding: 30px;
     overflow-y: auto;
+}
+
+/* --- ANIMATIONS --- */
+.animate-zoom {
+    animation: zoomIn 0.5s ease forwards;
+}
+
+@keyframes zoomIn {
+    from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+#ui-header button {
+    background: #222;
+    color: white;
+    border: 1px solid #333;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 20px;
 }
