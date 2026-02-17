@@ -22,7 +22,7 @@ function renderMainMenu() {
     view.className = '';
     view.innerHTML = `
         <div class="menu-container">
-            <h1 style="text-align:center; margin-top:40px;">Ma Collection</h1>
+            <h1 style="text-align:center;">Ma Collection</h1>
             <div class="pill-menu">
                 <div class="pill nintendo" onclick="selectBrand('Nintendo')">NINTENDO</div>
                 <div class="pill playstation" onclick="selectBrand('Playstation')">PLAYSTATION</div>
