@@ -1,10 +1,10 @@
 let allGames = [];
 let currentBrand = "";
-let activeGameData = null;
+let activeData = null;
 
-const toDirectLink = (val) => {
-    const match = val?.match(/id=([-\w]+)/);
-    return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
+const toDirectLink = (id) => {
+    const match = id?.match(/id=([-\w]+)/);
+    return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : id;
 };
 
 window.onload = () => { renderMainMenu(); preloadData(); };
@@ -19,10 +19,10 @@ async function preloadData() {
 function renderMainMenu() {
     document.getElementById('ui-header').style.display = 'none';
     const view = document.getElementById('view-list');
-    view.className = ''; 
+    view.className = '';
     view.innerHTML = `
         <div class="menu-container">
-            <h1 style="text-align:center;">Ma Collection</h1>
+            <h1 style="text-align:center; margin-top:40px;">Ma Collection</h1>
             <div class="pill-menu">
                 <div class="pill nintendo" onclick="selectBrand('Nintendo')">NINTENDO</div>
                 <div class="pill playstation" onclick="selectBrand('Playstation')">PLAYSTATION</div>
@@ -40,7 +40,7 @@ function selectBrand(brand) {
     document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
     
     const filtered = allGames.filter(r => (r.c[2]?.v || "").includes(brand))
-                             .map(r => ({ title: r.c[0]?.v, img: toDirectLink(r.c[6]?.v), console: r.c[4]?.v }));
+                             .map(r => ({ title: r.c[0]?.v, img: toDirectLink(r.c[6]?.v), console: r.c[4]?.v, owned: r.c[14]?.v }));
     
     const view = document.getElementById('view-list');
     view.innerHTML = '<div class="game-grid"></div>';
@@ -48,8 +48,9 @@ function selectBrand(brand) {
     filtered.forEach(item => {
         const div = document.createElement('div');
         div.className = 'game-card';
+        if(item.owned === "NON") div.style.opacity = "0.35";
         div.onclick = () => {
-            activeGameData = item;
+            activeData = item;
             const card = document.getElementById('floating-card');
             card.innerHTML = `<img src="${item.img}" style="width:100%; border-radius:15px;">`;
             card.style.display = 'block';
@@ -68,9 +69,9 @@ function handleFloatingClick() {
     setTimeout(() => {
         detail.innerHTML = `
             <button onclick="closeFullDetail()" style="position:absolute; top:20px; background:var(--brand-color); color:white; border:none; padding:15px; border-radius:10px; width:80%;">✕ FERMER</button>
-            <img src="${activeGameData.img}" style="max-height:40%; border-radius:10px; margin-bottom:20px;">
-            <h2>${activeGameData.title}</h2>
-            <p>Console: ${activeGameData.console}</p>`;
+            <img src="${activeData.img}" style="max-height:40%; border-radius:10px; margin-bottom:20px;">
+            <h2 style="text-align:center;">${activeData.title}</h2>
+            <p><b>Console :</b> ${activeData.console}</p>`;
         document.getElementById('floating-card').style.display = 'none';
         detail.className = 'scale-in-ver-center';
     }, 400);
@@ -79,7 +80,6 @@ function handleFloatingClick() {
 function closeFullDetail() {
     const detail = document.getElementById('full-detail');
     detail.className = 'scale-out-ver-center';
-    
     setTimeout(() => {
         detail.style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
