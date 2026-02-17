@@ -15,6 +15,11 @@
             <div class="game-card" onclick="selectBrand('Xbox')" style="display:flex; align-items:center; justify-content:center; font-weight:bold; height:100px;">XBOX</div>
         </div>
     </div>
+
+    <div id="overlay" onclick="closeOverlay()"></div>
+    <div id="floating-card" onclick="event.stopPropagation(); handleFloatingClick()"></div>
+    <div id="full-detail"></div>
+
     <script src="config.js"></script>
     <script src="logic.js"></script>
 </body>
