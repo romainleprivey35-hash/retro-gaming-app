@@ -1,102 +1,54 @@
-let allGames = [];
+const CONFIG = {
+    SHEET_ID: "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU"
+};
+
 let currentBrand = "";
-let activeGameData = null;
 
-// 1. TES LOGOS DE MARQUES (ACCUEIL)
-const BRAND_LOGOS = {
-    nintendo: "11g1hLkCEY-wLQgMOHuDdRcmBbq33Lkn7",    
-    playstation: "1XzZYJwDRWiPBpW-16TGYPcTYSGRB-fC0", 
-    xbox: "1SzJdKKuHIv5M3bGNc9noed8mN60fNm9y"
-};
-
-// 2. TES LOGOS DE CATEGORIES (PAR MARQUE)
-const CATEGORY_LOGOS = {
-    "Nintendo": {
-        "Consoles": "1ZWCtVvA7pIqRBcB_c97vZoDa5RL3zrV-",
-        "Jeux": "1_vATwWlWWhOdJaThbOxP2UUjZmp8JYi_",
-        "Accessoires": "1F0zl-wLOAzQDbrVKh0tmD5SF2aiUw9sf"
-    },
-    "Playstation": {
-        "Consoles": "1qXh9SSZvVo-l4xrBhPhD3Y6Yxom2dDiA",
-        "Jeux": "1BtsLW7vn-EGYcVt2Y8IG3BCCI2V2pxxn",
-        "Accessoires": "1FtEw-zApC0N7jgVlDt5sljjDvhi3ry33"
-    },
-    "Xbox": {
-        "Consoles": "1xjx-ISS_pNzgnmRLduIi10ZatejSYDlt",
-        "Jeux": "1rQoTz-myIpesCFQp952WTJeTPqR-92Tg",
-        "Accessoires": "1aL29YXaRHYb5EuaY7LjLkBlFP3djq8-U"
-    }
-};
-
-// 3. CONFIGURATION DES CONSOLES (COLONNE E)
-const CONSOLE_CONFIG = {
-    "GB": { year: 1989, logo: "1XEkPuCr2mmIvpsmjmpkrG1XumS-24wLb" },
-    "PS1": { year: 1994, logo: "1DV-N37sM1AA-fl5rYe1_Urr6hh9e6eTF" },
-    "N64": { year: 1996, logo: "1iumJt5i-5Jd85ZPZLr3NR44hbhdohUh5" },
-    "GBC": { year: 1998, logo: "1dek_9N4wDwFBhSYmUoij7OhtFfCc4hcQ" },
-    "PS2": { year: 2000, logo: "10h2eIupplXfFBvQQNWRptu1EC3xTkghc" },
-    "GBA": { year: 2001, logo: "11vgmA2xIMxNHbbYMcUIwXTNgt0BVKacp" },
-    "Xbox": { year: 2001, logo: "15i7MRlq_QVyKUsQKWsFfMSkvqALFwb2I" },
-    "GameCube": { year: 2002, logo: "1SW-jXEJnlZ4nh3jXg3IVkNGK7QzZMSze" },
-    "DS": { year: 2004, logo: "1Gals-7-g_lNxOBult4FihHYiv2nKgkfP" },
-    "PSP": { year: 2004, logo: "1zOJp5Yh0JRHhI-o4PfyFTdX_OH7j3Bmo" },
-    "WII": { year: 2006, logo: "1aAx82c4LPWz6U-JQ2jXf3fG0hwAOG_Bc" },
-    "PS3": { year: 2006, logo: "1eqVPNUIqNwzdPs4j6ALB922qNvSJozFA" },
-    "PS4": { year: 2013, logo: "1VjijUcf3nyaclZazZT8akg_4Ifo0UjGM" },
-    "PS5": { year: 2020, logo: "1F_qvq4AM8uvx1nKaRUdPWh5r1mjVqic8" }
-};
-
-const toDirectLink = (val) => {
-    if (!val) return "";
-    const id = val.toString().includes('id=') ? val.split('id=')[1].split('&')[0] : val;
-    return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
-};
-
-async function preloadData() {
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
-    const resp = await fetch(url);
-    const text = await resp.text();
-    allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
-}
-
-window.onload = () => { preloadData(); renderMainMenu(); };
-
-function renderMainMenu() {
-    document.getElementById('ui-header').style.display = 'none';
+// 1. FONCTION D'ACCUEIL (Choix de la marque)
+function init() {
     const view = document.getElementById('view-list');
+    document.getElementById('ui-header').innerHTML = "<h1>SELECTIONNE UNE MARQUE</h1>";
+    
+    // Remplace les liens par tes vrais logos si besoin
     view.innerHTML = `
-        <div class="menu-full">
-            <div class="brand-section" onclick="selectBrand('Nintendo')"><img src="${toDirectLink(BRAND_LOGOS.nintendo)}"></div>
-            <div class="brand-section" onclick="selectBrand('Playstation')"><img src="${toDirectLink(BRAND_LOGOS.playstation)}"></div>
-            <div class="brand-section" onclick="selectBrand('Xbox')"><img src="${toDirectLink(BRAND_LOGOS.xbox)}"></div>
-        </div>`;
+        <div class="brand-selection">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg" onclick="selectBrand('Nintendo')" style="width:200px; cursor:pointer; margin:20px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/PlayStation_logo.svg" onclick="selectBrand('Playstation')" style="width:200px; cursor:pointer; margin:20px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Xbox_logo_2012.svg" onclick="selectBrand('Xbox')" style="width:200px; cursor:pointer; margin:20px;">
+        </div>
+    `;
 }
 
+// 2. CHOIX DE LA CATEGORIE (Après avoir cliqué sur une marque)
 function selectBrand(brand) {
     currentBrand = brand;
-    document.getElementById('ui-header').style.display = 'block';
-    document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
-    
-    const categories = ["Consoles", "Jeux", "Accessoires"];
     const view = document.getElementById('view-list');
-    
+    document.getElementById('ui-header').innerHTML = `<h1>${brand.toUpperCase()}</h1>`;
+
     view.innerHTML = `
-        <div class="menu-full">
-            ${categories.map(cat => `
-                <div class="brand-section" onclick="renderCategory('${cat}')">
-                    <img src="${toDirectLink(CATEGORY_LOGOS[brand][cat])}">
-                </div>
-            `).join('')}
-        </div>`;
+        <div class="categories-container" style="display:flex; justify-content:center; gap:50px; margin-top:50px;">
+            <div onclick="renderCategory('Jeux')" style="cursor:pointer; text-align:center;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3408/3408506.png" width="100"><br>JEUX
+            </div>
+            <div onclick="renderCategory('Consoles')" style="cursor:pointer; text-align:center;">
+                <img src="https://cdn-icons-png.flaticon.com/512/583/583307.png" width="100"><br>CONSOLES
+            </div>
+            <div onclick="renderCategory('Accessoires')" style="cursor:pointer; text-align:center;">
+                <img src="https://cdn-icons-png.flaticon.com/512/808/808513.png" width="100"><br>ACCESSOIRES
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:50px;">
+            <button onclick="init()">⬅ RETOUR AUX MARQUES</button>
+        </div>
+    `;
 }
 
+// 3. CHARGEMENT ET FILTRAGE DE L'ONGLET CLIQUE
 async function renderCategory(category) {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement de ${category}...</h2>`;
+    view.innerHTML = `<h2 style="color:white; text-align:center;">Chargement de l'onglet ${category}...</h2>`;
 
-    const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU"; 
-    // On ouvre l'onglet qui correspond au nom de la catégorie (Jeux, Consoles ou Accessoires)
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
     
     try {
         const resp = await fetch(url);
@@ -104,72 +56,38 @@ async function renderCategory(category) {
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
-        // On définit la colonne "Constructeur" selon l'onglet
+        // On définit la colonne Constructeur (C=2, D=3, F=5)
         let colConstructeur;
-        if (category === "Jeux") colConstructeur = 2;        // Colonne C
-        else if (category === "Consoles") colConstructeur = 3;    // Colonne D
-        else if (category === "Accessoires") colConstructeur = 5; // Colonne F
+        if (category === "Jeux") colConstructeur = 2;
+        else if (category === "Consoles") colConstructeur = 3;
+        else if (category === "Accessoires") colConstructeur = 5;
 
         const items = rows.map(row => {
-            if (!row || !row.c) return null;
+            if (!row.c) return null;
             return {
-                title: row.c[0]?.v || "Sans titre",      // Titre en A
+                title: row.c[0]?.v,              // A
                 constructor: row.c[colConstructeur]?.v || "", 
-                consoleName: row.c[4]?.v || "",          // Console en E
-                img: toDirectLink(row.c[6]?.v),          // Image en G
-                price: row.c[12]?.v || 0,                // Prix en M
-                owned: row.c[14]?.v || "NON"             // Possédé en O
+                consoleName: row.c[4]?.v || "",  // E
+                img: toDirectLink(row.c[6]?.v),  // G
+                price: row.c[12]?.v || 0,        // M
+                owned: row.c[14]?.v || "NON"     // O
             };
         }).filter(item => {
-            // On garde uniquement si le constructeur correspond à la marque du début (Nintendo, etc.)
-            return item && item.constructor.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim();
+            // On filtre par la marque choisie au début
+            return item && item.title && item.constructor.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
         if (items.length === 0) {
-            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun résultat pour ${currentBrand}.</h2>`;
+            view.innerHTML = `<h2 style="color:white; text-align:center;">Aucun résultat pour ${currentBrand}.</h2>`;
         } else {
-            renderGrid(items);
+            renderGrid(items); // Cette fonction doit déjà exister dans ton code pour afficher les cartes
         }
 
-        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
+        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATEGORIES</button>`;
     
     } catch (e) {
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : Impossible d'ouvrir l'onglet "${category}".</h2>`;
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : Vérifie l'onglet "${category}" dans ton Sheets.</h2>`;
     }
 }
-}
-function handleCardClick(imgSrc, data) {
-    activeGameData = data;
-    const overlay = document.getElementById('overlay');
-    const floating = document.getElementById('floating-card');
-    floating.innerHTML = `<img src="${imgSrc}">`;
-    overlay.style.display = 'block';
-    floating.style.display = 'block';
-    floating.className = 'animate-zoom';
-}
 
-function handleFloatingClick() {
-    const floating = document.getElementById('floating-card');
-    const detail = document.getElementById('full-detail');
-    floating.style.display = 'none';
-    detail.innerHTML = `
-        <button onclick="closeFullDetail()" style="background:#222;color:white;border:none;padding:15px;border-radius:50px;width:100%;margin-bottom:20px;">✕ FERMER</button>
-        <img src="${activeGameData.img}" style="width:100%; border-radius:15px; margin-bottom:20px;">
-        <h1 style="text-align:center;">${activeGameData.title}</h1>
-        <div style="background:#111; padding:20px; border-radius:15px;">
-            <p><b>Console :</b> ${activeGameData.consoleName}</p>
-            <p><b>Prix :</b> ${activeGameData.price}€</p>
-            <p><b>Possédé :</b> ${activeGameData.owned}</p>
-        </div>`;
-    detail.style.display = 'block';
-}
-
-function closeOverlay() {
-    document.getElementById('floating-card').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-}
-
-function closeFullDetail() {
-    document.getElementById('full-detail').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-}
+// Garde ta fonction toDirectLink et renderGrid en dessous...
