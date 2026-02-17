@@ -1,7 +1,6 @@
 let allGames = [];
 let currentBrand = "";
 let activeGameData = null;
-let lastScrollY = 0;
 
 const toDirectLink = (val) => {
     if (!val || typeof val !== 'string') return "";
@@ -9,22 +8,24 @@ const toDirectLink = (val) => {
     return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
 };
 
-// Initialisation
 window.onload = () => {
     renderMainMenu();
     preloadData();
 };
 
 async function preloadData() {
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
-    const resp = await fetch(url);
-    const text = await resp.text();
-    allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    try {
+        const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
+        const resp = await fetch(url);
+        const text = await resp.text();
+        allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    } catch (e) { console.log("Erreur de chargement"); }
 }
 
 function renderMainMenu() {
     document.getElementById('ui-header').style.display = 'none';
     const view = document.getElementById('view-list');
+    view.className = ''; // Reset animations
     view.innerHTML = `
         <div class="menu-container">
             <h1 style="text-align:center; margin-top:40px;">Ma Collection</h1>
@@ -38,14 +39,16 @@ function renderMainMenu() {
 
 function selectBrand(brand) {
     currentBrand = brand;
-    let color = brand.includes("Nintendo") ? "#e60012" : brand.includes("Playstation") ? "#00439c" : "#107c10";
+    let color = brand === "Nintendo" ? "#e60012" : brand === "Playstation" ? "#00439c" : "#107c10";
     document.documentElement.style.setProperty('--brand-color', color);
     showCategories();
 }
 
 function showCategories() {
-    document.getElementById('ui-header').style.display = 'block';
-    document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
+    const header = document.getElementById('ui-header');
+    header.style.display = 'block';
+    header.innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
+    
     const view = document.getElementById('view-list');
     view.innerHTML = `
         <div class="menu-container">
@@ -58,21 +61,9 @@ function showCategories() {
         </div>`;
 }
 
-function toggleScroll(lock) {
-    if (lock) {
-        lastScrollY = window.scrollY;
-        document.body.style.top = `-${lastScrollY}px`;
-        document.body.classList.add('no-scroll');
-    } else {
-        document.body.classList.remove('no-scroll');
-        window.scrollTo(0, lastScrollY);
-    }
-}
-
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
-    document.getElementById('ui-header').style.display = 'none';
-    toggleScroll(true);
+    document.getElementById('ui-header').style.display = 'none'; // Cache le retour
     const overlay = document.getElementById('overlay');
     const floating = document.getElementById('floating-card');
     
@@ -89,7 +80,6 @@ function handleFloatingClick() {
     const floating = document.getElementById('floating-card');
     const detail = document.getElementById('full-detail');
     
-    // Fermeture jaquette avec l'effet Animista reverse
     floating.classList.add('scale-out-ver-center');
 
     setTimeout(() => {
@@ -104,14 +94,13 @@ function handleFloatingClick() {
         
         floating.style.display = 'none';
         detail.className = 'scale-in-ver-center'; 
-    }, 450);
+    }, 400);
 }
 
 function closeFullDetail() {
     const detail = document.getElementById('full-detail');
     const viewList = document.getElementById('view-list');
     
-    // 1. La fiche s'écrase
     detail.className = 'scale-out-ver-center';
 
     setTimeout(() => {
@@ -119,14 +108,9 @@ function closeFullDetail() {
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('overlay').classList.remove('active');
         
-        // 2. La liste se déplie
-        viewList.className = '';
-        void viewList.offsetWidth;
-        viewList.classList.add('scale-in-ver-center');
-        
+        viewList.className = 'scale-in-ver-center'; // La liste revient avec ton effet
         document.getElementById('ui-header').style.display = 'block'; 
-        toggleScroll(false);
-    }, 500);
+    }, 450);
 }
 
 function closeOverlay() {
@@ -138,12 +122,14 @@ function closeOverlay() {
         floating.style.display = 'none';
         overlay.style.display = 'none';
         document.getElementById('ui-header').style.display = 'block';
-        toggleScroll(false);
     }, 500);
 }
 
 function renderGeneralGrid(items, title) {
-    document.getElementById('ui-header').innerHTML = `<button onclick="showCategories()">⬅ RETOUR</button>`;
+    const header = document.getElementById('ui-header');
+    header.style.display = 'block';
+    header.innerHTML = `<button onclick="showCategories()">⬅ RETOUR</button>`;
+    
     const view = document.getElementById('view-list');
     view.innerHTML = `<h2 style="text-align:center; margin-top:100px;">${title}</h2>`;
     const grid = document.createElement('div');
