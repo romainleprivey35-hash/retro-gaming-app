@@ -2,9 +2,9 @@ let allGames = [];
 let currentBrand = "";
 let activeGameData = null;
 
-const toDirectLink = (val) => {
-    const match = val?.match(/id=([-\w]+)/);
-    return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
+const toDirectLink = (id) => {
+    const match = id?.match(/id=([-\w]+)/);
+    return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : id;
 };
 
 window.onload = () => { renderMainMenu(); preloadData(); };
