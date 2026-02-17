@@ -92,9 +92,10 @@ function selectBrand(brand) {
 
 async function renderCategory(category) {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement...</h2>`;
+    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement de ${category}...</h2>`;
 
     const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU"; 
+    // On ouvre l'onglet qui correspond au nom de la catégorie (Jeux, Consoles ou Accessoires)
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
     
     try {
@@ -103,36 +104,39 @@ async function renderCategory(category) {
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
-        // Définition des colonnes selon tes instructions
-        let constCol;
-        if (category === "Jeux") constCol = 2;        // Colonne C
-        else if (category === "Accessoires") constCol = 5; // Colonne F
-        else if (category === "Consoles") constCol = 3;    // Colonne D
+        // On définit la colonne "Constructeur" selon l'onglet
+        let colConstructeur;
+        if (category === "Jeux") colConstructeur = 2;        // Colonne C
+        else if (category === "Consoles") colConstructeur = 3;    // Colonne D
+        else if (category === "Accessoires") colConstructeur = 5; // Colonne F
 
-        const items = rows.map(row => ({
-            title: row.c[0]?.v,              // Nom (Col A)
-            constructor: row.c[constCol]?.v || "", // Constructeur (C, F ou D)
-            consoleName: row.c[4]?.v || "",  // Console (Col E)
-            img: toDirectLink(row.c[6]?.v),  // Image (Col G)
-            price: row.c[12]?.v,             // Prix (Col M)
-            owned: row.c[14]?.v || "NON"     // Possédé (Col O)
-        })).filter(item => {
-            // Filtrage par la marque sélectionnée (ex: "Nintendo")
-            return item.title && item.constructor.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim();
+        const items = rows.map(row => {
+            if (!row || !row.c) return null;
+            return {
+                title: row.c[0]?.v || "Sans titre",      // Titre en A
+                constructor: row.c[colConstructeur]?.v || "", 
+                consoleName: row.c[4]?.v || "",          // Console en E
+                img: toDirectLink(row.c[6]?.v),          // Image en G
+                price: row.c[12]?.v || 0,                // Prix en M
+                owned: row.c[14]?.v || "NON"             // Possédé en O
+            };
+        }).filter(item => {
+            // On garde uniquement si le constructeur correspond à la marque du début (Nintendo, etc.)
+            return item && item.constructor.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
         if (items.length === 0) {
-            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément trouvé pour "${currentBrand}".</h2>`;
+            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun résultat pour ${currentBrand}.</h2>`;
         } else {
-            // Utilisation de la structure de grille que tu as déjà 
             renderGrid(items);
         }
 
         document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
     
     } catch (e) {
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de lecture de l'onglet "${category}".</h2>`;
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : Impossible d'ouvrir l'onglet "${category}".</h2>`;
     }
+}
 }
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
