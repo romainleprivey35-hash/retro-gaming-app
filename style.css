@@ -13,9 +13,9 @@ body { background: var(--bg-color); color: #333; font-family: sans-serif; margin
 .game-card { position: relative; width: 100%; aspect-ratio: 2/3; border-radius: 12px; overflow: hidden; border: 1px solid #eee; background: #fff; cursor: pointer; }
 .game-card img { width: 100%; height: 100%; object-fit: contain; }
 
-#overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; z-index: 3000; }
+/* FIXATION ÉCRAN TOTALE */
+#overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; z-index: 3000; }
 
-/* Centrage absolu sur l'écran */
 #floating-card { 
     position: fixed; top: 50%; left: 50%; width: 80vw; height: auto; 
     transform: translate(-50%, -50%) scale(0); 
@@ -25,13 +25,14 @@ body { background: var(--bg-color); color: #333; font-family: sans-serif; margin
 #floating-card img { width: 100%; height: auto; display: block; }
 
 #full-detail { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    position: fixed; top: 50%; left: 50%; width: 100vw; height: 100vh; 
+    transform: translate(-50%, -50%);
     background: white; z-index: 5000; padding: 25px; 
     box-sizing: border-box; overflow-y: auto; display: none; 
     transform-origin: center center;
 }
 
-/* --- ANIMATIONS CORRIGÉES (CENTRÉES ÉCRAN) --- */
+/* --- ANIMATIONS --- */
 
 .unblur-fade { animation: unblurFade 0.6s ease-out forwards; }
 @keyframes unblurFade {
@@ -51,23 +52,20 @@ body { background: var(--bg-color); color: #333; font-family: sans-serif; margin
     to { transform: translate(-50%, -50%) scale(0) rotateY(0deg); opacity: 0; } 
 }
 
-/* Écrasement vers le centre de l'écran */
 .scale-out-center-ver { animation: scale-out-center-ver 0.3s ease-in forwards; }
 @keyframes scale-out-center-ver { 
     0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 
     100% { transform: translate(-50%, -50%) scaleY(0); opacity: 0; } 
 }
 
-/* Déploiement depuis le centre de l'écran */
 .scale-in-center-ver { animation: scale-in-center-ver 0.4s ease-out both; }
 @keyframes scale-in-center-ver { 
-    0% { transform: scaleY(0); opacity: 0; } 
-    100% { transform: scaleY(1); opacity: 1; } 
+    0% { transform: translate(-50%, -50%) scaleY(0); opacity: 0; } 
+    100% { transform: translate(-50%, -50%) scaleY(1); opacity: 1; } 
 }
 
-/* Repliage final vers le centre de l'écran */
 .scale-out-center-ver-detail { animation: scale-out-center-ver-detail 0.4s ease-in forwards; }
 @keyframes scale-out-center-ver-detail { 
-    0% { transform: scaleY(1); opacity: 1; } 
-    100% { transform: scaleY(0); opacity: 0; } 
+    0% { transform: translate(-50%, -50%) scaleY(1); opacity: 1; } 
+    100% { transform: translate(-50%, -50%) scaleY(0); opacity: 0; } 
 }
