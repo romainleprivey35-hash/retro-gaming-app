@@ -94,41 +94,47 @@ async function renderCategory(category) {
     const view = document.getElementById('view-list');
     view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Chargement des ${category}...</h2>`;
 
-    // On récupère l'ID du sheet directement (au cas où CONFIG poserait problème)
+    // Ton ID de Sheet directement ici
     const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU"; 
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
+    
+    // On force le nom de l'onglet pour qu'il corresponde à tes boutons
+    // Si tes onglets s'appellent JEUX (tout en majuscules), change "category" par "category.toUpperCase()"
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${category}`;
     
     try {
         const resp = await fetch(url);
         const text = await resp.text();
         
-        // On vérifie si on reçoit bien des données
+        // On nettoie le JSON de Google
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
         const items = rows.map(row => ({
-            title: row.c[0]?.v,              
-            brand: row.c[2]?.v || "",        
-            consoleName: row.c[4]?.v || "",  
-            img: toDirectLink(row.c[6]?.v),  
-            price: row.c[12]?.v,             
-            owned: row.c[14]?.v || "NON"     
+            title: row.c[0]?.v,              // Col A
+            brand: row.c[2]?.v || "",        // Col C
+            consoleName: row.c[4]?.v || "",  // Col E
+            img: toDirectLink(row.c[6]?.v),  // Col G
+            price: row.c[12]?.v,             // Col M
+            owned: row.c[14]?.v || "NON"     // Col O
         })).filter(item => {
-            // Filtre : on veut le titre ET que la marque corresponde
+            // On vérifie que le titre existe et que la marque correspond
             return item.title && item.brand.toLowerCase().trim() === currentBrand.toLowerCase().trim();
         });
 
         if (items.length === 0) {
             view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:50px;">Aucun élément trouvé pour "${currentBrand}" dans l'onglet "${category}".</h2>`;
         } else {
+            // On garde ton tri par année
             items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
             renderGrid(items);
         }
 
+        // Le bouton retour qui revient aux catégories
         document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATÉGORIES</button>`;
     
     } catch (e) {
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : Vérifie que l'onglet "${category}" existe bien dans ton Google Sheets.</h2>`;
+        // Si ça plante, on affiche le nom de l'onglet qui pose problème
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur : L'onglet "${category}" est introuvable.<br><br>Vérifie bien le nom en bas de ton Excel.</h2>`;
     }
 }
 
