@@ -1,56 +1,53 @@
-// Ordre chronologique des consoles (à ajuster selon tes besoins)
-const CONSOLE_ORDER = {
-    "NES": 1, "Master System": 2, "SNES": 3, "Mega Drive": 4, 
-    "N64": 5, "PS1": 6, "GameCube": 7, "PS2": 8, "Xbox": 9, 
-    "Wii": 10, "PS3": 11, "Xbox 360": 12, "Switch": 13, "PS5": 14
-};
-
-// ... (garder toDirectLink, window.onload, preloadData, renderMainMenu identiques) ...
-
-function fetchGames() {
-    let filtered = allGames.filter(r => (r.c[2]?.v || "").includes(currentBrand))
-                             .map(r => ({ 
-                                 title: r.c[0]?.v, 
-                                 img: toDirectLink(r.c[6]?.v), 
-                                 console: r.c[4]?.v, 
-                                 owned: r.c[14]?.v 
-                             }));
-
-    // TRI PAR CONSOLE (Chronologique selon notre liste CONSOLE_ORDER)
-    filtered.sort((a, b) => {
-        let orderA = CONSOLE_ORDER[a.console] || 999;
-        let orderB = CONSOLE_ORDER[b.console] || 999;
-        return orderA - orderB;
-    });
-
-    renderGrid(filtered);
-}
+// ... (garder CONSOLE_ORDER et les autres fonctions) ...
 
 function renderGrid(items) {
     const view = document.getElementById('view-list');
     view.innerHTML = '<div class="game-grid"></div>';
     const grid = view.querySelector('.game-grid');
+    
+    let lastConsole = "";
 
     items.forEach(item => {
+        // AJOUT DU MUR VIRTUEL SI LA CONSOLE CHANGE
+        if (item.console !== lastConsole) {
+            const separator = document.createElement('div');
+            separator.className = 'console-separator';
+            separator.innerText = item.console;
+            grid.appendChild(separator);
+            lastConsole = item.console;
+        }
+
         const div = document.createElement('div');
         div.className = 'game-card';
-        
-        // Application du style si non possédé
-        if(item.owned === "NON") {
-            div.classList.add('not-owned');
-        }
+        if(item.owned === "NON") div.classList.add('not-owned');
 
         div.onclick = () => {
             activeGameData = item;
             const card = document.getElementById('floating-card');
-            card.innerHTML = `<img src="${item.img}" style="width:100%; border-radius:15px;">`;
+            // On vide le contenu précédent pour éviter les doublons en bas
+            card.innerHTML = `<img src="${item.img}" style="width:100%; border-radius:15px; display:block;">`;
             card.style.display = 'block';
             card.className = 'animate-zoom';
             document.getElementById('overlay').style.display = 'block';
         };
+        
         div.innerHTML = `<img src="${item.img}">`;
         grid.appendChild(div);
     });
 }
 
-// ... (garder handleFloatingClick, closeFullDetail et closeOverlay) ...
+// Nettoyage de la fonction click pour éviter l'affichage fantôme
+function handleFloatingClick() {
+    const detail = document.getElementById('full-detail');
+    document.getElementById('floating-card').classList.add('scale-out-ver-center');
+    
+    setTimeout(() => {
+        document.getElementById('floating-card').style.display = 'none';
+        detail.innerHTML = `
+            <button onclick="closeFullDetail()" style="position:absolute; top:20px; background:var(--brand-color); color:white; border:none; padding:15px; border-radius:10px; width:80%;">✕ FERMER</button>
+            <img src="${activeGameData.img}" style="max-height:40%; border-radius:10px; margin-bottom:20px;">
+            <h2 style="text-align:center;">${activeGameData.title}</h2>
+            <p><b>Console :</b> ${activeGameData.console}</p>`;
+        detail.className = 'scale-in-ver-center';
+    }, 400);
+}
