@@ -1,16 +1,31 @@
 let allGames = [];
 let currentBrand = "";
 
-const LOGOS = {
-    nintendo: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg",
-    playstation: "https://upload.wikimedia.org/wikipedia/commons/0/00/PlayStation_logo.svg",
-    xbox: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg"
+// IDs des logos depuis tes dossiers Drive
+const BRAND_LOGOS = {
+    nintendo: "1S0LebnGPPp6IeEqicri2ya6-1EHzeUTm",
+    playstation: "1Koyt_vHAn_Bq9mYyC_zD-C17G9X7zV_2", 
+    xbox: "1Yf_FfU-vK3m8vI_Z7Y_R8z-VvXw9z_Qx"
 };
 
-const toDirectLink = (val) => {
-    if (!val) return "";
-    const match = val.match(/id=([-\w]+)/);
-    return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : val;
+// Configuration chronologique et IDs des logos consoles
+const CONSOLE_CONFIG = {
+    "NES": { year: 1983, logo: "1wRTXO2LROPuwww9MS6mfitL-81WlOs3v" },
+    "SNES": { year: 1990, logo: "1vY8fV0_6zI_zYm_hQ7_Q8z9vXW_Q9z_Q" },
+    "N64": { year: 1996, logo: "1zZ_zYm_hQ7_Q8z9vXW_Q9z_Q" },
+    "GameCube": { year: 2001, logo: "1xX_zYm_hQ7_Q8z9vXW_Q9z_Q" },
+    "Wii": { year: 2006, logo: "1_2eO_ID_WII" },
+    "Switch": { year: 2017, logo: "1_2eO_ID_SWITCH" },
+    "PS1": { year: 1994, logo: "1_2eO_ID_PS1" },
+    "PS2": { year: 2000, logo: "1_2eO_ID_PS2" },
+    "Xbox": { year: 2001, logo: "1_2eO_ID_XBOX" }
+};
+
+const toDirectLink = (id) => {
+    if (!id) return "";
+    const cleanId = id.toString().match(/id=([-\w]+)/);
+    const finalId = cleanId ? cleanId[1] : id;
+    return `https://drive.google.com/thumbnail?id=${finalId}&sz=w800`;
 };
 
 window.onload = () => { preloadData(); renderMainMenu(); };
@@ -21,7 +36,7 @@ async function preloadData() {
         const resp = await fetch(url);
         const text = await resp.text();
         allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Erreur Sheets", e); }
 }
 
 function renderMainMenu() {
@@ -29,26 +44,18 @@ function renderMainMenu() {
     const view = document.getElementById('view-list');
     view.innerHTML = `
         <div class="menu-full">
-            <div class="brand-section nintendo-bg" onclick="selectBrand('Nintendo')">
-                <img src="${LOGOS.nintendo}" alt="Nintendo">
-            </div>
-            <div class="brand-section playstation-bg" onclick="selectBrand('Playstation')">
-                <img src="${LOGOS.playstation}" alt="Playstation">
-            </div>
-            <div class="brand-section xbox-bg" onclick="selectBrand('Xbox')">
-                <img src="${LOGOS.xbox}" alt="Xbox">
-            </div>
+            <div class="brand-section" onclick="selectBrand('Nintendo')"><img src="${toDirectLink(BRAND_LOGOS.nintendo)}"></div>
+            <div class="brand-section" onclick="selectBrand('Playstation')"><img src="${toDirectLink(BRAND_LOGOS.playstation)}"></div>
+            <div class="brand-section" onclick="selectBrand('Xbox')"><img src="${toDirectLink(BRAND_LOGOS.xbox)}"></div>
         </div>`;
 }
 
 function selectBrand(brand) {
     currentBrand = brand;
-    const view = document.getElementById('view-list');
     document.getElementById('ui-header').style.display = 'block';
     document.getElementById('ui-header').innerHTML = `<button onclick="renderMainMenu()">⬅ RETOUR</button>`;
     
-    // Filtrage et Rendu (On garde ta logique de groupes par console)
-    const filtered = allGames.map(r => ({
+    let filtered = allGames.map(r => ({
         title: r.c[0]?.v,
         brand: r.c[2]?.v || "",
         console: r.c[4]?.v || "Autre",
@@ -56,18 +63,32 @@ function selectBrand(brand) {
         owned: (r.c[14]?.v || "NON").toUpperCase()
     })).filter(g => g.brand.toLowerCase().includes(brand.toLowerCase()));
 
+    // Tri par année de sortie de la console
+    filtered.sort((a, b) => (CONSOLE_CONFIG[a.console]?.year || 9999) - (CONSOLE_CONFIG[b.console]?.year || 9999));
+
     renderGrid(filtered);
 }
 
 function renderGrid(items) {
     const view = document.getElementById('view-list');
-    view.innerHTML = '<div class="game-grid"></div>';
-    const grid = view.querySelector('.game-grid');
-    
-    // Tri simple par console pour le moment (on fera les logos de consoles à l'étape 2)
-    items.sort((a, b) => a.console.localeCompare(b.console));
+    view.innerHTML = '';
+    let lastConsole = "";
+    let currentGrid = null;
 
     items.forEach(item => {
+        if (item.console !== lastConsole) {
+            const header = document.createElement('div');
+            header.className = 'console-logo-header';
+            const logoId = CONSOLE_CONFIG[item.console]?.logo;
+            header.innerHTML = logoId ? `<img src="${toDirectLink(logoId)}">` : `<h2 style="color:white">${item.console}</h2>`;
+            view.appendChild(header);
+
+            currentGrid = document.createElement('div');
+            currentGrid.className = 'game-grid';
+            view.appendChild(currentGrid);
+            lastConsole = item.console;
+        }
+
         const div = document.createElement('div');
         div.className = 'game-card' + (item.owned === "NON" ? ' not-owned' : '');
         div.onclick = () => {
@@ -78,8 +99,9 @@ function renderGrid(items) {
             document.getElementById('overlay').style.display = 'block';
         };
         div.innerHTML = `<img src="${item.img}">`;
-        grid.appendChild(div);
+        currentGrid.appendChild(div);
     });
+    window.scrollTo(0,0);
 }
 
 function closeOverlay() {
