@@ -152,63 +152,26 @@ async function renderCategory(category) {
 }
 
 function renderGrid(items) {
-
     const view = document.getElementById('view-list');
-
-    view.innerHTML = '';
-
-    let lastConsole = "";
-
-    let currentGrid = null;
-
-
+    view.innerHTML = ''; 
 
     items.forEach(item => {
+        const card = document.createElement('div');
+        
+        // On vérifie si c'est possédé. Si item.owned est false, on ajoute TA classe
+        card.className = item.owned ? 'game-card' : 'game-card not-owned';
 
-        if (item.consoleName !== lastConsole) {
-
-            const header = document.createElement('div');
-
-            header.className = 'console-logo-header';
-
-            const logoId = CONSOLE_CONFIG[item.consoleName]?.logo;
-
-            
-
-            header.innerHTML = logoId 
-
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
-
-                : `<h2 style="color:white; font-size: 24px;">${item.consoleName}</h2>`;
-
-            
-
-            view.appendChild(header);
-
-            currentGrid = document.createElement('div');
-
-            currentGrid.className = 'game-grid';
-
-            view.appendChild(currentGrid);
-
-            lastConsole = item.consoleName;
-
-        }
-
-
-
-        const div = document.createElement('div');
-
-        div.className = 'game-card' + (item.owned.toString().toUpperCase().includes('NON') ? ' not-owned' : '');
-
-        div.onclick = () => handleCardClick(item.img, item);
-
-        div.innerHTML = `<img src="${item.img}">`;
-
-        currentGrid.appendChild(div);
-
+        card.innerHTML = `
+            <div class="img-container">
+                <img src="${item.img}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">
+            </div>
+            <div class="game-info">
+                <h3>${item.title}</h3>
+                <p>${item.brand}</p>
+            </div>
+        `;
+        view.appendChild(card);
     });
-
 }
 
 
