@@ -92,219 +92,104 @@ function selectBrand(brand) {
 }
 
 async function renderCategory(category) {
-
     const view = document.getElementById('view-list');
-
     view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Chargement...</h2>`;
 
-
-
     const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU";
-
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
 
-
-
     try {
-
         const resp = await fetch(url);
-
         const text = await resp.text();
-
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
-
         const rows = jsonData.table.rows;
 
+        let colTitle, colBrand, colPhoto, colOwned, colConsole;
 
-
-        let colTitle, colBrand, colPhoto, colOwned;
-
-
-
-        // INDEX SUR MESURE BASÉS SUR TES LISTES
-
+        // INDEX SUR MESURE (Vérifiés avec tes listes)
         if (category === "Jeux") {
-
-            colTitle = 0;   // A
-
-            colBrand = 1;   // B
-
-            colPhoto = 6;   // G (Jaquette)
-
-            colOwned = 14;  // O
-
+            colTitle = 0; colBrand = 1; colPhoto = 6; colOwned = 14; colConsole = 4; // Console en E
         } 
-
         else if (category === "Consoles") {
-
-            colTitle = 0;   // A
-
-            colBrand = 1;   // B
-
-            colPhoto = 6;   // G (Photo)
-
-            colOwned = 10;  // K
-
+            colTitle = 0; colBrand = 1; colPhoto = 6; colOwned = 10; colConsole = 0; // Nom en A
         } 
-
         else if (category === "Accessoires") {
-
-            colTitle = 0;   // A
-
-            colBrand = 1;   // B
-
-            colPhoto = 2;   // C (Photo)
-
-            colOwned = 15;  // P
-
+            colTitle = 0; colBrand = 1; colPhoto = 2; colOwned = 15; colConsole = 3; // Console associée en D
         }
-
-
 
         const items = rows.map(row => {
+            if (!row.c || !row.c[colTitle]) return null;
+            
+            const rawOwned = row.c[colOwned]?.v;
+            const isOwned = rawOwned ? rawOwned.toString().toUpperCase().trim().includes("OUI") : false;
 
-    if (!row.c || !row.c[colTitle]) return null;
+            return {
+                title: row.c[colTitle]?.v || "Sans titre",
+                brand: row.c[colBrand]?.v || "",
+                consoleName: row.c[colConsole]?.v || category,
+                img: toDirectLink(row.c[colPhoto]?.v),
+                owned: isOwned 
+            };
+        }).filter(item => 
+            item && item.brand && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
+        );
 
-    
+        // On appelle la fonction qui est définie plus bas
+        renderGrid(items);
+        
+        // On remet le bouton retour
+        const headerUI = document.getElementById('ui-header');
+        if(headerUI) headerUI.innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
 
-    // On récupère la valeur brute de la colonne Achat
+    } catch (error) {
+        console.error(error);
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de chargement</h2>`;
+    }
+}
 
-    const rawOwned = row.c[colOwned]?.v;
-
-    
-
-    // Détection ultra-souple :
-
-    // On vérifie si ça contient "OUI" (peu importe les majuscules ou espaces)
-
-    const isOwned = rawOwned ? rawOwned.toString().toUpperCase().trim().includes("OUI") : false;
-
-
-
-    return {
-
-        title: row.c[colTitle]?.v || "Sans titre",
-
-        brand: row.c[colBrand]?.v || "",
-
-        consoleName: row.c[colConsole]?.v || "",
-
-        img: toDirectLink(row.c[colPhoto]?.v),
-
-        owned: isOwned // Renvoie TRUE si ça contient "OUI", sinon FALSE
-
-    };
-
-}).filter(item => 
-
-    item && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
-
-);
-
-
-
+// FONCTION DE RENDU (Sortie de la fonction précédente pour éviter l'écran noir)
 function renderGrid(items) {
-
     const view = document.getElementById('view-list');
-
     view.innerHTML = '';
-
     let lastConsole = "";
-
     let currentGrid = null;
 
-
-
     items.forEach(item => {
-
-        // 1. Création des en-têtes (logos de consoles)
-
         if (item.consoleName !== lastConsole) {
-
             const header = document.createElement('div');
-
             header.className = 'console-logo-header';
-
             
-
-            // On vérifie si CONSOLE_CONFIG existe pour le logo
-
             const logoId = (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[item.consoleName]) 
-
                            ? CONSOLE_CONFIG[item.consoleName].logo 
-
                            : null;
-
             
-
             header.innerHTML = logoId 
-
                 ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
-
                 : `<h2 style="color:white; font-size: 24px; padding: 20px;">${item.consoleName}</h2>`;
-
             
-
             view.appendChild(header);
-
-
-
-            // 2. Création de la nouvelle grille pour cette console
-
             currentGrid = document.createElement('div');
-
             currentGrid.className = 'game-grid';
-
             view.appendChild(currentGrid);
-
             lastConsole = item.consoleName;
-
         }
-
-
-
-        // 3. Création de la carte produit
 
         const div = document.createElement('div');
-
-        
-
-        // Application de la classe not-owned si non possédé (item.owned est un booléen ici)
-
         div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
-
         
-
-        // Rétablissement du clic pour ouvrir la fiche info
-
         div.onclick = () => {
-
             if (typeof handleCardClick === 'function') {
-
                 handleCardClick(item.img, item);
-
             }
-
         };
 
-
-
-        // On remet juste l'image comme dans ton ancien code
-
         div.innerHTML = `<img src="${item.img}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
-
         
-
         if (currentGrid) {
-
             currentGrid.appendChild(div);
-
         }
-
     });
-
-}  
-
+}
 
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
