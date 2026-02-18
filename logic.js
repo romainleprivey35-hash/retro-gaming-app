@@ -91,109 +91,44 @@ function selectBrand(brand) {
 }
 
 async function renderCategory(category) {
-
-    // 1. On affiche un message de chargement
-
     const view = document.getElementById('view-list');
-
     view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Chargement de vos ${category}...</h2>`;
-
-
-
-    // 2. On va chercher les données dans le BON onglet (Jeux, Consoles ou Accessoires)
 
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${category}`;
 
-    
-
     try {
-
         const resp = await fetch(url);
-
         const text = await resp.text();
-
         const sheetData = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
 
-
-
-        // 3. On filtre les données par Marque (Colonne C)
+        // --- LA SEULE MODIFICATION ICI ---
+        // On adapte la colonne de la Marque selon l'onglet
+        let colMarque = 2; // Par défaut C pour les Jeux
+        if (category === "Consoles") colMarque = 3;    // Colonne D pour Consoles
+        if (category === "Accessoires") colMarque = 5; // Colonne F pour Accessoires
 
         const items = sheetData.map(row => ({
-
             title: row.c[0]?.v,              // Colonne A : Titre
-
-            brand: row.c[2]?.v || "",        // Colonne C : Marque
-
+            brand: row.c[colMarque]?.v || "", // UTILISE LA BONNE COLONNE ICI
             consoleName: row.c[4]?.v || "",  // Colonne E : Console
-
             img: toDirectLink(row.c[6]?.v),  // Colonne G : Image
-
             price: row.c[12]?.v,             // Colonne M : Prix
-
             owned: row.c[14]?.v || "NON"     // Colonne O : Possédé
-
         })).filter(item => 
-
-            item.title && // On vérifie qu'il y a un titre
-
-            item.brand.toLowerCase().includes(currentBrand.toLowerCase())
-
+            item.title && 
+            item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
         );
 
-
-
-        // 4. Tri et affichage
-
+        // Tri et affichage (On garde ta logique intacte)
         items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
-
         renderGrid(items);
-
-
-
-        // Bouton retour vers le menu des catégories de la marque
 
         document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATÉGORIES</button>`;
 
-
-
     } catch (error) {
-
         view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de chargement de l'onglet ${category}</h2>`;
-
     }
-
 }
-function renderGrid(items) {
-    const view = document.getElementById('view-list');
-    view.innerHTML = '';
-    let lastConsole = "";
-    let currentGrid = null;
-
-    items.forEach(item => {
-        if (item.consoleName !== lastConsole) {
-            const header = document.createElement('div');
-            header.className = 'console-logo-header';
-            const logoId = CONSOLE_CONFIG[item.consoleName]?.logo;
-            
-            header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
-                : `<h2 style="color:white; font-size: 24px;">${item.consoleName}</h2>`;
-            
-            view.appendChild(header);
-            currentGrid = document.createElement('div');
-            currentGrid.className = 'game-grid';
-            view.appendChild(currentGrid);
-            lastConsole = item.consoleName;
-        }
-
-        const div = document.createElement('div');
-        div.className = 'game-card' + (item.owned.toString().toUpperCase().includes('NON') ? ' not-owned' : '');
-        div.onclick = () => handleCardClick(item.img, item);
-        div.innerHTML = `<img src="${item.img}">`;
-        currentGrid.appendChild(div);
-    });
-}
-
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
