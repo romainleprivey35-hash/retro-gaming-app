@@ -167,22 +167,14 @@ function renderGrid(items) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // On initialise le logo à vide
-            let logoId = null;
-
-            // ON CHERCHE L'IMAGE DANS TON SHEET (Colonne C ou G)
-            // Le "&&" sert de sécurité : si item.logoNom n'existe pas, on passe à la suite sans bugger
-            if (item && item.logoNom) {
-                logoId = item.logoNom;
-            } 
+            // --- LA SEULE MODIFICATION EST ICI ---
+            // On prend l'ID de l'image dans la colonne "Logo Nom" (item.logoNom)
+            let logoId = item.logoNom; 
             
-            // Si on a un ID et que la fonction existe, on affiche l'image
-            if (logoId && typeof toDirectLink === 'function') {
-                header.innerHTML = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" alt="${name}">`;
-            } else {
-                // Sinon, on affiche le texte (Playstation 5, etc.) comme avant
-                header.innerHTML = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
-            }
+            header.innerHTML = logoId 
+                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
+                : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
+            // -------------------------------------
             
             view.appendChild(header);
 
