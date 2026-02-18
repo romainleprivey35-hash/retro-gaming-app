@@ -167,14 +167,19 @@ function renderGrid(items) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // --- C'EST ICI QUE CA SE PASSE ---
-            // On prend l'ID qui est dans ta colonne "Logo Nom" (C ou G selon l'onglet)
-            let logoId = item.logoNom; 
+            // On récupère l'ID du logo (Colonne C pour Jeux/Consoles, G pour Accessoires)
+            // On ajoute une sécurité pour éviter l'écran noir si item.logoNom n'existe pas
+            let logoId = item.logoNom || null;
             
-            header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
-                : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
+            let headerContent = "";
+            // On vérifie si on a un ID ET si la fonction de conversion existe
+            if (logoId && typeof toDirectLink === 'function') {
+                headerContent = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" alt="${name}">`;
+            } else {
+                headerContent = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
+            }
             
+            header.innerHTML = headerContent;
             view.appendChild(header);
 
             currentGrid = document.createElement('div');
@@ -193,7 +198,9 @@ function renderGrid(items) {
             }
         };
 
-        div.innerHTML = `<img src="${item.img}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
+        // Sécurité sur l'image de la carte
+        const cardImg = item.img || 'https://via.placeholder.com/150?text=Image+Manquante';
+        div.innerHTML = `<img src="${cardImg}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
         
         if (currentGrid) {
             currentGrid.appendChild(div);
