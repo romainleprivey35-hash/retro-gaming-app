@@ -155,32 +155,34 @@ function renderGrid(items) {
     let currentGrid = null;
 
     items.forEach(item => {
-        // On compare en ignorant les majuscules et les espaces inutiles
-        const consoleCourante = item.consoleName.trim().toUpperCase();
-        const consolePrecedente = lastConsole.trim().toUpperCase();
-
-        if (consoleCourante !== consolePrecedente) {
+        // 1. On sécurise le nom de la console (si vide, on met "Autre")
+        const name = item.consoleName ? item.consoleName.toString().trim() : "Autre";
+        
+        // 2. On compare en majuscules pour éviter les doublons PS4/Playstation 4
+        if (name.toUpperCase() !== lastConsole.toUpperCase()) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // On cherche le logo dans CONSOLE_CONFIG
-            const logoId = (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[item.consoleName]) 
-                           ? CONSOLE_CONFIG[item.consoleName].logo 
+            // On cherche le logo dans ta config
+            const logoId = (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[name]) 
+                           ? CONSOLE_CONFIG[name].logo 
                            : null;
             
             header.innerHTML = logoId 
                 ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
-                : `<h2 style="color:white; font-size: 24px; padding: 20px;">${item.consoleName}</h2>`;
+                : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
             
             view.appendChild(header);
+            
             currentGrid = document.createElement('div');
             currentGrid.className = 'game-grid';
             view.appendChild(currentGrid);
             
-            // On met à jour lastConsole avec le nom actuel
-            lastConsole = item.consoleName;
+            // IMPORTANT : On stocke le nom pour la prochaine comparaison
+            lastConsole = name;
         }
 
+        // 3. Création de la carte
         const div = document.createElement('div');
         div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
         
