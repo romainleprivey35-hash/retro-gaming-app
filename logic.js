@@ -127,29 +127,25 @@ async function renderCategory(category) {
         }
 
         const items = rows.map(row => {
-            if (!row.c || !row.c[colTitle]) return null;
-            
-            // Vérification si possédé (on cherche "OUI" ou "oui" dans la colonne Achat)
-            const ownedVal = row.c[colOwned]?.v ? row.c[colOwned].v.toString().toLowerCase() : "";
-            const isOwned = (ownedVal === "oui");
+    if (!row.c || !row.c[colTitle]) return null;
+    
+    // On récupère la valeur brute de la colonne Achat
+    const rawOwned = row.c[colOwned]?.v;
+    
+    // Détection ultra-souple :
+    // On vérifie si ça contient "OUI" (peu importe les majuscules ou espaces)
+    const isOwned = rawOwned ? rawOwned.toString().toUpperCase().trim().includes("OUI") : false;
 
-            return {
-                title: row.c[colTitle]?.v || "Sans titre",
-                brand: row.c[colBrand]?.v || "",
-                img: toDirectLink(row.c[colPhoto]?.v),
-                owned: isOwned // On passe un booléen pour la transparence
-            };
-        }).filter(item => 
-            item && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
-        );
-
-        renderGrid(items);
-        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
-
-    } catch (error) {
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de lecture sur ${category}</h2>`;
-    }
-}
+    return {
+        title: row.c[colTitle]?.v || "Sans titre",
+        brand: row.c[colBrand]?.v || "",
+        consoleName: row.c[colConsole]?.v || "",
+        img: toDirectLink(row.c[colPhoto]?.v),
+        owned: isOwned // Renvoie TRUE si ça contient "OUI", sinon FALSE
+    };
+}).filter(item => 
+    item && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
+);
 
 function renderGrid(items) {
     const view = document.getElementById('view-list');
