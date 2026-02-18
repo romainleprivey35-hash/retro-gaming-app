@@ -155,10 +155,15 @@ function renderGrid(items) {
     let currentGrid = null;
 
     items.forEach(item => {
-        if (item.consoleName !== lastConsole) {
+        // On compare en ignorant les majuscules et les espaces inutiles
+        const consoleCourante = item.consoleName.trim().toUpperCase();
+        const consolePrecedente = lastConsole.trim().toUpperCase();
+
+        if (consoleCourante !== consolePrecedente) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
+            // On cherche le logo dans CONSOLE_CONFIG
             const logoId = (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[item.consoleName]) 
                            ? CONSOLE_CONFIG[item.consoleName].logo 
                            : null;
@@ -171,6 +176,8 @@ function renderGrid(items) {
             currentGrid = document.createElement('div');
             currentGrid.className = 'game-grid';
             view.appendChild(currentGrid);
+            
+            // On met à jour lastConsole avec le nom actuel
             lastConsole = item.consoleName;
         }
 
@@ -189,7 +196,6 @@ function renderGrid(items) {
             currentGrid.appendChild(div);
         }
     });
-}
 
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
