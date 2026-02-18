@@ -167,16 +167,16 @@ function renderGrid(items) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // --- LA LIGNE CRITIQUE ---
-            // On vérifie si logoNom existe dans les données envoyées par Google
-            let logoId = item.logoNom || null;
+            // --- TEST DE DEBUG ---
+            // On récupère l'ID
+            let logoId = item.logoNom;
             
-            if (logoId && typeof toDirectLink === 'function') {
-                // Si on a un ID, on affiche l'image
-                header.innerHTML = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">`;
+            // SI LOGO-ID EXISTE, ON AFFICHE L'IMAGE
+            if (logoId && logoId !== "") {
+                header.innerHTML = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" onerror="this.outerHTML='<h2>Erreur Image : ${logoId}</h2>'">`;
             } else {
-                // Sinon, on affiche le texte
-                header.innerHTML = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
+                // SI C'EST VIDE, ON AFFICHE LE NOM + UN MESSAGE D'ERREUR DISCRET
+                header.innerHTML = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name} <br><span style="font-size:10px; color:gray;">(Donnée logoNom vide)</span></h2>`;
             }
             
             view.appendChild(header);
@@ -190,13 +190,7 @@ function renderGrid(items) {
 
         const div = document.createElement('div');
         div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
-        
-        div.onclick = () => {
-            if (typeof handleCardClick === 'function') {
-                handleCardClick(item.img, item);
-            }
-        };
-
+        div.onclick = () => { if (typeof handleCardClick === 'function') handleCardClick(item.img, item); };
         div.innerHTML = `<img src="${item.img}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
         
         if (currentGrid) {
