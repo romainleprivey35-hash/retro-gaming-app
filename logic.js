@@ -161,19 +161,19 @@ function renderGrid(items) {
     }
 
     items.forEach(item => {
-        // 1. On récupère le nom de la console
         const name = item.consoleName ? item.consoleName.toString().trim() : "Autre";
         
-        // 2. Si on change de console, on crée un nouvel en-tête
         if (name.toUpperCase() !== lastConsole.toUpperCase()) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // --- MODIFICATION ICI : On prend l'ID directement dans item.logoNom (Colonne C ou G) ---
-            const logoId = item.logoNom; 
+            // --- MODIFICATION ICI ---
+            // On ne cherche plus dans CONSOLE_CONFIG. 
+            // On prend l'ID directement dans item.logoNom (qui correspond à ta colonne C ou G)
+            let logoId = item.logoNom; 
             
             header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" alt="${name}">` 
+                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
                 : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
             
             view.appendChild(header);
@@ -185,7 +185,6 @@ function renderGrid(items) {
             lastConsole = name; 
         }
 
-        // 3. Création de la carte (ton code actuel conservé)
         const div = document.createElement('div');
         div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
         
