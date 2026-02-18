@@ -153,26 +153,55 @@ async function renderCategory(category) {
 
 function renderGrid(items) {
     const view = document.getElementById('view-list');
-    view.innerHTML = ''; 
+    view.innerHTML = '';
+    let lastConsole = "";
+    let currentGrid = null;
 
     items.forEach(item => {
-        const card = document.createElement('div');
-        
-        // On vérifie si c'est possédé. Si item.owned est false, on ajoute TA classe
-        card.className = item.owned ? 'game-card' : 'game-card not-owned';
+        // 1. Création des en-têtes (logos de consoles)
+        if (item.consoleName !== lastConsole) {
+            const header = document.createElement('div');
+            header.className = 'console-logo-header';
+            
+            // On vérifie si CONSOLE_CONFIG existe pour le logo
+            const logoId = (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[item.consoleName]) 
+                           ? CONSOLE_CONFIG[item.consoleName].logo 
+                           : null;
+            
+            header.innerHTML = logoId 
+                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
+                : `<h2 style="color:white; font-size: 24px; padding: 20px;">${item.consoleName}</h2>`;
+            
+            view.appendChild(header);
 
-        card.innerHTML = `
-            <div class="img-container">
-                <img src="${item.img}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">
-            </div>
-            <div class="game-info">
-                <h3>${item.title}</h3>
-                <p>${item.brand}</p>
-            </div>
-        `;
-        view.appendChild(card);
+            // 2. Création de la nouvelle grille pour cette console
+            currentGrid = document.createElement('div');
+            currentGrid.className = 'game-grid';
+            view.appendChild(currentGrid);
+            lastConsole = item.consoleName;
+        }
+
+        // 3. Création de la carte produit
+        const div = document.createElement('div');
+        
+        // Application de la classe not-owned si non possédé (item.owned est un booléen ici)
+        div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
+        
+        // Rétablissement du clic pour ouvrir la fiche info
+        div.onclick = () => {
+            if (typeof handleCardClick === 'function') {
+                handleCardClick(item.img, item);
+            }
+        };
+
+        // On remet juste l'image comme dans ton ancien code
+        div.innerHTML = `<img src="${item.img}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
+        
+        if (currentGrid) {
+            currentGrid.appendChild(div);
+        }
     });
-}
+}    
 
 
 function handleCardClick(imgSrc, data) {
