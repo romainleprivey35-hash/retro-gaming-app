@@ -46,12 +46,14 @@ const CONSOLE_CONFIG = {
     "PS5": { year: 2020, logo: "1F_qvq4AM8uvx1nKaRUdPWh5r1mjVqic8" }
 };
 
-const toDirectLink = (val) => {
+// Fonction universelle : Elle prend n'importe quel texte et en extrait l'ID Drive
+function toDirectLink(val) {
     if (!val) return "";
-    const id = val.toString().includes('id=') ? val.split('id=')[1].split('&')[0] : val;
-    return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
-};
-
+    const str = val.toString();
+    // Cherche une suite de caractères typique d'un ID Google Drive
+    const match = str.match(/[-\w]{25,}/);
+    return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w800` : "";
+}
 async function preloadData() {
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
     const resp = await fetch(url);
@@ -100,52 +102,53 @@ async function renderCategory(category) {
     try {
         const resp = await fetch(url);
         const text = await resp.text();
-        const jsonData = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
+        const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         
-        // On récupère les titres des colonnes pour trouver les index
-        const headerRow = jsonData.table.cols;
         const rows = jsonData.table.rows;
+        const cols = jsonData.table.cols; // Les titres des colonnes
 
-        // --- RECHERCHE DYNAMIQUE DES COLONNES ---
-        let idxMarque = -1;
+        // --- L'AGENT CHERCHE LES COLONNES TOUT SEUL ---
         let idxPhoto = -1;
+        let idxBrand = -1;
+        let idxTitle = -1;
+        let idxConsole = -1;
 
-        headerRow.forEach((col, index) => {
+        cols.forEach((col, i) => {
             const label = col.label ? col.label.toLowerCase() : "";
-            // Cherche le constructeur (Marque)
-            if (label.includes("constructeur") || label.includes("marque")) idxMarque = index;
-            // Cherche la photo
-            if (label.includes("photo") || label.includes("jaquette") || label.includes("image")) idxPhoto = index;
+            // Si la colonne s'appelle Photo ou Jaquette
+            if (label.includes("photo") || label.includes("jaquette")) idxPhoto = i;
+            // Si c'est le constructeur ou la marque
+            if (label.includes("constructeur") || label.includes("marque")) idxBrand = i;
+            // Si c'est le titre ou le nom
+            if (label.includes("nom") || label.includes("titre") || label.includes("produit")) idxTitle = i;
+            // Si c'est la console
+            if (label.includes("console")) idxConsole = i;
         });
 
-        // Sécurité : si on ne trouve pas par le nom, on utilise tes index forcés
-        if (idxMarque === -1) {
-            if (category === "Jeux") idxMarque = 2;
-            else if (category === "Consoles") idxMarque = 3;
-            else if (category === "Accessoires") idxMarque = 5;
-        }
-        if (idxPhoto === -1) idxPhoto = 6; // Par défaut G si on ne trouve pas le mot "Photo"
+        // Sécurité : si on ne trouve pas par le nom, on utilise tes index probables
+        if (idxPhoto === -1) idxPhoto = (category === "Jeux") ? 6 : 7;
+        if (idxBrand === -1) idxBrand = (category === "Jeux") ? 2 : (category === "Consoles" ? 3 : 5);
+        if (idxTitle === -1) idxTitle = (category === "Jeux" || category === "Accessoires") ? 1 : 0;
+        if (idxConsole === -1) idxConsole = 4;
 
         const items = rows.map(row => {
-            if (!row.c || !row.c[0]) return null;
+            if (!row.c) return null;
             return {
-                title: row.c[0]?.v,
-                brand: row.c[idxMarque]?.v || "",
-                consoleName: row.c[4]?.v || "",
-                img: toDirectLink(row.c[idxPhoto]?.v), // Utilise l'index trouvé dynamiquement !
-                price: row.c[12]?.v || 0,
+                title: row.c[idxTitle]?.v || "Sans titre",
+                brand: row.c[idxBrand]?.v || "",
+                consoleName: row.c[idxConsole]?.v || "",
+                img: toDirectLink(row.c[idxPhoto]?.v), // LA PHOTO TROUVÉE AUTOMATIQUEMENT
                 owned: row.c[14]?.v || "NON"
             };
         }).filter(item => 
-            item && item.brand && 
-            item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
+            item && item.brand && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
         );
 
         renderGrid(items);
         document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
 
     } catch (error) {
-        view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Erreur de lecture de l'onglet ${category}</h2>`;
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur sur l'onglet ${category}</h2>`;
     }
 }
 
