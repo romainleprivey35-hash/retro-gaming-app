@@ -201,7 +201,6 @@ function renderGrid(items) {
         }
     });
 }
-}
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
