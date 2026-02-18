@@ -199,6 +199,7 @@ function handleCardClick(imgSrc, data) {
     overlay.style.display = 'block';
     floating.style.display = 'block';
     floating.className = 'animate-zoom';
+    document.body.style.overflow = 'hidden';
 }
 
 function handleFloatingClick() {
@@ -215,14 +216,22 @@ function handleFloatingClick() {
             <p><b>Possédé :</b> ${activeGameData.owned}</p>
         </div>`;
     detail.style.display = 'block';
+    // ON FIGE LE FOND ICI
+    document.body.style.overflow = 'hidden';
 }
 
 function closeOverlay() {
-    document.getElementById('floating-card').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
+    document.getElementById('floating-card').style.display = 'none';
+    document.getElementById('full-detail').style.display = 'none'; // Sécurité : on ferme tout
+    
+    // TRÈS IMPORTANT : On libère le scroll ici aussi !
+    document.body.style.overflow = 'auto';
 }
 
 function closeFullDetail() {
     document.getElementById('full-detail').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
-}
+    // ON REDONNE LE SCROLL ICI
+    document.body.style.overflow = 'auto';
+}    
