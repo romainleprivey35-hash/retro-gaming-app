@@ -91,45 +91,49 @@ function selectBrand(brand) {
 }
 
 async function renderCategory(category) {
-    // 1. On affiche un message de chargement
     const view = document.getElementById('view-list');
-    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Chargement de vos ${category}...</h2>`;
+    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Chargement...</h2>`;
 
-    // 2. On va chercher les données dans le BON onglet (Jeux, Consoles ou Accessoires)
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${category}`;
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
 
     try {
         const resp = await fetch(url);
         const text = await resp.text();
-        const sheetData = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+        const jsonData = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = jsonData.table.rows;
+        const cols = jsonData.table.cols;
 
-        // --- AJOUT : ON DÉFINIT LA COLONNE DE MARQUE SELON L'ONGLET ---
-        let colMarque = 2; // Par défaut C (pour Jeux)
-        if (category === "Consoles") colMarque = 3;    // Colonne D
-        if (category === "Accessoires") colMarque = 5; // Colonne F
+        // --- DETECTION DYNAMIQUE BASÉE SUR TON SHEET ---
+        // Je cherche l'index des colonnes par leur nom (Label)
+        const idxConstructeur = cols.findIndex(c => c.label === "Constructeur" || c.label === "Marque");
+        const idxPhoto = cols.findIndex(c => c.label === "Jaquette" || c.label === "Photo" || c.label === "Image");
+        const idxConsole = cols.findIndex(c => c.label === "Console");
+        const idxPossede = cols.findIndex(c => c.label === "Possédé" || c.label === "Achat");
 
-        // 3. On filtre les données par Marque
-        const items = sheetData.map(row => ({
-            title: row.c[0]?.v,              // Colonne A : Titre
-            brand: row.c[colMarque]?.v || "", // ICI : On utilise la colonne dynamique
-            consoleName: row.c[4]?.v || "",  // Colonne E : Console
-            img: toDirectLink(row.c[6]?.v),  // Colonne G : Image
-            price: row.c[12]?.v,             // Colonne M : Prix
-            owned: row.c[14]?.v || "NON"     // Colonne O : Possédé
-        })).filter(item => 
-            item.title && 
-            item.brand.toString().toLowerCase().includes(currentBrand.toLowerCase())
+        const items = rows.map(row => {
+            if (!row.c) return null;
+            return {
+                title: row.c[0]?.v,                          // Toujours colonne A
+                brand: row.c[idxConstructeur]?.v || "",      // Trouvé dynamiquement
+                consoleName: row.c[idxConsole]?.v || "",    // Trouvé dynamiquement
+                img: toDirectLink(row.c[idxPhoto]?.v),       // TES PHOTOS (Jaquette/Photo)
+                owned: row.c[idxPossede]?.v || "NON"         // Trouvé dynamiquement
+            };
+        }).filter(item => 
+            item && item.title && 
+            item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
         );
 
-        // 4. Tri et affichage (Ta logique reste identique)
+        // Tri par année via ta config console
         items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
+        
         renderGrid(items);
 
-        // Bouton retour vers le menu des catégories de la marque
         document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATÉGORIES</button>`;
 
     } catch (error) {
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de chargement de l'onglet ${category}</h2>`;
+        console.error("Erreur Agent:", error);
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de lecture de l'onglet ${category}</h2>`;
     }
 }
 
