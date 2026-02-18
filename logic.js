@@ -167,14 +167,17 @@ function renderGrid(items) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // --- LA SEULE MODIFICATION EST ICI ---
-            // On prend l'ID de l'image dans la colonne "Logo Nom" (item.logoNom)
-            let logoId = item.logoNom; 
+            // --- LA LIGNE CRITIQUE ---
+            // On vérifie si logoNom existe dans les données envoyées par Google
+            let logoId = item.logoNom || null;
             
-            header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
-                : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
-            // -------------------------------------
+            if (logoId && typeof toDirectLink === 'function') {
+                // Si on a un ID, on affiche l'image
+                header.innerHTML = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">`;
+            } else {
+                // Sinon, on affiche le texte
+                header.innerHTML = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
+            }
             
             view.appendChild(header);
 
