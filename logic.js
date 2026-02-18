@@ -167,13 +167,11 @@ function renderGrid(items) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // --- MODIFICATION ICI ---
-            // On ne cherche plus dans CONSOLE_CONFIG. 
-            // On prend l'ID directement dans item.logoNom (qui correspond à ta colonne C ou G)
-            let logoId = item.logoNom; 
+            // On prend DIRECTEMENT l'image de la colonne "Logo Nom" du Sheet
+            const logoId = item.logoNom; 
             
             header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
+                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" alt="${name}">` 
                 : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
             
             view.appendChild(header);
