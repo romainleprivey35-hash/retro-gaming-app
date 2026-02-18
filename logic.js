@@ -50,8 +50,7 @@ const CONSOLE_CONFIG = {
 function toDirectLink(val) {
     if (!val) return "";
     const str = val.toString();
-    // Cherche une suite de caractères typique d'un ID Google Drive
-    const match = str.match(/[-\w]{25,}/);
+    const match = str.match(/[-\w]{25,}/); // Extrait l'ID pour le thumbnail
     return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w800` : "";
 }
 async function preloadData() {
@@ -103,52 +102,52 @@ async function renderCategory(category) {
         const resp = await fetch(url);
         const text = await resp.text();
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
-        
         const rows = jsonData.table.rows;
-        const cols = jsonData.table.cols; // Les titres des colonnes
 
-        // --- L'AGENT CHERCHE LES COLONNES TOUT SEUL ---
-        let idxPhoto = -1;
-        let idxBrand = -1;
-        let idxTitle = -1;
-        let idxConsole = -1;
+        let colTitle, colBrand, colPhoto, colOwned;
 
-        cols.forEach((col, i) => {
-            const label = col.label ? col.label.toLowerCase() : "";
-            // Si la colonne s'appelle Photo ou Jaquette
-            if (label.includes("photo") || label.includes("jaquette")) idxPhoto = i;
-            // Si c'est le constructeur ou la marque
-            if (label.includes("constructeur") || label.includes("marque")) idxBrand = i;
-            // Si c'est le titre ou le nom
-            if (label.includes("nom") || label.includes("titre") || label.includes("produit")) idxTitle = i;
-            // Si c'est la console
-            if (label.includes("console")) idxConsole = i;
-        });
-
-        // Sécurité : si on ne trouve pas par le nom, on utilise tes index probables
-        if (idxPhoto === -1) idxPhoto = (category === "Jeux") ? 6 : 7;
-        if (idxBrand === -1) idxBrand = (category === "Jeux") ? 2 : (category === "Consoles" ? 3 : 5);
-        if (idxTitle === -1) idxTitle = (category === "Jeux" || category === "Accessoires") ? 1 : 0;
-        if (idxConsole === -1) idxConsole = 4;
+        // INDEX SUR MESURE BASÉS SUR TES LISTES
+        if (category === "Jeux") {
+            colTitle = 0;   // A
+            colBrand = 1;   // B
+            colPhoto = 6;   // G (Jaquette)
+            colOwned = 14;  // O
+        } 
+        else if (category === "Consoles") {
+            colTitle = 0;   // A
+            colBrand = 1;   // B
+            colPhoto = 6;   // G (Photo)
+            colOwned = 10;  // K
+        } 
+        else if (category === "Accessoires") {
+            colTitle = 0;   // A
+            colBrand = 1;   // B
+            colPhoto = 2;   // C (Photo)
+            colOwned = 15;  // P
+        }
 
         const items = rows.map(row => {
-            if (!row.c) return null;
+            if (!row.c || !row.c[colTitle]) return null;
+            
+            // Vérification si possédé (on cherche "OUI" ou "oui" dans la colonne Achat)
+            const ownedVal = row.c[colOwned]?.v ? row.c[colOwned].v.toString().toLowerCase() : "";
+            const isOwned = (ownedVal === "oui");
+
             return {
-                title: row.c[idxTitle]?.v || "Sans titre",
-                brand: row.c[idxBrand]?.v || "",
-                consoleName: row.c[idxConsole]?.v || "",
-                img: toDirectLink(row.c[idxPhoto]?.v), // LA PHOTO TROUVÉE AUTOMATIQUEMENT
-                owned: row.c[14]?.v || "NON"
+                title: row.c[colTitle]?.v || "Sans titre",
+                brand: row.c[colBrand]?.v || "",
+                img: toDirectLink(row.c[colPhoto]?.v),
+                owned: isOwned // On passe un booléen pour la transparence
             };
         }).filter(item => 
-            item && item.brand && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
+            item && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
         );
 
         renderGrid(items);
         document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
 
     } catch (error) {
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur sur l'onglet ${category}</h2>`;
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de lecture sur ${category}</h2>`;
     }
 }
 
