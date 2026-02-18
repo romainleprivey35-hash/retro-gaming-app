@@ -1,4 +1,4 @@
-let allGames = [];
+    let allGames = [];
 let currentBrand = "";
 let activeGameData = null;
 
@@ -114,7 +114,7 @@ async function renderCategory(category) {
             colTitle = 0; colBrand = 1; colPhoto = 6; colOwned = 10; colConsole = 0; // Nom en A
         } 
         else if (category === "Accessoires") {
-            colTitle = 0; colBrand = 1; colPhoto = 2; colOwned = 15; colConsole = 3; // Console associée en D
+            colTitle = 0; colBrand = 1; colPhoto = 2; colOwned = 14; colConsole = 3; // Console associée en D
         }
 
         const items = rows.map(row => {
