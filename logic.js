@@ -148,64 +148,69 @@ async function renderCategory(category) {
 }
 
 function renderGrid(items) {
-    const view = document.getElementById('view-list');
-    if (!view) return; 
-    
-    view.innerHTML = '';
-    let lastConsole = ""; 
-    let currentGrid = null;
+    try {
+        const view = document.getElementById('view-list');
+        if (!view) return;
+        
+        view.innerHTML = '';
+        let lastConsole = ""; 
+        let currentGrid = null;
 
-    if (!items || items.length === 0) {
-        view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Aucun objet trouvé</h2>`;
-        return;
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Aucun objet trouvé</h2>`;
+            return;
+        }
+
+        items.forEach(item => {
+            try {
+                const name = item.consoleName ? item.consoleName.toString().trim() : "Autre";
+                
+                if (name.toUpperCase() !== lastConsole.toUpperCase()) {
+                    const header = document.createElement('div');
+                    header.className = 'console-logo-header';
+                    
+                    // On essaie de récupérer l'ID du logo
+                    let logoId = item.logoNom || null;
+                    
+                    // Sécurité : si logoId existe, on tente l'image, sinon texte
+                    if (logoId && typeof toDirectLink === 'function') {
+                        header.innerHTML = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" alt="${name}">`;
+                    } else {
+                        header.innerHTML = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
+                    }
+                    
+                    view.appendChild(header);
+
+                    currentGrid = document.createElement('div');
+                    currentGrid.className = 'game-grid';
+                    view.appendChild(currentGrid);
+                    
+                    lastConsole = name; 
+                }
+
+                const div = document.createElement('div');
+                div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
+                
+                div.onclick = () => {
+                    if (typeof handleCardClick === 'function') {
+                        handleCardClick(item.img, item);
+                    }
+                };
+
+                const cardImg = item.img || '';
+                div.innerHTML = `<img src="${cardImg}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
+                
+                if (currentGrid) {
+                    currentGrid.appendChild(div);
+                }
+            } catch (err) {
+                console.error("Erreur sur un item:", err);
+            }
+        });
+    } catch (totalErr) {
+        console.error("Erreur critique renderGrid:", totalErr);
+        document.getElementById('view-list').innerHTML = `<p style="color:red; text-align:center;">Erreur critique d'affichage. Vérifie la console (F12).</p>`;
     }
-
-    items.forEach(item => {
-        const name = item.consoleName ? item.consoleName.toString().trim() : "Autre";
-        
-        if (name.toUpperCase() !== lastConsole.toUpperCase()) {
-            const header = document.createElement('div');
-            header.className = 'console-logo-header';
-            
-            // On récupère l'ID du logo (Colonne C pour Jeux/Consoles, G pour Accessoires)
-            // On ajoute une sécurité pour éviter l'écran noir si item.logoNom n'existe pas
-            let logoId = item.logoNom || null;
-            
-            let headerContent = "";
-            // On vérifie si on a un ID ET si la fonction de conversion existe
-            if (logoId && typeof toDirectLink === 'function') {
-                headerContent = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" alt="${name}">`;
-            } else {
-                headerContent = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
-            }
-            
-            header.innerHTML = headerContent;
-            view.appendChild(header);
-
-            currentGrid = document.createElement('div');
-            currentGrid.className = 'game-grid';
-            view.appendChild(currentGrid);
-            
-            lastConsole = name; 
-        }
-
-        const div = document.createElement('div');
-        div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
-        
-        div.onclick = () => {
-            if (typeof handleCardClick === 'function') {
-                handleCardClick(item.img, item);
-            }
-        };
-
-        // Sécurité sur l'image de la carte
-        const cardImg = item.img || 'https://via.placeholder.com/150?text=Image+Manquante';
-        div.innerHTML = `<img src="${cardImg}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
-        
-        if (currentGrid) {
-            currentGrid.appendChild(div);
-        }
-    });
 }
 }
 function handleCardClick(imgSrc, data) {
