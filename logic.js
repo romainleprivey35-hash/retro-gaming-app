@@ -149,10 +149,10 @@ async function renderCategory(category) {
 
 function renderGrid(items) {
     const view = document.getElementById('view-list');
-    if (!view) return; // Sécurité si l'élément n'existe pas
+    if (!view) return; 
     
     view.innerHTML = '';
-    let lastConsole = ""; // Initialisation
+    let lastConsole = ""; 
     let currentGrid = null;
 
     if (!items || items.length === 0) {
@@ -161,22 +161,19 @@ function renderGrid(items) {
     }
 
     items.forEach(item => {
-        // On sécurise le nom
+        // 1. On récupère le nom de la console
         const name = item.consoleName ? item.consoleName.toString().trim() : "Autre";
         
-        // Comparaison insensible à la casse
+        // 2. Si on change de console, on crée un nouvel en-tête
         if (name.toUpperCase() !== lastConsole.toUpperCase()) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // Récupération du logo dans config.js
-            let logoId = null;
-            if (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[name]) {
-                logoId = CONSOLE_CONFIG[name].logo;
-            }
+            // --- MODIFICATION ICI : On prend l'ID directement dans item.logoNom (Colonne C ou G) ---
+            const logoId = item.logoNom; 
             
             header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
+                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" alt="${name}">` 
                 : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
             
             view.appendChild(header);
@@ -185,10 +182,10 @@ function renderGrid(items) {
             currentGrid.className = 'game-grid';
             view.appendChild(currentGrid);
             
-            lastConsole = name; // Mise à jour pour le prochain tour
+            lastConsole = name; 
         }
 
-        // Création de la carte
+        // 3. Création de la carte (ton code actuel conservé)
         const div = document.createElement('div');
         div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
         
