@@ -147,42 +147,48 @@ async function renderCategory(category) {
     }
 }
 
-// FONCTION DE RENDU (Sortie de la fonction précédente pour éviter l'écran noir)
 function renderGrid(items) {
     const view = document.getElementById('view-list');
+    if (!view) return; // Sécurité si l'élément n'existe pas
+    
     view.innerHTML = '';
-    let lastConsole = "";
+    let lastConsole = ""; // Initialisation
     let currentGrid = null;
 
+    if (!items || items.length === 0) {
+        view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Aucun objet trouvé</h2>`;
+        return;
+    }
+
     items.forEach(item => {
-        // 1. On sécurise le nom de la console (si vide, on met "Autre")
+        // On sécurise le nom
         const name = item.consoleName ? item.consoleName.toString().trim() : "Autre";
         
-        // 2. On compare en majuscules pour éviter les doublons PS4/Playstation 4
+        // Comparaison insensible à la casse
         if (name.toUpperCase() !== lastConsole.toUpperCase()) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // On cherche le logo dans ta config
-            const logoId = (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[name]) 
-                           ? CONSOLE_CONFIG[name].logo 
-                           : null;
+            // Récupération du logo dans config.js
+            let logoId = null;
+            if (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[name]) {
+                logoId = CONSOLE_CONFIG[name].logo;
+            }
             
             header.innerHTML = logoId 
                 ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
                 : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
             
             view.appendChild(header);
-            
+
             currentGrid = document.createElement('div');
             currentGrid.className = 'game-grid';
             view.appendChild(currentGrid);
             
-            // IMPORTANT : On stocke le nom pour la prochaine comparaison
-            lastConsole = name;
+            lastConsole = name; // Mise à jour pour le prochain tour
         }
 
-        // 3. Création de la carte
+        // Création de la carte
         const div = document.createElement('div');
         div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
         
@@ -198,7 +204,7 @@ function renderGrid(items) {
             currentGrid.appendChild(div);
         }
     });
-
+}
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
