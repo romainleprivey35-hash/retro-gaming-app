@@ -148,56 +148,119 @@ async function renderCategory(category) {
 }
 
 function renderGrid(items) {
+
     const view = document.getElementById('view-list');
-    if (!view) return; 
+
+    if (!view) return; // Sécurité si l'élément n'existe pas
+
     
+
     view.innerHTML = '';
-    let lastConsole = ""; 
+
+    let lastConsole = ""; // Initialisation
+
     let currentGrid = null;
 
+
+
     if (!items || items.length === 0) {
+
         view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Aucun objet trouvé</h2>`;
+
         return;
+
     }
 
+
+
     items.forEach(item => {
+
+        // On sécurise le nom
+
         const name = item.consoleName ? item.consoleName.toString().trim() : "Autre";
+
         
+
+        // Comparaison insensible à la casse
+
         if (name.toUpperCase() !== lastConsole.toUpperCase()) {
+
             const header = document.createElement('div');
+
             header.className = 'console-logo-header';
+
             
-            // On prend DIRECTEMENT l'image de la colonne "Logo Nom" du Sheet
-            const logoId = item.logoNom; 
+
+            // Récupération du logo dans config.js
+
+            let logoId = null;
+
+            if (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[name]) {
+
+                logoId = CONSOLE_CONFIG[name].logo;
+
+            }
+
             
+
             header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" alt="${name}">` 
+
+                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
+
                 : `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
+
             
+
             view.appendChild(header);
 
+
+
             currentGrid = document.createElement('div');
+
             currentGrid.className = 'game-grid';
+
             view.appendChild(currentGrid);
+
             
-            lastConsole = name; 
+
+            lastConsole = name; // Mise à jour pour le prochain tour
+
         }
+
+
+
+        // Création de la carte
 
         const div = document.createElement('div');
+
         div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
+
         
+
         div.onclick = () => {
+
             if (typeof handleCardClick === 'function') {
+
                 handleCardClick(item.img, item);
+
             }
+
         };
 
+
+
         div.innerHTML = `<img src="${item.img}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
+
         
+
         if (currentGrid) {
+
             currentGrid.appendChild(div);
+
         }
+
     });
+
 }
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
