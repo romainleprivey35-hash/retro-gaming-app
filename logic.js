@@ -94,46 +94,58 @@ async function renderCategory(category) {
     const view = document.getElementById('view-list');
     view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Chargement...</h2>`;
 
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
+    const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU";
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
 
     try {
         const resp = await fetch(url);
         const text = await resp.text();
-        const jsonData = JSON.parse(text.substr(47).slice(0, -2));
+        const jsonData = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
+        
+        // On récupère les titres des colonnes pour trouver les index
+        const headerRow = jsonData.table.cols;
         const rows = jsonData.table.rows;
-        const cols = jsonData.table.cols;
 
-        // --- DETECTION DYNAMIQUE BASÉE SUR TON SHEET ---
-        // Je cherche l'index des colonnes par leur nom (Label)
-        const idxConstructeur = cols.findIndex(c => c.label === "Constructeur" || c.label === "Marque");
-        const idxPhoto = cols.findIndex(c => c.label === "Jaquette" || c.label === "Photo" || c.label === "Image");
-        const idxConsole = cols.findIndex(c => c.label === "Console");
-        const idxPossede = cols.findIndex(c => c.label === "Possédé" || c.label === "Achat");
+        // --- RECHERCHE DYNAMIQUE DES COLONNES ---
+        let idxMarque = -1;
+        let idxPhoto = -1;
+
+        headerRow.forEach((col, index) => {
+            const label = col.label ? col.label.toLowerCase() : "";
+            // Cherche le constructeur (Marque)
+            if (label.includes("constructeur") || label.includes("marque")) idxMarque = index;
+            // Cherche la photo
+            if (label.includes("photo") || label.includes("jaquette") || label.includes("image")) idxPhoto = index;
+        });
+
+        // Sécurité : si on ne trouve pas par le nom, on utilise tes index forcés
+        if (idxMarque === -1) {
+            if (category === "Jeux") idxMarque = 2;
+            else if (category === "Consoles") idxMarque = 3;
+            else if (category === "Accessoires") idxMarque = 5;
+        }
+        if (idxPhoto === -1) idxPhoto = 6; // Par défaut G si on ne trouve pas le mot "Photo"
 
         const items = rows.map(row => {
-            if (!row.c) return null;
+            if (!row.c || !row.c[0]) return null;
             return {
-                title: row.c[0]?.v,                          // Toujours colonne A
-                brand: row.c[idxConstructeur]?.v || "",      // Trouvé dynamiquement
-                consoleName: row.c[idxConsole]?.v || "",    // Trouvé dynamiquement
-                img: toDirectLink(row.c[idxPhoto]?.v),       // TES PHOTOS (Jaquette/Photo)
-                owned: row.c[idxPossede]?.v || "NON"         // Trouvé dynamiquement
+                title: row.c[0]?.v,
+                brand: row.c[idxMarque]?.v || "",
+                consoleName: row.c[4]?.v || "",
+                img: toDirectLink(row.c[idxPhoto]?.v), // Utilise l'index trouvé dynamiquement !
+                price: row.c[12]?.v || 0,
+                owned: row.c[14]?.v || "NON"
             };
         }).filter(item => 
-            item && item.title && 
+            item && item.brand && 
             item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
         );
 
-        // Tri par année via ta config console
-        items.sort((a, b) => (CONSOLE_CONFIG[a.consoleName]?.year || 9999) - (CONSOLE_CONFIG[b.consoleName]?.year || 9999));
-        
         renderGrid(items);
-
-        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR AUX CATÉGORIES</button>`;
+        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
 
     } catch (error) {
-        console.error("Erreur Agent:", error);
-        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de lecture de l'onglet ${category}</h2>`;
+        view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Erreur de lecture de l'onglet ${category}</h2>`;
     }
 }
 
