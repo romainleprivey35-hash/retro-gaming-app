@@ -120,32 +120,21 @@ body {
 
 /* --- GRILLE DE JEUX --- */
 
-.game-grid { 
-
-    display: grid; 
-
-    grid-template-columns: 1fr 1fr; 
-
-    gap: 15px; 
-
-    padding: 15px; 
-
+.game-grid {
+    display: flex;
+    flex-wrap: wrap;       /* Permet d'aller à la ligne */
+    justify-content: center; /* C'est cette ligne qui centre tout, y compris le dernier objet */
+    gap: 15px;             /* L'espace entre tes jeux */
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-
-
-.game-card { 
-
-    position: relative; 
-
-    aspect-ratio: 2/3; 
-
-    border-radius: 15px; /* Arrondi modéré haut de gamme */
-
-    overflow: hidden; 
-
-    background: transparent;
-
+.game-card {
+    /* Assure-toi que tes cartes ont une taille fixe ou min-width pour garder l'aspect grille */
+    width: calc(50% - 20px); /* Pour avoir 2 colonnes comme sur tes photos */
+    max-width: 180px;        /* Ajuste selon la taille que tu aimes */
+    flex-grow: 0;            /* Empêche le dernier de s'étirer sur toute la largeur */
 }
 
 
