@@ -93,7 +93,7 @@ function selectBrand(brand) {
 
 async function renderCategory(category) {
     const view = document.getElementById('view-list');
-    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Chargement...</h2>`;
+    view.innerHTML = `<h2 style="color:white; text-align:center; margin-top:100px;">Chargement de la collection...</h2>`;
 
     const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU";
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(category)}`;
@@ -104,99 +104,46 @@ async function renderCategory(category) {
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
-        let colTitle, colBrand, colPhoto, colOwned;
+        let colTitle, colBrand, colPhoto, colOwned, colConsole;
 
-        // INDEX SUR MESURE BASÉS SUR TES LISTES
+        // INDEX MÉMORISÉS POUR TES ONGLETS
         if (category === "Jeux") {
-            colTitle = 0;   // A
-            colBrand = 1;   // B
-            colPhoto = 6;   // G (Jaquette)
-            colOwned = 14;  // O
+            colTitle = 0; colBrand = 1; colConsole = 4; colPhoto = 6; colOwned = 14;
         } 
         else if (category === "Consoles") {
-            colTitle = 0;   // A
-            colBrand = 1;   // B
-            colPhoto = 6;   // G (Photo)
-            colOwned = 10;  // K
+            colTitle = 0; colBrand = 1; colConsole = 0; colPhoto = 6; colOwned = 10;
         } 
         else if (category === "Accessoires") {
-            colTitle = 0;   // A
-            colBrand = 1;   // B
-            colPhoto = 2;   // C (Photo)
-            colOwned = 15;  // P
+            colTitle = 0; colBrand = 1; colConsole = 3; colPhoto = 2; colOwned = 15;
         }
 
         const items = rows.map(row => {
-    if (!row.c || !row.c[colTitle]) return null;
-    
-    // On récupère la valeur brute de la colonne Achat
-    const rawOwned = row.c[colOwned]?.v;
-    
-    // Détection ultra-souple :
-    // On vérifie si ça contient "OUI" (peu importe les majuscules ou espaces)
-    const isOwned = rawOwned ? rawOwned.toString().toUpperCase().trim().includes("OUI") : false;
-
-    return {
-        title: row.c[colTitle]?.v || "Sans titre",
-        brand: row.c[colBrand]?.v || "",
-        consoleName: row.c[colConsole]?.v || "",
-        img: toDirectLink(row.c[colPhoto]?.v),
-        owned: isOwned // Renvoie TRUE si ça contient "OUI", sinon FALSE
-    };
-}).filter(item => 
-    item && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
-);
-
-function renderGrid(items) {
-    const view = document.getElementById('view-list');
-    view.innerHTML = '';
-    let lastConsole = "";
-    let currentGrid = null;
-
-    items.forEach(item => {
-        // 1. Création des en-têtes (logos de consoles)
-        if (item.consoleName !== lastConsole) {
-            const header = document.createElement('div');
-            header.className = 'console-logo-header';
+            if (!row.c || !row.c[colTitle]) return null;
             
-            // On vérifie si CONSOLE_CONFIG existe pour le logo
-            const logoId = (typeof CONSOLE_CONFIG !== 'undefined' && CONSOLE_CONFIG[item.consoleName]) 
-                           ? CONSOLE_CONFIG[item.consoleName].logo 
-                           : null;
-            
-            header.innerHTML = logoId 
-                ? `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">` 
-                : `<h2 style="color:white; font-size: 24px; padding: 20px;">${item.consoleName}</h2>`;
-            
-            view.appendChild(header);
+            // Détection du "OUI" ultra-souple pour éviter l'écran noir
+            const rawOwned = row.c[colOwned]?.v;
+            const isOwned = rawOwned ? rawOwned.toString().toUpperCase().trim().includes("OUI") : false;
 
-            // 2. Création de la nouvelle grille pour cette console
-            currentGrid = document.createElement('div');
-            currentGrid.className = 'game-grid';
-            view.appendChild(currentGrid);
-            lastConsole = item.consoleName;
-        }
+            return {
+                title: row.c[colTitle]?.v || "Sans titre",
+                brand: row.c[colBrand]?.v || "",
+                consoleName: row.c[colConsole]?.v || category,
+                img: toDirectLink(row.c[colPhoto]?.v),
+                owned: isOwned
+            };
+        }).filter(item => 
+            item && item.brand && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
+        );
 
-        // 3. Création de la carte produit
-        const div = document.createElement('div');
+        // Appel de la fonction de rendu (Celle qu'on a fusionnée juste avant)
+        renderGrid(items);
         
-        // Application de la classe not-owned si non possédé (item.owned est un booléen ici)
-        div.className = 'game-card' + (!item.owned ? ' not-owned' : '');
-        
-        // Rétablissement du clic pour ouvrir la fiche info
-        div.onclick = () => {
-            if (typeof handleCardClick === 'function') {
-                handleCardClick(item.img, item);
-            }
-        };
+        document.getElementById('ui-header').innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
 
-        // On remet juste l'image comme dans ton ancien code
-        div.innerHTML = `<img src="${item.img}" onerror="this.src='https://via.placeholder.com/150?text=Image+Manquante'">`;
-        
-        if (currentGrid) {
-            currentGrid.appendChild(div);
-        }
-    });
+    } catch (error) {
+        console.error("Erreur détaillée:", error);
+        view.innerHTML = `<h2 style="color:white; text-align:center;">Erreur de chargement. Vérifie la console (F12).</h2>`;
+    }
 }    
 
 
