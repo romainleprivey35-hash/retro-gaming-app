@@ -1,4 +1,4 @@
-    let allGames = [];
+let allGames = [];
 let currentBrand = "";
 let activeGameData = null;
 
@@ -28,7 +28,7 @@ const CATEGORY_LOGOS = {
     }
 };
 
-// 3. CONFIGURATION DES CONSOLES (COLONNE E)
+// 3. CONFIGURATION DES CONSOLES
 const CONSOLE_CONFIG = {
     "GB": { year: 1989, logo: "1XEkPuCr2mmIvpsmjmpkrG1XumS-24wLb" },
     "PS1": { year: 1994, logo: "1DV-N37sM1AA-fl5rYe1_Urr6hh9e6eTF" },
@@ -46,18 +46,21 @@ const CONSOLE_CONFIG = {
     "PS5": { year: 2020, logo: "1F_qvq4AM8uvx1nKaRUdPWh5r1mjVqic8" }
 };
 
-// Fonction universelle : Elle prend n'importe quel texte et en extrait l'ID Drive
 function toDirectLink(val) {
     if (!val) return "";
     const str = val.toString();
-    const match = str.match(/[-\w]{25,}/); // Extrait l'ID pour le thumbnail
+    const match = str.match(/[-\w]{25,}/); 
     return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w800` : "";
 }
+
 async function preloadData() {
-    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${CONFIG.TABS.JEUX}`;
-    const resp = await fetch(url);
-    const text = await resp.text();
-    allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    const sheetId = "1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU";
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Jeux`;
+    try {
+        const resp = await fetch(url);
+        const text = await resp.text();
+        allGames = JSON.parse(text.substr(47).slice(0, -2)).table.rows;
+    } catch(e) { console.error("Erreur preload:", e); }
 }
 
 window.onload = () => { preloadData(); renderMainMenu(); };
@@ -104,17 +107,17 @@ async function renderCategory(category) {
         const jsonData = JSON.parse(text.substr(47).slice(0, -2));
         const rows = jsonData.table.rows;
 
-        let colTitle, colBrand, colPhoto, colOwned, colConsole;
+        let colTitle, colBrand, colPhoto, colOwned, colConsole, colLogoNom;
 
-        // INDEX SUR MESURE (Vérifiés avec tes listes)
+        // INDEXATION STRICTE BASÉE SUR TON SHEET
         if (category === "Jeux") {
-            colTitle = 0; colBrand = 1; colPhoto = 6; colOwned = 14; colConsole = 4; // Console en E
+            colTitle = 0; colBrand = 1; colLogoNom = 2; colConsole = 4; colPhoto = 7; colOwned = 10; 
         } 
         else if (category === "Consoles") {
-            colTitle = 0; colBrand = 1; colPhoto = 6; colOwned = 10; colConsole = 0; // Nom en A
+            colTitle = 1; colBrand = 2; colLogoNom = 2; colConsole = 1; colPhoto = 0; colOwned = 10; 
         } 
         else if (category === "Accessoires") {
-            colTitle = 0; colBrand = 1; colPhoto = 2; colOwned = 14; colConsole = 3; // Console associée en D
+            colTitle = 0; colBrand = 2; colLogoNom = 6; colConsole = 4; colPhoto = 1; colOwned = 10;
         }
 
         const items = rows.map(row => {
@@ -127,6 +130,7 @@ async function renderCategory(category) {
                 title: row.c[colTitle]?.v || "Sans titre",
                 brand: row.c[colBrand]?.v || "",
                 consoleName: row.c[colConsole]?.v || category,
+                logoNom: row.c[colLogoNom]?.v || "", // RÉCUPÈRE L'ID DU LOGO
                 img: toDirectLink(row.c[colPhoto]?.v),
                 owned: isOwned 
             };
@@ -134,10 +138,8 @@ async function renderCategory(category) {
             item && item.brand && item.brand.toString().toLowerCase().trim() === currentBrand.toLowerCase().trim()
         );
 
-        // On appelle la fonction qui est définie plus bas
         renderGrid(items);
         
-        // On remet le bouton retour
         const headerUI = document.getElementById('ui-header');
         if(headerUI) headerUI.innerHTML = `<button onclick="selectBrand('${currentBrand}')">⬅ RETOUR</button>`;
 
@@ -167,16 +169,13 @@ function renderGrid(items) {
             const header = document.createElement('div');
             header.className = 'console-logo-header';
             
-            // --- TEST DE DEBUG ---
-            // On récupère l'ID
             let logoId = item.logoNom;
             
-            // SI LOGO-ID EXISTE, ON AFFICHE L'IMAGE
+            // Affiche l'image si l'ID existe, sinon affiche le nom en texte
             if (logoId && logoId !== "") {
-                header.innerHTML = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;" onerror="this.outerHTML='<h2>Erreur Image : ${logoId}</h2>'">`;
+                header.innerHTML = `<img src="${toDirectLink(logoId)}" style="max-height: 80px; margin: 25px 0;">`;
             } else {
-                // SI C'EST VIDE, ON AFFICHE LE NOM + UN MESSAGE D'ERREUR DISCRET
-                header.innerHTML = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name} <br><span style="font-size:10px; color:gray;">(Donnée logoNom vide)</span></h2>`;
+                header.innerHTML = `<h2 style="color:white; font-size: 24px; padding: 20px;">${name}</h2>`;
             }
             
             view.appendChild(header);
@@ -198,6 +197,7 @@ function renderGrid(items) {
         }
     });
 }
+
 function handleCardClick(imgSrc, data) {
     activeGameData = data;
     const overlay = document.getElementById('overlay');
@@ -219,26 +219,8 @@ function handleFloatingClick() {
         <h1 style="text-align:center;">${activeGameData.title}</h1>
         <div style="background:#111; padding:20px; border-radius:15px;">
             <p><b>Console :</b> ${activeGameData.consoleName}</p>
-            <p><b>Prix :</b> ${activeGameData.price}€</p>
-            <p><b>Possédé :</b> ${activeGameData.owned}</p>
+            <p><b>Possédé :</b> ${activeGameData.owned ? "OUI" : "NON"}</p>
         </div>`;
     detail.style.display = 'block';
-    // ON FIGE LE FOND ICI
     document.body.style.overflow = 'hidden';
 }
-
-function closeOverlay() {
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('floating-card').style.display = 'none';
-    document.getElementById('full-detail').style.display = 'none'; // Sécurité : on ferme tout
-    
-    // TRÈS IMPORTANT : On libère le scroll ici aussi !
-    document.body.style.overflow = 'auto';
-}
-
-function closeFullDetail() {
-    document.getElementById('full-detail').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-    // ON REDONNE LE SCROLL ICI
-    document.body.style.overflow = 'auto';
-}    
