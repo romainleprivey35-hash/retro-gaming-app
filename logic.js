@@ -111,10 +111,7 @@ function displayGrid(items) {
         const m = r.colMap;
         const title = (r.c[m.titre] && r.c[m.titre].v) ? r.c[m.titre].v : 'Sans Nom';
         const rawPhoto = (r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '';
-        
-        // UTILISATION DE LA FONCTION TO DIRECT LINK
         const imgUrl = toDirectLink(rawPhoto);
-
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
 
@@ -124,9 +121,13 @@ function displayGrid(items) {
         card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-25 grayscale'}`;
         
         card.innerHTML = `
-            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-800 shadow-xl">
-                ${imgUrl ? `<img class="w-full h-full object-cover" src="${imgUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=Erreur+Image'">` : ''}
-                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg">OWNED</div>' : ''}
+            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-black/40 shadow-xl flex items-center justify-center">
+                ${imgUrl ? `
+                    <img class="w-full h-full object-contain p-1" 
+                         src="${imgUrl}" 
+                         loading="lazy" 
+                         onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=Erreur+Image'">` : ''}
+                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg z-10">OWNED</div>' : ''}
             </div>
             <div class="px-1">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
