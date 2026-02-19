@@ -3,7 +3,6 @@ const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID
 
 let allFetchedItems = []; 
 
-// Utilitaire pour trouver l'index d'une colonne par son nom exact
 const findIdx = (headers, name) => headers.findIndex(h => h.label && h.label.trim().toLowerCase() === name.toLowerCase());
 
 window.showCategories = function(brand, type = 'Menu') {
@@ -38,11 +37,12 @@ function renderListLayout(brand, type) {
             <h1 id="page-info" data-type="${type}" class="text-xl font-bold uppercase italic text-white">${type} ${brand}</h1>
             <div class="size-10"></div>
         </header>
-        <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
-            <button onclick="filterByConsole('TOUT')" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
-        </div>
+        ${type !== 'Consoles' ? `
+        <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
+            <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
+        </div>` : ''}
         <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24">
-            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse tracking-widest uppercase">Lecture de la base...</div>
+            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse uppercase">Chargement...</div>
         </div>
     `;
 }
@@ -69,26 +69,25 @@ async function loadItems(brand, type) {
             return itemBrand.toLowerCase() === brand.toLowerCase();
         }).map(r => ({ ...r, colMap: m }));
 
-        if (m.console !== -1) {
-            const consoles = [...new Set(allFetchedItems.map(r => r.c[m.console]?.v || ''))].filter(c => c !== '');
+        if (type !== 'Consoles' && m.console !== -1) {
+            const consoles = [...new Set(allFetchedItems.map(r => r.c[m.console]?.v || ''))].filter(c => c !== '').sort();
             const filterBar = document.getElementById('console-filter');
             consoles.forEach(c => {
                 filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
             });
         }
         displayGrid(allFetchedItems);
-    } catch (e) { console.error("Erreur de lecture Sheet:", e); }
+    } catch (e) { console.error("Erreur Sheet:", e); }
 }
 
 function filterByConsole(name, idx, btn) {
-    if(btn) {
-        document.querySelectorAll('.filter-btn').forEach(b => {
-            b.classList.remove('bg-primary', 'text-white');
-            b.classList.add('glass-card', 'text-slate-400');
-        });
-        btn.classList.add('bg-primary', 'text-white');
-        btn.classList.remove('glass-card', 'text-slate-400');
-    }
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('bg-primary', 'text-white');
+        b.classList.add('glass-card', 'text-slate-400');
+    });
+    btn.classList.add('bg-primary', 'text-white');
+    btn.classList.remove('glass-card', 'text-slate-400');
+
     const filtered = name === 'TOUT' ? allFetchedItems : allFetchedItems.filter(r => r.c[idx]?.v === name);
     displayGrid(filtered);
 }
@@ -102,18 +101,18 @@ function displayGrid(items) {
         const m = r.colMap;
         const title = r.c[m.titre]?.v || 'Sans Nom';
         const img = r.c[m.photo]?.v || '';
-        const formatInfo = r.c[m.format]?.v || '';
-        const achatStatus = r.c[m.achat]?.v;
+        const formatInfo = r.c[m.format]?.v || ''; // .v évite la traduction "Lâche"
+        const achatStatus = r.c[m.achat]?.v || '';
 
-        // Possession : si la cellule "Achat" n'est pas vide (contient prix, date, ou "Oui")
-        const isOwned = (achatStatus !== null && achatStatus !== undefined && achatStatus !== '');
+        // Correction Logique Achat : vide ou "Non" = Pas possédé
+        const isOwned = (achatStatus !== '' && achatStatus.toString().toLowerCase() !== 'non');
         
         const card = document.createElement('div');
-        card.className = `flex flex-col gap-3 transition-all duration-300 ${isOwned ? '' : 'opacity-25 grayscale-[30%]'}`;
+        card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-20 grayscale'}`;
         card.innerHTML = `
-            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40 shadow-xl">
+            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
                 <img class="w-full h-full object-cover" src="${img}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=IMAGE+MANQUANTE'">
-                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary/90 backdrop-blur-md text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter border border-white/10 shadow-lg">OWNED</div>' : ''}
+                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary/90 text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter shadow-lg">OWNED</div>' : ''}
             </div>
             <div class="px-1">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
