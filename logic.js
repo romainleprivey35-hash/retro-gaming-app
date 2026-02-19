@@ -3,7 +3,6 @@ const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID
 
 let allFetchedItems = []; 
 
-// Cherche l'index sans se soucier des espaces ou majuscules
 const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.label.trim().toLowerCase() === name.toLowerCase());
 
 window.showCategories = function(brand, type = 'Menu') {
@@ -43,7 +42,7 @@ function renderListLayout(brand, type) {
             <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
         </div>` : ''}
         <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24 text-white">
-            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT DATA...</div>
+            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse tracking-widest uppercase">Sync en cours...</div>
         </div>
     `;
 }
@@ -52,7 +51,6 @@ async function loadItems(brand, type) {
     try {
         const response = await fetch(getUrl(type)); 
         const text = await response.text();
-        // Nettoyage strict du JSON pour éviter les SyntaxError
         const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonString);
         const rows = data.table.rows;
@@ -75,9 +73,11 @@ async function loadItems(brand, type) {
         if (type !== 'Consoles' && m.console !== -1) {
             const consoles = [...new Set(allFetchedItems.map(r => r.c[m.console] ? r.c[m.console].v : ''))].filter(c => c).sort();
             const filterBar = document.getElementById('console-filter');
-            consoles.forEach(c => {
-                filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
-            });
+            if (filterBar) {
+                consoles.forEach(c => {
+                    filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
+                });
+            }
         }
         displayGrid(allFetchedItems);
     } catch (e) { console.error("Erreur Technique:", e); }
@@ -89,8 +89,6 @@ function filterByConsole(name, idx, btn) {
         b.classList.add('glass-card', 'text-slate-400');
     });
     btn.classList.add('bg-primary', 'text-white');
-    btn.classList.remove('glass-card', 'text-slate-400');
-
     const filtered = name === 'TOUT' ? allFetchedItems : allFetchedItems.filter(r => r.c[idx] && r.c[idx].v == name);
     displayGrid(filtered);
 }
@@ -100,9 +98,11 @@ function displayGrid(items) {
     if(!grid) return;
     grid.innerHTML = '';
 
+    // Utilisation d'un fragment pour améliorer les performances d'affichage des images
+    const fragment = document.createDocumentFragment();
+
     items.forEach(r => {
         const m = r.colMap;
-        // .v direct pour éviter les traductions de l'API Google
         const title = r.c[m.titre] ? r.c[m.titre].v : 'Sans Nom';
         const imgUrl = r.c[m.photo] ? r.c[m.photo].v : '';
         const formatInfo = r.c[m.format] ? r.c[m.format].v : ''; 
@@ -113,16 +113,21 @@ function displayGrid(items) {
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-20 grayscale'}`;
         card.innerHTML = `
-            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40 shadow-xl">
+            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900 shadow-xl">
                 <img class="w-full h-full object-cover" 
                      src="${imgUrl}" 
+                     loading="lazy"
                      onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=IMAGE+MANQUANTE'">
-                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary/90 text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter">OWNED</div>' : ''}
+                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter shadow-lg">OWNED</div>' : ''}
             </div>
             <div class="px-1">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
                 <p class="text-primary text-[10px] font-black mt-1 uppercase italic tracking-widest">${formatInfo}</p>
             </div>`;
-        grid.appendChild(card);
+        fragment.appendChild(card);
+    });
+
+    requestAnimationFrame(() => {
+        grid.appendChild(fragment);
     });
 }
