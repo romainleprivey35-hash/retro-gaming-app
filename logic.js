@@ -3,6 +3,7 @@ const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID
 
 let allFetchedItems = []; 
 
+// Cherche l'index en étant insensible à la casse et aux espaces
 const findIdx = (headers, name) => headers.findIndex(h => h.label && h.label.trim().toLowerCase() === name.toLowerCase());
 
 window.showCategories = function(brand, type = 'Menu') {
@@ -41,8 +42,8 @@ function renderListLayout(brand, type) {
         <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
             <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
         </div>` : ''}
-        <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24">
-            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse uppercase">Chargement...</div>
+        <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24 text-white">
+            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">SYNCHRONISATION...</div>
         </div>
     `;
 }
@@ -99,20 +100,30 @@ function displayGrid(items) {
 
     items.forEach(r => {
         const m = r.colMap;
+        // On utilise .v pour éviter les traductions automatiques de Google
         const title = r.c[m.titre]?.v || 'Sans Nom';
-        const img = r.c[m.photo]?.v || '';
-        const formatInfo = r.c[m.format]?.v || ''; // .v évite la traduction "Lâche"
+        const imgRaw = r.c[m.photo]?.v || '';
+        const formatInfo = r.c[m.format]?.v || ''; 
         const achatStatus = r.c[m.achat]?.v || '';
 
-        // Correction Logique Achat : vide ou "Non" = Pas possédé
+        // Nettoyage de l'URL de l'image (parfois Google ajoute des préfixes)
+        let imgUrl = imgRaw;
+        if (imgRaw.includes('?id=')) {
+            // Si c'est un lien Google Drive, on le transforme en lien direct
+            imgUrl = `https://drive.google.com/uc?export=view&id=${imgRaw.split('id=')[1].split('&')[0]}`;
+        }
+
         const isOwned = (achatStatus !== '' && achatStatus.toString().toLowerCase() !== 'non');
         
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-20 grayscale'}`;
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
-                <img class="w-full h-full object-cover" src="${img}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=IMAGE+MANQUANTE'">
-                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary/90 text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter shadow-lg">OWNED</div>' : ''}
+                <img class="w-full h-full object-cover" 
+                     src="${imgUrl}" 
+                     loading="lazy" 
+                     onerror="this.parentElement.innerHTML += '<div class=\"absolute inset-0 flex items-center justify-center text-[8px] text-slate-500 p-2 text-center uppercase\">Lien image mort ou privé</div>'">
+                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary/90 text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter">OWNED</div>' : ''}
             </div>
             <div class="px-1">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
