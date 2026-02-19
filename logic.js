@@ -138,18 +138,27 @@ function displayGrid(items) {
     });
 }
 
-// --- NOUVEAU : GESTION DU SCROLL (FONDU) ---
+// --- REMPLACE TOUTE TA PARTIE SCROLL (LES DEUX BLOCS) PAR CELUI-CI ---
+
 window.addEventListener('scroll', () => {
-    const header = document.getElementById('dynamic-header');
-    if (!header) return;
+    const title = document.getElementById('header-title');
+    const searchBtn = document.querySelector('button[onclick="openSearch()"]');
+    
+    // Si on n'est pas sur une page avec ces éléments, on ne fait rien
+    if (!title || !searchBtn) return;
 
     let scrollPos = window.scrollY;
-    let opacity = 1 - (scrollPos / 80); // Le titre s'efface sur 80px de scroll
+    
+    // Le titre et la loupe s'effacent sur 60px de scroll
+    let opacity = 1 - (scrollPos / 60);
     
     if (opacity < 0) opacity = 0;
     if (opacity > 1) opacity = 1;
     
-    header.style.opacity = opacity;
-    header.style.pointerEvents = opacity <= 0.1 ? 'none' : 'auto';
+    // On applique l'opacité uniquement au texte et au bouton loupe
+    title.style.opacity = opacity;
+    searchBtn.style.opacity = opacity;
+    
+    // Désactive les clics quand c'est invisible pour ne pas gêner
+    searchBtn.style.pointerEvents = opacity <= 0.1 ? 'none' : 'auto';
 });
-
