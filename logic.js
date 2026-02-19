@@ -3,6 +3,14 @@ const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID
 
 let allFetchedItems = []; 
 
+// FONCTION RÉCUPÉRÉE DE TON ANCIENNE APP
+function toDirectLink(val) {
+    if (!val) return "";
+    const str = val.toString();
+    const match = str.match(/[-\w]{25,}/); 
+    return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w800` : "";
+}
+
 const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.label.trim().toLowerCase() === name.toLowerCase());
 
 window.showCategories = function(brand, type = 'Menu') {
@@ -102,18 +110,13 @@ function displayGrid(items) {
     items.forEach(r => {
         const m = r.colMap;
         const title = (r.c[m.titre] && r.c[m.titre].v) ? r.c[m.titre].v : 'Sans Nom';
-        let imgUrl = (r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '';
+        const rawPhoto = (r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '';
+        
+        // UTILISATION DE LA FONCTION TO DIRECT LINK
+        const imgUrl = toDirectLink(rawPhoto);
+
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
-
-        // CONVERSION DRIVE CORRIGÉE
-        if (imgUrl.includes('drive.google.com')) {
-            const idMatch = imgUrl.match(/\/d\/(.+?)\//) || imgUrl.match(/id=(.+?)(&|$)/);
-            if (idMatch && idMatch[1]) {
-                // On tente le lien de téléchargement direct qui est le plus fiable
-                imgUrl = `https://lh3.googleusercontent.com/u/0/d/${idMatch[1]}`;
-            }
-        }
 
         const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
         
@@ -122,7 +125,7 @@ function displayGrid(items) {
         
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-800 shadow-xl">
-                ${imgUrl ? `<img class="w-full h-full object-cover" src="${imgUrl}" onerror="this.onerror=null; this.src='https://drive.google.com/uc?export=view&id=${imgUrl.split('/').pop()}';">` : ''}
+                ${imgUrl ? `<img class="w-full h-full object-cover" src="${imgUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=Erreur+Image'">` : ''}
                 ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg">OWNED</div>' : ''}
             </div>
             <div class="px-1">
