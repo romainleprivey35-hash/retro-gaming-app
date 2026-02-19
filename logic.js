@@ -42,7 +42,7 @@ function renderListLayout(brand, type) {
             <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
         </div>` : ''}
         <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24 text-white">
-            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse tracking-widest uppercase">Sync en cours...</div>
+            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT...</div>
         </div>
     `;
 }
@@ -56,6 +56,9 @@ async function loadItems(brand, type) {
         const rows = data.table.rows;
         const headers = data.table.cols;
 
+        // On log les headers dans la console pour vérifier si "Jaquette" existe bien
+        console.log("Colonnes détectées :", headers.map(h => h.label));
+
         const m = {
             titre: findIdx(headers, 'Titre') !== -1 ? findIdx(headers, 'Titre') : findIdx(headers, 'Nom'),
             brand: findIdx(headers, 'Constructeur'),
@@ -66,12 +69,13 @@ async function loadItems(brand, type) {
         };
 
         allFetchedItems = rows.filter(r => {
-            const itemBrand = r.c[m.brand] ? (r.c[m.brand].v || '') : ''; 
+            if (!r.c || !r.c[m.brand]) return false;
+            const itemBrand = r.c[m.brand].v || ''; 
             return itemBrand.toString().toLowerCase() === brand.toLowerCase();
         }).map(r => ({ ...r, colMap: m }));
 
         if (type !== 'Consoles' && m.console !== -1) {
-            const consoles = [...new Set(allFetchedItems.map(r => r.c[m.console] ? r.c[m.console].v : ''))].filter(c => c).sort();
+            const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
             const filterBar = document.getElementById('console-filter');
             if (filterBar) {
                 consoles.forEach(c => {
@@ -80,7 +84,7 @@ async function loadItems(brand, type) {
             }
         }
         displayGrid(allFetchedItems);
-    } catch (e) { console.error("Erreur Technique:", e); }
+    } catch (e) { console.error("Erreur de chargement :", e); }
 }
 
 function filterByConsole(name, idx, btn) {
@@ -98,36 +102,31 @@ function displayGrid(items) {
     if(!grid) return;
     grid.innerHTML = '';
 
-    // Utilisation d'un fragment pour améliorer les performances d'affichage des images
-    const fragment = document.createDocumentFragment();
-
     items.forEach(r => {
         const m = r.colMap;
-        const title = r.c[m.titre] ? r.c[m.titre].v : 'Sans Nom';
-        const imgUrl = r.c[m.photo] ? r.c[m.photo].v : '';
-        const formatInfo = r.c[m.format] ? r.c[m.format].v : ''; 
-        const achatStatus = r.c[m.achat] ? r.c[m.achat].v : '';
+        const title = (r.c[m.titre] && r.c[m.titre].v) ? r.c[m.titre].v : 'Sans Nom';
+        const imgUrl = (r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '';
+        const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
+        const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
 
         const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
         
         const card = document.createElement('div');
-        card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-20 grayscale'}`;
+        card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-25 grayscale'}`;
+        
         card.innerHTML = `
-            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900 shadow-xl">
-                <img class="w-full h-full object-cover" 
-                     src="${imgUrl}" 
-                     loading="lazy"
-                     onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=IMAGE+MANQUANTE'">
-                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter shadow-lg">OWNED</div>' : ''}
+            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-800 shadow-xl">
+                ${imgUrl ? `<img class="w-full h-full object-cover" src="${imgUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">` : ''}
+                <div class="hidden absolute inset-0 flex flex-col items-center justify-center p-2 text-center bg-slate-900">
+                    <span class="material-symbols-outlined text-slate-600 mb-2">image_not_supported</span>
+                    <span class="text-[7px] text-slate-500 break-all uppercase">${imgUrl.substring(0, 40)}...</span>
+                </div>
+                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg">OWNED</div>' : ''}
             </div>
             <div class="px-1">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
                 <p class="text-primary text-[10px] font-black mt-1 uppercase italic tracking-widest">${formatInfo}</p>
             </div>`;
-        fragment.appendChild(card);
-    });
-
-    requestAnimationFrame(() => {
-        grid.appendChild(fragment);
+        grid.appendChild(card);
     });
 }
