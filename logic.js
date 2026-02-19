@@ -3,8 +3,11 @@ const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID
 
 let allFetchedItems = []; 
 
-// Cherche l'index sans se soucier des espaces ou majuscules
 const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.label.trim().toLowerCase() === name.toLowerCase());
+
+// 1. Désactiver la traduction automatique au niveau du JS
+document.documentElement.setAttribute('lang', 'fr');
+document.documentElement.setAttribute('class', 'notranslate');
 
 window.showCategories = function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
@@ -35,7 +38,7 @@ function renderListLayout(brand, type) {
             <button onclick="window.location.reload()" class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
-            <h1 id="page-info" data-type="${type}" class="text-xl font-bold uppercase italic text-white">${type} ${brand}</h1>
+            <h1 id="page-info" data-type="${type}" class="text-xl font-bold uppercase italic text-white notranslate">${type} ${brand}</h1>
             <div class="size-10"></div>
         </header>
         ${type !== 'Consoles' ? `
@@ -43,7 +46,7 @@ function renderListLayout(brand, type) {
             <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
         </div>` : ''}
         <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24 text-white">
-            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT DATA...</div>
+            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse uppercase">Sync en cours...</div>
         </div>
     `;
 }
@@ -52,7 +55,6 @@ async function loadItems(brand, type) {
     try {
         const response = await fetch(getUrl(type)); 
         const text = await response.text();
-        // Nettoyage strict du JSON pour éviter les SyntaxError
         const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonString);
         const rows = data.table.rows;
@@ -76,11 +78,11 @@ async function loadItems(brand, type) {
             const consoles = [...new Set(allFetchedItems.map(r => r.c[m.console] ? r.c[m.console].v : ''))].filter(c => c).sort();
             const filterBar = document.getElementById('console-filter');
             consoles.forEach(c => {
-                filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
+                filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all notranslate">${c}</button>`;
             });
         }
         displayGrid(allFetchedItems);
-    } catch (e) { console.error("Erreur Technique:", e); }
+    } catch (e) { console.error("Erreur:", e); }
 }
 
 function filterByConsole(name, idx, btn) {
@@ -90,7 +92,6 @@ function filterByConsole(name, idx, btn) {
     });
     btn.classList.add('bg-primary', 'text-white');
     btn.classList.remove('glass-card', 'text-slate-400');
-
     const filtered = name === 'TOUT' ? allFetchedItems : allFetchedItems.filter(r => r.c[idx] && r.c[idx].v == name);
     displayGrid(filtered);
 }
@@ -102,11 +103,16 @@ function displayGrid(items) {
 
     items.forEach(r => {
         const m = r.colMap;
-        // .v direct pour éviter les traductions de l'API Google
-        const title = r.c[m.titre] ? r.c[m.titre].v : 'Sans Nom';
-        const imgUrl = r.c[m.photo] ? r.c[m.photo].v : '';
+        const title = r.c[m.titre] ? r.c[m.titre].v : '???';
+        let imgUrl = r.c[m.photo] ? r.c[m.photo].v : '';
         const formatInfo = r.c[m.format] ? r.c[m.format].v : ''; 
         const achatStatus = r.c[m.achat] ? r.c[m.achat].v : '';
+
+        // FIX IMAGES GOOGLE DRIVE
+        if (imgUrl.includes('drive.google.com')) {
+            const fileId = imgUrl.split('/d/')[1]?.split('/')[0] || imgUrl.split('id=')[1]?.split('&')[0];
+            if (fileId) imgUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+        }
 
         const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
         
@@ -114,12 +120,12 @@ function displayGrid(items) {
         card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-20 grayscale'}`;
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40 shadow-xl">
-                <img class="w-full h-full object-cover" 
+                <img class="w-full h-full object-cover notranslate" 
                      src="${imgUrl}" 
-                     onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=IMAGE+MANQUANTE'">
+                     onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=IMAGE+ERROR'">
                 ${isOwned ? '<div class="absolute top-2 right-2 bg-primary/90 text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter">OWNED</div>' : ''}
             </div>
-            <div class="px-1">
+            <div class="px-1 notranslate">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
                 <p class="text-primary text-[10px] font-black mt-1 uppercase italic tracking-widest">${formatInfo}</p>
             </div>`;
