@@ -25,7 +25,7 @@
         }
     </script>
 <style>
-        .glass-header {
+    .glass-header {
         background: rgba(26, 16, 34, 0.8);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
@@ -38,13 +38,24 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* FORCE LE STYLE PHOTO 1 SUR LES BOUTONS RONDS EXISTANTS */
+    /* CORRECTION BOUTONS RONDS (PHOTO 1) */
     button[onclick="window.location.reload()"], 
     button[onclick="openSearch()"] {
         background: rgba(157, 37, 244, 0.15) !important;
         color: #9d25f4 !important;
         border: 1px solid rgba(157, 37, 244, 0.2) !important;
         backdrop-filter: none !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* EMPECHE LE TEXTE "RECHERCHE" D'APPARAITRE (PHOTO 2) */
+    .material-symbols-outlined {
+        display: block;
+        width: 24px;
+        overflow: hidden;
+        white-space: nowrap;
     }
 
     /* CENTRE LE TITRE */
@@ -61,7 +72,7 @@
         background-size: 100% 4px;
         pointer-events: none;
     }
-    </style>
+</style>
 <style>
     body {
       min-height: max(884px, 100dvh);
