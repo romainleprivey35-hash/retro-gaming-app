@@ -38,27 +38,29 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* CORRECTION BOUTONS RONDS (PHOTO 1) */
+    /* BOUTONS VIOLETS */
     button[onclick="window.location.reload()"], 
     button[onclick="openSearch()"] {
         background: rgba(157, 37, 244, 0.15) !important;
         color: #9d25f4 !important;
         border: 1px solid rgba(157, 37, 244, 0.2) !important;
-        backdrop-filter: none !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
     }
 
-    /* EMPECHE LE TEXTE "RECHERCHE" D'APPARAITRE (PHOTO 2) */
+    /* FIX DEFINITIF BUG PHOTO 2 (TEXTE FANTOME) */
     .material-symbols-outlined {
-        display: block;
+        font-size: 24px !important;
         width: 24px;
-        overflow: hidden;
-        white-space: nowrap;
+        height: 24px;
+        overflow: hidden; 
+        display: block;
+        /* On rend le texte transparent, seule l'icône sera dessinée par la police */
+        color: transparent; 
+        text-shadow: 0 0 0 #9d25f4; 
     }
 
-    /* CENTRE LE TITRE */
     #header-title {
         width: 100%;
         text-align: center;
