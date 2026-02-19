@@ -4,8 +4,10 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Retro Collector - Home</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -38,7 +40,7 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* BOUTONS VIOLETS */
+    /* FIX DEFINITIF BOUTONS RONDS VIOLETS */
     button[onclick="window.location.reload()"], 
     button[onclick="openSearch()"] {
         background: rgba(157, 37, 244, 0.15) !important;
@@ -49,21 +51,24 @@
         justify-content: center;
     }
 
-    /* FIX DEFINITIF BUG PHOTO 2 (TEXTE FANTOME) */
+    /* FIX POLICE ICONES */
     .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined' !important;
         font-size: 24px !important;
-        width: 24px;
-        height: 24px;
-        overflow: hidden; 
-        display: block;
-        /* On rend le texte transparent, seule l'icône sera dessinée par la police */
-        color: transparent; 
-        text-shadow: 0 0 0 #9d25f4; 
+        font-style: normal;
+        display: inline-block;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
+        word-wrap: normal;
+        white-space: nowrap;
+        direction: ltr;
     }
 
     #header-title {
         width: 100%;
         text-align: center;
+        font-family: 'Space Grotesk', sans-serif !important;
     }
 
     .glow-nintendo { box-shadow: 0 0 40px -10px rgba(230, 0, 18, 0.3); }
