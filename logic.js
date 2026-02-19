@@ -35,16 +35,17 @@ window.showCategories = function(brand, type = 'Menu') {
         </div>`;
 };
 
+// --- MODIFICATION ICI : RENDERLISTLAYOUT ---
 function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
+    const headerTitle = document.getElementById('header-title');
+    const header = document.getElementById('dynamic-header');
+    
+    // On met à jour le titre et on s'assure que le header est visible
+    if (header) header.style.opacity = 1;
+    if (headerTitle) headerTitle.innerText = `${type} ${brand}`;
+
     content.innerHTML = `
-        <header class="flex items-center justify-between mb-4 px-4 pt-4">
-            <button onclick="window.location.reload()" class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                <span class="material-symbols-outlined">arrow_back</span>
-            </button>
-            <h1 id="page-info" data-type="${type}" class="text-xl font-bold uppercase italic text-white">${type} ${brand}</h1>
-            <div class="size-10"></div>
-        </header>
         ${type !== 'Consoles' ? `
         <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
             <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
@@ -136,3 +137,18 @@ function displayGrid(items) {
         grid.appendChild(card);
     });
 }
+
+// --- NOUVEAU : GESTION DU SCROLL (FONDU) ---
+window.addEventListener('scroll', () => {
+    const header = document.getElementById('dynamic-header');
+    if (!header) return;
+
+    let scrollPos = window.scrollY;
+    let opacity = 1 - (scrollPos / 80); // Le titre s'efface sur 80px de scroll
+    
+    if (opacity < 0) opacity = 0;
+    if (opacity > 1) opacity = 1;
+    
+    header.style.opacity = opacity;
+    header.style.pointerEvents = opacity <= 0.1 ? 'none' : 'auto';
+});
