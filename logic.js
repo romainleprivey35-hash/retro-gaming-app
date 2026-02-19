@@ -1,51 +1,36 @@
-// Configuration de ton Google Sheets (on garde tes identifiants)
 const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
-const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+// On cible l'onglet "Jeux" pour les stats globales
+const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Jeux`;
 
-// Fonction pour charger les stats globales au démarrage
 async function loadGlobalStats() {
-    const response = await fetch(`${BASE_URL}&sheet=Jeux`);
-    const text = await response.text();
-    const data = JSON.parse(text.substr(47).slice(0, -2));
-    const rows = data.table.rows;
+    try {
+        const response = await fetch(BASE_URL);
+        const text = await response.text();
+        const data = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = data.table.rows;
 
-    let totalValue = 0;
-    let totalItems = rows.length;
+        let totalValue = 0;
+        let count = 0;
 
-    rows.forEach(row => {
-        // Index 12 = Cote Actuelle (Colonne M)
-        const price = parseFloat(row.c[12]?.v) || 0;
-        totalValue += price;
-    });
-
-    // Mise à jour de l'affichage (Stats du haut)
-    document.querySelector('.text-2xl.font-bold.tracking-tight').innerText = `${totalValue.toLocaleString()} €`;
-    document.querySelectorAll('.text-2xl.font-bold.tracking-tight')[1].innerText = totalItems.toLocaleString();
-}
-
-// Fonction de navigation
-function selectCategory(brand, type) {
-    console.log(`Navigation vers : ${brand} > ${type}`);
-    // Ici on enregistre le choix pour l'écran suivant
-    localStorage.setItem('selectedBrand', brand);
-    localStorage.setItem('selectedType', type);
-    
-    // On redirigera vers la page liste (qu'on créera juste après)
-    // window.location.href = 'liste.html'; 
-}
-
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    loadGlobalStats();
-    
-    // On rend les boutons cliquables
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const section = btn.closest('section');
-            const brand = section.querySelector('.text-white.font-bold').innerText;
-            const type = btn.querySelector('span:last-child').previousElementSibling.innerText;
-            selectCategory(brand, type);
+        rows.forEach(row => {
+            // Index 12 = Colonne M (Cote Actuelle)
+            // On vérifie que la cellule existe et contient une valeur
+            if (row.c && row.c[12] && row.c[12].v) {
+                totalValue += parseFloat(row.c[12].v);
+            }
+            count++;
         });
-    });
-});
+
+        // Mise à jour de l'affichage avec tes vraies données
+        const valElem = document.getElementById('total-value');
+        const countElem = document.getElementById('total-items');
+
+        if(valElem) valElem.innerText = `${Math.round(totalValue).toLocaleString()} €`;
+        if(countElem) countElem.innerText = count.toLocaleString();
+
+    } catch (e) {
+        console.error("Erreur lors de la récupération des données :", e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadGlobalStats);
