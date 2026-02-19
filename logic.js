@@ -56,9 +56,6 @@ async function loadItems(brand, type) {
         const rows = data.table.rows;
         const headers = data.table.cols;
 
-        // On log les headers dans la console pour vérifier si "Jaquette" existe bien
-        console.log("Colonnes détectées :", headers.map(h => h.label));
-
         const m = {
             titre: findIdx(headers, 'Titre') !== -1 ? findIdx(headers, 'Titre') : findIdx(headers, 'Nom'),
             brand: findIdx(headers, 'Constructeur'),
@@ -84,7 +81,7 @@ async function loadItems(brand, type) {
             }
         }
         displayGrid(allFetchedItems);
-    } catch (e) { console.error("Erreur de chargement :", e); }
+    } catch (e) { console.error("Erreur Technique:", e); }
 }
 
 function filterByConsole(name, idx, btn) {
@@ -105,9 +102,17 @@ function displayGrid(items) {
     items.forEach(r => {
         const m = r.colMap;
         const title = (r.c[m.titre] && r.c[m.titre].v) ? r.c[m.titre].v : 'Sans Nom';
-        const imgUrl = (r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '';
+        let imgUrl = (r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '';
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
+
+        // CONVERTISSEUR DRIVE EXPERT
+        if (imgUrl.includes('drive.google.com')) {
+            const idMatch = imgUrl.match(/\/d\/(.+?)\//) || imgUrl.match(/id=(.+?)(&|$)/);
+            if (idMatch && idMatch[1]) {
+                imgUrl = `https://lh3.googleusercontent.com/u/0/d/${idMatch[1]}`;
+            }
+        }
 
         const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
         
@@ -116,11 +121,7 @@ function displayGrid(items) {
         
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-800 shadow-xl">
-                ${imgUrl ? `<img class="w-full h-full object-cover" src="${imgUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">` : ''}
-                <div class="hidden absolute inset-0 flex flex-col items-center justify-center p-2 text-center bg-slate-900">
-                    <span class="material-symbols-outlined text-slate-600 mb-2">image_not_supported</span>
-                    <span class="text-[7px] text-slate-500 break-all uppercase">${imgUrl.substring(0, 40)}...</span>
-                </div>
+                ${imgUrl ? `<img class="w-full h-full object-cover" src="${imgUrl}">` : ''}
                 ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg">OWNED</div>' : ''}
             </div>
             <div class="px-1">
