@@ -106,10 +106,11 @@ function displayGrid(items) {
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
 
-        // CONVERTISSEUR DRIVE EXPERT
+        // CONVERSION DRIVE CORRIGÉE
         if (imgUrl.includes('drive.google.com')) {
             const idMatch = imgUrl.match(/\/d\/(.+?)\//) || imgUrl.match(/id=(.+?)(&|$)/);
             if (idMatch && idMatch[1]) {
+                // On tente le lien de téléchargement direct qui est le plus fiable
                 imgUrl = `https://lh3.googleusercontent.com/u/0/d/${idMatch[1]}`;
             }
         }
@@ -121,7 +122,7 @@ function displayGrid(items) {
         
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-800 shadow-xl">
-                ${imgUrl ? `<img class="w-full h-full object-cover" src="${imgUrl}">` : ''}
+                ${imgUrl ? `<img class="w-full h-full object-cover" src="${imgUrl}" onerror="this.onerror=null; this.src='https://drive.google.com/uc?export=view&id=${imgUrl.split('/').pop()}';">` : ''}
                 ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg">OWNED</div>' : ''}
             </div>
             <div class="px-1">
