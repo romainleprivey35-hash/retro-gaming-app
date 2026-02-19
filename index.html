@@ -26,31 +26,41 @@
     </script>
 <style>
         .glass-header {
-            background: rgba(26, 16, 34, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        /* AJOUT : Le style exact Photo 1 pour les boutons ronds */
-        .btn-retro-circle {
-            background: rgba(157, 37, 244, 0.15) !important;
-            color: #9d25f4 !important;
-            border: none !important;
-        }
-        .glow-nintendo { box-shadow: 0 0 40px -10px rgba(230, 0, 18, 0.3); }
-        .glow-playstation { box-shadow: 0 0 40px -10px rgba(0, 55, 145, 0.3); }
-        .glow-xbox { box-shadow: 0 0 40px -10px rgba(16, 124, 16, 0.3); }
-        .scanline {
-            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.1) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-        }
+        background: rgba(26, 16, 34, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* FORCE LE STYLE PHOTO 1 SUR LES BOUTONS RONDS EXISTANTS */
+    button[onclick="window.location.reload()"], 
+    button[onclick="openSearch()"] {
+        background: rgba(157, 37, 244, 0.15) !important;
+        color: #9d25f4 !important;
+        border: 1px solid rgba(157, 37, 244, 0.2) !important;
+        backdrop-filter: none !important;
+    }
+
+    /* CENTRE LE TITRE */
+    #header-title {
+        width: 100%;
+        text-align: center;
+    }
+
+    .glow-nintendo { box-shadow: 0 0 40px -10px rgba(230, 0, 18, 0.3); }
+    .glow-playstation { box-shadow: 0 0 40px -10px rgba(0, 55, 145, 0.3); }
+    .glow-xbox { box-shadow: 0 0 40px -10px rgba(16, 124, 16, 0.3); }
+    .scanline {
+        background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.1) 50%);
+        background-size: 100% 4px;
+        pointer-events: none;
+    }
     </style>
 <style>
     body {
