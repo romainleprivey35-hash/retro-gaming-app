@@ -1,104 +1,124 @@
 const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
-const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-// 1. Stats globales au démarrage
-async function loadGlobalStats() {
-    try {
-        const response = await fetch(BASE_URL + '&sheet=Jeux');
-        const text = await response.text();
-        const data = JSON.parse(text.substr(47).slice(0, -2));
-        const rows = data.table.rows;
-        let totalVal = 0;
-        rows.forEach(r => { if(r.c[12] && r.c[12].v) totalVal += parseFloat(r.c[12].v); });
-        if (document.getElementById('total-value')) {
-            document.getElementById('total-value').innerText = Math.round(totalVal).toLocaleString() + " €";
-            document.getElementById('total-items').innerText = rows.length;
-        }
-    } catch (e) { console.error("Erreur stats:", e); }
-}
+let allFetchedItems = []; 
 
-// 2. La fonction de navigation (Cerveau)
+// Utilitaire pour trouver l'index d'une colonne par son nom exact
+const findIdx = (headers, name) => headers.findIndex(h => h.label && h.label.trim().toLowerCase() === name.toLowerCase());
+
 window.showCategories = function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
     if (!content) return;
-
     if (type !== 'Menu') {
         renderListLayout(brand, type);
-        loadItems(brand, type); // On lance le chargement des données
+        loadItems(brand, type);
         return;
     }
-
-    // Menu intermédiaire (le design qu'on a fait avant)
     content.innerHTML = `
         <button onclick="window.location.reload()" class="mb-6 flex items-center gap-2 text-primary font-bold"><span class="material-symbols-outlined">arrow_back</span> RETOUR</button>
-        <h2 class="text-4xl font-black mb-8 uppercase italic italic text-white">${brand}</h2>
-        <div class="grid gap-4 w-full">
+        <h2 class="text-4xl font-black mb-8 uppercase italic text-white">${brand}</h2>
+        <div class="grid gap-4 w-full px-2">
             ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
                 <div onclick="showCategories('${brand}', '${cat}')" class="glass-card rounded-2xl p-6 bg-slate-800/50 border border-white/5 cursor-pointer active:scale-95 transition-all">
-                    <div class="flex justify-between items-center text-white">
-                        <span class="text-xl font-black uppercase italic">${cat}</span>
+                    <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
+                        <span>${cat}</span>
                         <span class="material-symbols-outlined">chevron_right</span>
                     </div>
                 </div>`).join('')}
         </div>`;
 };
 
-// 3. Préparation du design "Stitch" pour la liste
 function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
     content.innerHTML = `
-        <header class="flex items-center justify-between mb-6">
+        <header class="flex items-center justify-between mb-4 px-4 pt-4">
             <button onclick="window.location.reload()" class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
-            <h1 class="text-xl font-bold uppercase italic">${type} ${brand}</h1>
+            <h1 id="page-info" data-type="${type}" class="text-xl font-bold uppercase italic text-white">${type} ${brand}</h1>
             <div class="size-10"></div>
         </header>
-        <div id="items-grid" class="grid grid-cols-2 gap-4 pb-20">
-            <div class="col-span-2 text-center py-20 animate-pulse text-slate-500 italic">Chargement de la collection...</div>
+        <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+            <button onclick="filterByConsole('TOUT')" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
+        </div>
+        <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24">
+            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse tracking-widest uppercase">Lecture de la base...</div>
         </div>
     `;
 }
 
-// 4. CHARGEMENT RÉEL DEPUIS GOOGLE SHEETS
 async function loadItems(brand, type) {
     try {
-        const response = await fetch(BASE_URL + '&sheet=Jeux');
+        const response = await fetch(getUrl(type)); 
         const text = await response.text();
         const data = JSON.parse(text.substr(47).slice(0, -2));
         const rows = data.table.rows;
-        const grid = document.getElementById('items-grid');
-        grid.innerHTML = ''; // On vide le message de chargement
+        const headers = data.table.cols;
 
-        rows.forEach(r => {
-            const itemBrand = r.c[1] ? r.c[1].v : ''; // Constructeur (Col B)
-            const itemType = r.c[8] ? r.c[8].v : '';  // Format/Type (Col I - à ajuster selon ton sheet)
-            const title = r.c[0] ? r.c[0].v : 'Sans titre';
-            const img = r.c[9] ? r.c[9].v : ''; // Jaquette (Col J)
-            const etat = r.c[10] ? r.c[10].v : ''; // État (Col K)
+        const m = {
+            titre: findIdx(headers, 'Titre') !== -1 ? findIdx(headers, 'Titre') : findIdx(headers, 'Nom'),
+            brand: findIdx(headers, 'Constructeur'),
+            photo: findIdx(headers, 'Jaquette') !== -1 ? findIdx(headers, 'Jaquette') : findIdx(headers, 'Photo'),
+            format: findIdx(headers, 'Format'),
+            achat: findIdx(headers, 'Achat'),
+            console: findIdx(headers, 'Console') !== -1 ? findIdx(headers, 'Console') : findIdx(headers, 'Console Associée')
+        };
 
-            // Filtrage : On ne garde que la marque et le type demandé
-            if (itemBrand.toLowerCase() === brand.toLowerCase()) {
-                
-                // Design de la carte (Ton code Stitch adapté)
-                const isOwned = etat !== 'Non possédé'; // Logique : si l'état est rempli, tu l'as
-                const card = document.createElement('div');
-                card.className = `flex flex-col gap-3 group ${isOwned ? '' : 'opacity-40'}`;
-                
-                card.innerHTML = `
-                    <div class="relative aspect-[3/4] w-full rounded-lg overflow-hidden border border-white/10 bg-slate-900">
-                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="${img}" alt="${title}">
-                        ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Possédé</div>' : ''}
-                    </div>
-                    <div>
-                        <p class="font-bold text-sm leading-tight text-white">${title}</p>
-                        <p class="text-primary text-xs font-medium">${etat || 'Boutique'}</p>
-                    </div>
-                `;
-                grid.appendChild(card);
-            }
-        });
-    } catch (e) { console.error("Erreur chargement items:", e); }
+        allFetchedItems = rows.filter(r => {
+            const itemBrand = r.c[m.brand]?.v || ''; 
+            return itemBrand.toLowerCase() === brand.toLowerCase();
+        }).map(r => ({ ...r, colMap: m }));
+
+        if (m.console !== -1) {
+            const consoles = [...new Set(allFetchedItems.map(r => r.c[m.console]?.v || ''))].filter(c => c !== '');
+            const filterBar = document.getElementById('console-filter');
+            consoles.forEach(c => {
+                filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
+            });
+        }
+        displayGrid(allFetchedItems);
+    } catch (e) { console.error("Erreur de lecture Sheet:", e); }
 }
 
-document.addEventListener('DOMContentLoaded', loadGlobalStats);
+function filterByConsole(name, idx, btn) {
+    if(btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('bg-primary', 'text-white');
+            b.classList.add('glass-card', 'text-slate-400');
+        });
+        btn.classList.add('bg-primary', 'text-white');
+        btn.classList.remove('glass-card', 'text-slate-400');
+    }
+    const filtered = name === 'TOUT' ? allFetchedItems : allFetchedItems.filter(r => r.c[idx]?.v === name);
+    displayGrid(filtered);
+}
+
+function displayGrid(items) {
+    const grid = document.getElementById('items-grid');
+    if(!grid) return;
+    grid.innerHTML = '';
+
+    items.forEach(r => {
+        const m = r.colMap;
+        const title = r.c[m.titre]?.v || 'Sans Nom';
+        const img = r.c[m.photo]?.v || '';
+        const formatInfo = r.c[m.format]?.v || '';
+        const achatStatus = r.c[m.achat]?.v;
+
+        // Possession : si la cellule "Achat" n'est pas vide (contient prix, date, ou "Oui")
+        const isOwned = (achatStatus !== null && achatStatus !== undefined && achatStatus !== '');
+        
+        const card = document.createElement('div');
+        card.className = `flex flex-col gap-3 transition-all duration-300 ${isOwned ? '' : 'opacity-25 grayscale-[30%]'}`;
+        card.innerHTML = `
+            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40 shadow-xl">
+                <img class="w-full h-full object-cover" src="${img}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=IMAGE+MANQUANTE'">
+                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary/90 backdrop-blur-md text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter border border-white/10 shadow-lg">OWNED</div>' : ''}
+            </div>
+            <div class="px-1">
+                <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
+                <p class="text-primary text-[10px] font-black mt-1 uppercase italic tracking-widest">${formatInfo}</p>
+            </div>`;
+        grid.appendChild(card);
+    });
+}
