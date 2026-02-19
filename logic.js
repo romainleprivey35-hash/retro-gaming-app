@@ -152,3 +152,20 @@ window.addEventListener('scroll', () => {
     header.style.opacity = opacity;
     header.style.pointerEvents = opacity <= 0.1 ? 'none' : 'auto';
 });
+ window.addEventListener('scroll', () => {
+    const header = document.getElementById('dynamic-header');
+    if (!header) return;
+
+    let scrollPos = window.scrollY;
+    
+    // Le titre s'efface sur 50px de scroll
+    let opacity = 1 - (scrollPos / 50);
+    
+    if (opacity < 0) opacity = 0;
+    if (opacity > 1) opacity = 1;
+    
+    header.style.opacity = opacity;
+    
+    // Bloque les clics sur la loupe quand elle est invisible
+    header.style.pointerEvents = opacity <= 0.1 ? 'none' : 'auto';
+});
