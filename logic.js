@@ -3,8 +3,8 @@ const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID
 
 let allFetchedItems = []; 
 
-// Cherche l'index en étant insensible à la casse et aux espaces
-const findIdx = (headers, name) => headers.findIndex(h => h.label && h.label.trim().toLowerCase() === name.toLowerCase());
+// Cherche l'index sans se soucier des espaces ou majuscules
+const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.label.trim().toLowerCase() === name.toLowerCase());
 
 window.showCategories = function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
@@ -43,7 +43,7 @@ function renderListLayout(brand, type) {
             <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
         </div>` : ''}
         <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24 text-white">
-            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">SYNCHRONISATION...</div>
+            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT DATA...</div>
         </div>
     `;
 }
@@ -52,7 +52,9 @@ async function loadItems(brand, type) {
     try {
         const response = await fetch(getUrl(type)); 
         const text = await response.text();
-        const data = JSON.parse(text.substr(47).slice(0, -2));
+        // Nettoyage strict du JSON pour éviter les SyntaxError
+        const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonString);
         const rows = data.table.rows;
         const headers = data.table.cols;
 
@@ -66,19 +68,19 @@ async function loadItems(brand, type) {
         };
 
         allFetchedItems = rows.filter(r => {
-            const itemBrand = r.c[m.brand]?.v || ''; 
-            return itemBrand.toLowerCase() === brand.toLowerCase();
+            const itemBrand = r.c[m.brand] ? (r.c[m.brand].v || '') : ''; 
+            return itemBrand.toString().toLowerCase() === brand.toLowerCase();
         }).map(r => ({ ...r, colMap: m }));
 
         if (type !== 'Consoles' && m.console !== -1) {
-            const consoles = [...new Set(allFetchedItems.map(r => r.c[m.console]?.v || ''))].filter(c => c !== '').sort();
+            const consoles = [...new Set(allFetchedItems.map(r => r.c[m.console] ? r.c[m.console].v : ''))].filter(c => c).sort();
             const filterBar = document.getElementById('console-filter');
             consoles.forEach(c => {
                 filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
             });
         }
         displayGrid(allFetchedItems);
-    } catch (e) { console.error("Erreur Sheet:", e); }
+    } catch (e) { console.error("Erreur Technique:", e); }
 }
 
 function filterByConsole(name, idx, btn) {
@@ -89,7 +91,7 @@ function filterByConsole(name, idx, btn) {
     btn.classList.add('bg-primary', 'text-white');
     btn.classList.remove('glass-card', 'text-slate-400');
 
-    const filtered = name === 'TOUT' ? allFetchedItems : allFetchedItems.filter(r => r.c[idx]?.v === name);
+    const filtered = name === 'TOUT' ? allFetchedItems : allFetchedItems.filter(r => r.c[idx] && r.c[idx].v == name);
     displayGrid(filtered);
 }
 
@@ -100,29 +102,21 @@ function displayGrid(items) {
 
     items.forEach(r => {
         const m = r.colMap;
-        // On utilise .v pour éviter les traductions automatiques de Google
-        const title = r.c[m.titre]?.v || 'Sans Nom';
-        const imgRaw = r.c[m.photo]?.v || '';
-        const formatInfo = r.c[m.format]?.v || ''; 
-        const achatStatus = r.c[m.achat]?.v || '';
+        // .v direct pour éviter les traductions de l'API Google
+        const title = r.c[m.titre] ? r.c[m.titre].v : 'Sans Nom';
+        const imgUrl = r.c[m.photo] ? r.c[m.photo].v : '';
+        const formatInfo = r.c[m.format] ? r.c[m.format].v : ''; 
+        const achatStatus = r.c[m.achat] ? r.c[m.achat].v : '';
 
-        // Nettoyage de l'URL de l'image (parfois Google ajoute des préfixes)
-        let imgUrl = imgRaw;
-        if (imgRaw.includes('?id=')) {
-            // Si c'est un lien Google Drive, on le transforme en lien direct
-            imgUrl = `https://drive.google.com/uc?export=view&id=${imgRaw.split('id=')[1].split('&')[0]}`;
-        }
-
-        const isOwned = (achatStatus !== '' && achatStatus.toString().toLowerCase() !== 'non');
+        const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
         
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-20 grayscale'}`;
         card.innerHTML = `
-            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40">
+            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-slate-900/40 shadow-xl">
                 <img class="w-full h-full object-cover" 
                      src="${imgUrl}" 
-                     loading="lazy" 
-                     onerror="this.parentElement.innerHTML += '<div class=\"absolute inset-0 flex items-center justify-center text-[8px] text-slate-500 p-2 text-center uppercase\">Lien image mort ou privé</div>'">
+                     onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=IMAGE+MANQUANTE'">
                 ${isOwned ? '<div class="absolute top-2 right-2 bg-primary/90 text-[8px] font-black px-2 py-1 rounded-full text-white uppercase tracking-tighter">OWNED</div>' : ''}
             </div>
             <div class="px-1">
