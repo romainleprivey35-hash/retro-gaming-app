@@ -15,18 +15,43 @@ const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.labe
 document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector('nav');
     if (nav) nav.remove();
-    updateMenuStats(); // AJOUT : On lance le calcul au démarrage
+    updateMainMenuUI(); // Modifie les cartes du menu principal
 });
 
-// --- AJOUT : FONCTION DE CALCUL POUR TES PILULES ---
-async function updateMenuStats() {
+// --- CETTE FONCTION MODIFIE TES CARTES (LOGO + SCORES) ---
+async function updateMainMenuUI() {
     const brands = ['Nintendo', 'PlayStation', 'Xbox'];
     const sheets = ['Consoles', 'Jeux', 'Accessoires'];
+    const logos = {
+        'Nintendo': '1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O',
+        'PlayStation': '1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv',
+        'Xbox': '1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv'
+    };
+
+    // 1. Remplacer les images de droite par tes logos Drive
+    brands.forEach(brand => {
+        // On cherche l'image dans la partie droite de la carte (souvent une balise img ou un bg)
+        // Ici on injecte le logo en superposition pour "manger" l'ancien visuel
+        const cards = document.querySelectorAll('.glass-card'); // Ajuste si tes cartes ont une classe spécifique
+        cards.forEach(card => {
+            if (card.innerText.includes(brand.toUpperCase())) {
+                const imgContainer = card.querySelector('div.w-1\\/3, .relative.overflow-hidden img, img[src*="console"]');
+                if (imgContainer) {
+                    imgContainer.src = `https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000`;
+                    imgContainer.style.objectFit = 'contain';
+                    imgContainer.style.opacity = '0.6'; // Pour garder le texte lisible
+                }
+            }
+        });
+    });
+
+    // 2. Calculer les scores réels
     let stats = {
         'Nintendo': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} },
         'PlayStation': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} },
         'Xbox': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} }
     };
+
     try {
         for (const sName of sheets) {
             const res = await fetch(getUrl(sName));
@@ -35,22 +60,34 @@ async function updateMenuStats() {
             const rows = data.table.rows;
             const bIdx = findIdx(data.table.cols, 'Constructeur');
             const aIdx = findIdx(data.table.cols, 'Achat');
+
             rows.forEach(r => {
                 if (!r.c || !r.c[bIdx]) return;
                 const bName = r.c[bIdx].v;
-                if (stats[bName]) {
-                    stats[bName][sName].t++;
-                    if (r.c[aIdx] && r.c[aIdx].v && r.c[aIdx].v.toString().toLowerCase() === 'oui') stats[bName][sName].o++;
+                const sheetKey = sName === 'Jeux' ? 'Jeux' : (sName === 'Consoles' ? 'Consoles' : 'Accessoires');
+                if (stats[bName] && stats[bName][sheetKey]) {
+                    stats[bName][sheetKey].t++;
+                    if (r.c[aIdx] && r.c[aIdx].v && r.c[aIdx].v.toString().toLowerCase() === 'oui') stats[bName][sheetKey].o++;
                 }
             });
         }
+        
+        // Mise à jour visuelle des chiffres dans les pilules
         brands.forEach(b => {
-            ['Consoles', 'Jeux', 'Accessoires'].forEach(cat => {
-                const el = document.getElementById(`count-${b.toLowerCase()}-${cat.toLowerCase()}`);
-                if (el) el.innerText = `${stats[b][cat].o} / ${stats[b][cat].t}`;
-            });
+            const bL = b.toLowerCase();
+            const s = stats[b];
+            // On cherche les éléments qui contiennent les nombres (12, 432, 28 sur ta photo)
+            // Note: Il faudra peut-être que tu ajoutes des ID simples dans ton HTML pour cibler pile ces chiffres
+            updateValueIfFound(`count-${bL}-consoles`, `${s['Consoles'].o} / ${s['Consoles'].t}`);
+            updateValueIfFound(`count-${bL}-jeux`, `${s['Jeux'].o} / ${s['Jeux'].t}`);
+            updateValueIfFound(`count-${bL}-acc`, `${s['Accessoires'].o} / ${s['Accessoires'].t}`);
         });
     } catch (e) { console.error("Erreur Stats:", e); }
+}
+
+function updateValueIfFound(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = val;
 }
 
 window.showCategories = function(brand, type = 'Menu') {
@@ -61,64 +98,39 @@ window.showCategories = function(brand, type = 'Menu') {
         loadItems(brand, type);
         return;
     }
-
-    // MODIF : Tes logos Drive (remplace l'image plante/console)
-    const logos = {
-        'Nintendo': '1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O',
-        'PlayStation': '1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv',
-        'Xbox': '1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv'
-    };
-    const logoUrl = `https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000`;
-
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
         </div>
-        <div class="pt-20 px-2">
-            <div class="relative w-full h-44 rounded-3xl overflow-hidden glass-card mb-8 border border-white/10">
-                <div class="absolute inset-0 flex">
-                    <div class="w-2/3 p-6 flex flex-col justify-center z-10">
-                        <h2 class="text-4xl font-black text-white uppercase italic tracking-tighter">${brand}</h2>
-                        <p class="text-[10px] text-primary font-bold mt-2">NES • SNES • N64 • GC • WII • SWITCH</p>
-                    </div>
-                    <div class="w-1/3 relative overflow-hidden">
-                        <img src="${logoUrl}" class="absolute h-full w-full object-contain object-right opacity-50 scale-125 translate-x-4">
-                    </div>
-                </div>
-            </div>
-
+        <div class="pt-20">
+            <h2 class="text-4xl font-black mb-8 uppercase italic text-white px-2">${brand}</h2>
             <div class="grid gap-4 w-full px-2">
                 ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
                     <div onclick="showCategories('${brand}', '${cat}')" class="glass-card rounded-2xl p-6 bg-slate-800/50 border border-white/5 cursor-pointer active:scale-95 transition-all">
                         <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
                             <span>${cat}</span>
-                            <div class="flex items-center gap-3">
-                                <span id="count-${brand.toLowerCase()}-${cat.toLowerCase()}" class="text-[10px] bg-primary px-3 py-1 rounded-full font-black text-white">... / ...</span>
-                                <span class="material-symbols-outlined">chevron_right</span>
-                            </div>
+                            <span class="material-symbols-outlined">chevron_right</span>
                         </div>
                     </div>`).join('')}
             </div>
         </div>`;
 };
 
+// --- LE RESTE DE TON CODE INCHANGÉ (renderListLayout, loadItems, displayGrid, etc.) ---
 function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
     const headerTitle = document.getElementById('header-title');
     const header = document.getElementById('dynamic-header');
-    
     if (header) header.style.opacity = 1;
     if (headerTitle) headerTitle.innerText = `${type} ${brand}`;
-
     content.innerHTML = `
         <div class="fixed top-6 left-4 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/20 backdrop-blur-md">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
         </div>
-
         <div class="pt-20">
             ${type !== 'Consoles' ? `
             <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
@@ -127,8 +139,7 @@ function renderListLayout(brand, type) {
             <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-10 text-white">
                 <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT...</div>
             </div>
-        </div>
-    `;
+        </div>`;
 }
 
 async function loadItems(brand, type) {
@@ -140,7 +151,6 @@ async function loadItems(brand, type) {
         const rows = data.table.rows;
         const headers = data.table.cols;
         const headerLabels = headers.map(h => h ? h.label : '');
-
         const m = {
             titre: findIdx(headers, 'Titre') !== -1 ? findIdx(headers, 'Titre') : findIdx(headers, 'Nom'),
             brand: findIdx(headers, 'Constructeur'),
@@ -149,19 +159,15 @@ async function loadItems(brand, type) {
             achat: findIdx(headers, 'Achat'),
             console: findIdx(headers, 'Console') !== -1 ? findIdx(headers, 'Console') : findIdx(headers, 'Console Associée')
         };
-
         allFetchedItems = rows.filter(r => {
             if (!r.c || !r.c[m.brand]) return false;
             const itemBrand = r.c[m.brand].v || ''; 
             return itemBrand.toString().toLowerCase() === brand.toLowerCase();
         }).map(r => {
             let itemData = { _type: type };
-            r.c.forEach((cell, i) => {
-                if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : '';
-            });
+            r.c.forEach((cell, i) => { if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : ''; });
             return { ...r, colMap: m, rawData: itemData };
         });
-
         if (type !== 'Consoles' && m.console !== -1) {
             const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
             const filterBar = document.getElementById('console-filter');
@@ -183,20 +189,14 @@ window.filterByConsole = function(consoleName, colIdx, btn) {
     });
     btn.classList.add('bg-primary', 'text-white', 'shadow-lg');
     btn.classList.remove('glass-card', 'text-slate-400', 'border-white/10');
-
-    if (consoleName === 'TOUT') {
-        displayGrid(allFetchedItems);
-    } else {
-        const filtered = allFetchedItems.filter(r => r.c[colIdx] && r.c[colIdx].v === consoleName);
-        displayGrid(filtered);
-    }
+    if (consoleName === 'TOUT') { displayGrid(allFetchedItems); } 
+    else { const filtered = allFetchedItems.filter(r => r.c[colIdx] && r.c[colIdx].v === consoleName); displayGrid(filtered); }
 };
 
 function displayGrid(items) {
     const grid = document.getElementById('items-grid');
     if(!grid) return;
     grid.innerHTML = '';
-
     items.forEach(r => {
         const m = r.colMap;
         const title = (r.c[m.titre] && r.c[m.titre].v) ? r.c[m.titre].v : 'Sans Nom';
@@ -205,11 +205,9 @@ function displayGrid(items) {
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
         const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
-        
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
         card.onclick = () => openProductDetail(r.rawData);
-
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-black/40 shadow-xl flex items-center justify-center">
                 ${imgUrl ? `<img class="w-full h-full object-contain p-1" src="${imgUrl}" loading="lazy">` : ''}
@@ -226,16 +224,13 @@ function displayGrid(items) {
 function openProductDetail(data) {
     const modal = document.getElementById('game-detail-modal');
     const content = document.getElementById('modal-dynamic-content');
-    
     const keyArt = toDirectLink(data['Key art'] || data['Photo'] || data['Jaquette']);
     const logoNom = toDirectLink(data['Logo Nom']);
     const imageLoose = toDirectLink(data['Image Jeux loose']);
-
     const keys = Object.keys(data);
     const anneeKey = keys.find(k => k.toLowerCase().includes('année'));
     const anneeVal = anneeKey ? data[anneeKey] : '';
     const consoleVal = data['Console'] || data['Console Associée'] || '';
-
     let badgesHtml = '';
     if (data['_type'] === 'Consoles') {
         if (anneeVal) badgesHtml = `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${anneeVal}</span>`;
@@ -243,27 +238,18 @@ function openProductDetail(data) {
         if (consoleVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${consoleVal}</span>`;
         if (anneeVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase italic">${anneeVal}</span>`;
     }
-
     content.innerHTML = `
         <div class="flex flex-col w-full bg-background-dark">
             <div class="w-full bg-black flex items-center justify-center p-4">
                 <img src="${keyArt}" class="w-full h-auto object-contain max-h-[50vh] rounded-xl shadow-2xl">
             </div>
-
             <div class="px-6 -mt-4 relative z-10">
                 <div class="p-6 rounded-2xl glass-panel border border-primary/20 shadow-2xl flex flex-col items-center text-center">
-                    <div class="flex flex-wrap justify-center gap-2 mb-4">
-                        ${badgesHtml}
-                    </div>
-                    
-                    ${logoNom ? 
-                        `<img src="${logoNom}" class="h-16 w-auto max-w-full object-contain mb-3 mx-auto">` : 
-                        `<h2 class="text-2xl font-black text-white mb-2 uppercase italic leading-tight">${data['Titre'] || data['Nom'] || 'Détails'}</h2>`
-                    }
+                    <div class="flex flex-wrap justify-center gap-2 mb-4">${badgesHtml}</div>
+                    ${logoNom ? `<img src="${logoNom}" class="h-16 w-auto max-w-full object-contain mb-3 mx-auto">` : `<h2 class="text-2xl font-black text-white mb-2 uppercase italic leading-tight">${data['Titre'] || data['Nom'] || 'Détails'}</h2>`}
                     <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Constructeur'] || ''}</p>
                 </div>
             </div>
-
             <div class="px-6 mt-8 space-y-8 pb-12 text-center">
                 <div class="grid grid-cols-2 gap-4 text-center">
                     ${renderStat('État', data['Etat'])}
@@ -271,7 +257,6 @@ function openProductDetail(data) {
                     ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : null)}
                     ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : null, true)}
                 </div>
-
                 <div class="space-y-3">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex justify-center items-center gap-2 italic">
                         <span class="material-symbols-outlined text-primary text-lg">description</span> Notes
@@ -280,9 +265,7 @@ function openProductDetail(data) {
                         ${data['Notes'] || "Aucune note enregistrée."}
                     </div>
                 </div>
-
-                ${imageLoose ? `
-                <div class="space-y-4">
+                ${imageLoose ? `<div class="space-y-4">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex justify-center items-center gap-2 italic">
                         <span class="material-symbols-outlined text-primary text-lg">straighten</span> Vue Produit / Loose
                     </h3>
@@ -291,9 +274,7 @@ function openProductDetail(data) {
                     </div>
                 </div>` : ''}
             </div>
-        </div>
-    `;
-    
+        </div>`;
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
@@ -302,8 +283,7 @@ function openProductDetail(data) {
 function renderStat(label, value, isProfit = false) {
     if (!value || value === '€' || value === '0€') return '';
     const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
-    return `
-        <div class="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col items-center">
+    return `<div class="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col items-center">
             <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1 italic text-center">${label}</p>
             <p class="text-xl font-black italic ${color} text-center">${value}</p>
         </div>`;
