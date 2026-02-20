@@ -12,7 +12,7 @@ function toDirectLink(val) {
 
 const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.label.trim().toLowerCase() === name.toLowerCase());
 
-// Masquer la nav barre dès le chargement si elle existe encore dans le HTML
+// Supprime la barre de navigation basse si elle existe
 document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector('nav');
     if (nav) nav.remove();
@@ -27,7 +27,9 @@ window.showCategories = function(brand, type = 'Menu') {
         return;
     }
     content.innerHTML = `
-        <button onclick="window.location.reload()" class="mb-6 flex items-center gap-2 text-primary font-bold"><span class="material-symbols-outlined">arrow_back</span> RETOUR</button>
+        <button onclick="window.location.reload()" class="w-10 h-10 flex items-center justify-center rounded-full glass-card text-white mb-6">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
         <h2 class="text-4xl font-black mb-8 uppercase italic text-white">${brand}</h2>
         <div class="grid gap-4 w-full px-2">
             ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
@@ -49,7 +51,12 @@ function renderListLayout(brand, type) {
     if (headerTitle) headerTitle.innerText = `${type} ${brand}`;
 
     content.innerHTML = `
-        <button onclick="window.location.reload()" class="mb-4 ml-4 flex items-center gap-2 text-primary font-bold"><span class="material-symbols-outlined">arrow_back</span> RETOUR</button>
+        <div class="px-4 pt-2">
+            <button onclick="window.location.reload()" class="w-10 h-10 flex items-center justify-center rounded-full glass-card text-white mb-4">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+        </div>
+
         ${type !== 'Consoles' ? `
         <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
             <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
@@ -88,7 +95,6 @@ async function loadItems(brand, type) {
             r.c.forEach((cell, i) => {
                 if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : '';
             });
-            // On garde l'index de la colonne console pour le filtrage
             return { ...r, colMap: m, rawData: itemData };
         });
 
@@ -96,7 +102,6 @@ async function loadItems(brand, type) {
             const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
             const filterBar = document.getElementById('console-filter');
             if (filterBar) {
-                // On garde le bouton "TOUT" et on ajoute les consoles avec l'index m.console
                 filterBar.innerHTML = `<button id="btn-tout" onclick="filterByConsole('TOUT', ${m.console}, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>`;
                 consoles.forEach(c => {
                     filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
@@ -108,7 +113,6 @@ async function loadItems(brand, type) {
 }
 
 window.filterByConsole = function(consoleName, colIdx, btn) {
-    // UI : Update boutons
     document.querySelectorAll('.filter-btn').forEach(b => {
         b.classList.remove('bg-primary', 'text-white', 'shadow-lg');
         b.classList.add('glass-card', 'text-slate-400', 'border-white/10');
