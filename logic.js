@@ -15,7 +15,43 @@ const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.labe
 document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector('nav');
     if (nav) nav.remove();
+    updateMenuStats(); // AJOUT : On lance le calcul au démarrage
 });
+
+// --- AJOUT : FONCTION DE CALCUL POUR TES PILULES ---
+async function updateMenuStats() {
+    const brands = ['Nintendo', 'PlayStation', 'Xbox'];
+    const sheets = ['Consoles', 'Jeux', 'Accessoires'];
+    let stats = {
+        'Nintendo': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} },
+        'PlayStation': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} },
+        'Xbox': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} }
+    };
+    try {
+        for (const sName of sheets) {
+            const res = await fetch(getUrl(sName));
+            const text = await res.text();
+            const data = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+            const rows = data.table.rows;
+            const bIdx = findIdx(data.table.cols, 'Constructeur');
+            const aIdx = findIdx(data.table.cols, 'Achat');
+            rows.forEach(r => {
+                if (!r.c || !r.c[bIdx]) return;
+                const bName = r.c[bIdx].v;
+                if (stats[bName]) {
+                    stats[bName][sName].t++;
+                    if (r.c[aIdx] && r.c[aIdx].v && r.c[aIdx].v.toString().toLowerCase() === 'oui') stats[bName][sName].o++;
+                }
+            });
+        }
+        brands.forEach(b => {
+            ['Consoles', 'Jeux', 'Accessoires'].forEach(cat => {
+                const el = document.getElementById(`count-${b.toLowerCase()}-${cat.toLowerCase()}`);
+                if (el) el.innerText = `${stats[b][cat].o} / ${stats[b][cat].t}`;
+            });
+        });
+    } catch (e) { console.error("Erreur Stats:", e); }
+}
 
 window.showCategories = function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
@@ -25,20 +61,43 @@ window.showCategories = function(brand, type = 'Menu') {
         loadItems(brand, type);
         return;
     }
+
+    // MODIF : Tes logos Drive (remplace l'image plante/console)
+    const logos = {
+        'Nintendo': '1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O',
+        'PlayStation': '1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv',
+        'Xbox': '1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv'
+    };
+    const logoUrl = `https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000`;
+
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
         </div>
-        <div class="pt-20">
-            <h2 class="text-4xl font-black mb-8 uppercase italic text-white px-2">${brand}</h2>
+        <div class="pt-20 px-2">
+            <div class="relative w-full h-44 rounded-3xl overflow-hidden glass-card mb-8 border border-white/10">
+                <div class="absolute inset-0 flex">
+                    <div class="w-2/3 p-6 flex flex-col justify-center z-10">
+                        <h2 class="text-4xl font-black text-white uppercase italic tracking-tighter">${brand}</h2>
+                        <p class="text-[10px] text-primary font-bold mt-2">NES • SNES • N64 • GC • WII • SWITCH</p>
+                    </div>
+                    <div class="w-1/3 relative overflow-hidden">
+                        <img src="${logoUrl}" class="absolute h-full w-full object-contain object-right opacity-50 scale-125 translate-x-4">
+                    </div>
+                </div>
+            </div>
+
             <div class="grid gap-4 w-full px-2">
                 ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
                     <div onclick="showCategories('${brand}', '${cat}')" class="glass-card rounded-2xl p-6 bg-slate-800/50 border border-white/5 cursor-pointer active:scale-95 transition-all">
                         <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
                             <span>${cat}</span>
-                            <span class="material-symbols-outlined">chevron_right</span>
+                            <div class="flex items-center gap-3">
+                                <span id="count-${brand.toLowerCase()}-${cat.toLowerCase()}" class="text-[10px] bg-primary px-3 py-1 rounded-full font-black text-white">... / ...</span>
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </div>
                         </div>
                     </div>`).join('')}
             </div>
