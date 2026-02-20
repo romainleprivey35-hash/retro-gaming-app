@@ -35,10 +35,22 @@
         }
     </script>
     <style>
-        /* Bloque le scroll horizontal et ajuste l'affichage */
-        html, body { overflow-x: hidden; margin: 0; background: #1a1022; }
+        /* Bloque le scroll horizontal et pousse la barre de défilement hors écran */
+        html, body { 
+            overflow-x: hidden; 
+            margin: 0; 
+            background: #1a1022;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Technique du décalage pour cacher la scrollbar sur mobile */
+        body {
+            padding-right: 20px; /* Pousse la barre vers la droite */
+            margin-right: -20px; /* Recale le contenu au centre */
+        }
         
-        /* CACHE LA BARRE DE DEFILEMENT (SCROLLBAR) */
+        /* Garde quand même les règles de masquage au cas où */
         * {
             -ms-overflow-style: none !important;
             scrollbar-width: none !important;
@@ -46,7 +58,6 @@
         *::-webkit-scrollbar {
             display: none !important;
             width: 0 !important;
-            height: 0 !important;
         }
         
         .glass-card {
