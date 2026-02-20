@@ -35,30 +35,8 @@
         }
     </script>
     <style>
-        /* Bloque le scroll horizontal et pousse la barre de défilement hors écran */
-        html, body { 
-            overflow-x: hidden; 
-            margin: 0; 
-            background: #1a1022;
-            width: 100%;
-            position: relative;
-        }
-
-        /* Technique du décalage pour cacher la scrollbar sur mobile */
-        body {
-            padding-right: 20px; /* Pousse la barre vers la droite */
-            margin-right: -20px; /* Recale le contenu au centre */
-        }
-        
-        /* Garde quand même les règles de masquage au cas où */
-        * {
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
-        *::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-        }
+        /* Bloque le scroll horizontal et ajuste l'affichage */
+        html, body { overflow-x: hidden; margin: 0; background: #1a1022; }
         
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
@@ -83,13 +61,16 @@
             background-size: 100% 4px;
             pointer-events: none;
         }
+
+        /* Masquage standard de la scrollbar */
+        ::-webkit-scrollbar { display: none; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen selection:bg-primary/30">
     <div class="fixed inset-0 scanline opacity-20 z-50 pointer-events-none"></div>
 
     <main id="app-content" class="relative pb-32 max-w-2xl mx-auto px-4 pt-6">
-        
         <div class="space-y-6">
             <section class="glass-card rounded-xl overflow-hidden glow-nintendo border-red-500/10">
                 <div class="h-32 bg-gradient-to-r from-red-600/20 to-transparent relative px-6 flex items-center">
@@ -194,7 +175,6 @@
                 </div>
             </div>
         </section>
-
     </main>
 
     <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
