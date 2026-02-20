@@ -1,8 +1,17 @@
 {
-  "name": "Retro Collector",
-  "short_name": "RetroVault",
+  "name": "Retro Collection",
+  "short_name": "Retro",
+  "description": "Ma collection de jeux vidéo retro",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#1a1022",
-  "theme_color": "#1a1022"
+  "theme_color": "#9d25f4",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/526/526181.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
