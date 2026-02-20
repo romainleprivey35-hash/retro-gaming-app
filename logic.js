@@ -120,7 +120,7 @@ function displayGrid(items) {
                 ${imgUrl ? `<img class="w-full h-full object-contain p-1" src="${imgUrl}" loading="lazy">` : ''}
                 ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg z-10">OWNED</div>' : ''}
             </div>
-            <div class="px-1">
+            <div class="px-1 text-center">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
                 <p class="text-primary text-[10px] font-black mt-1 uppercase italic tracking-widest">${formatInfo}</p>
             </div>`;
@@ -136,6 +136,18 @@ function openProductDetail(data) {
     const logoNom = toDirectLink(data['Logo Nom']);
     const imageLoose = toDirectLink(data['Image Jeux loose']);
 
+    // Logique de badges personnalisée par onglet
+    let badgesHtml = '';
+    const consoleVal = data['Console'] || data['Console Associée'] || '';
+    const anneeVal = data['Année de Sortie'] || '';
+
+    if (data['_type'] === 'Consoles') {
+        if (anneeVal) badgesHtml = `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${anneeVal}</span>`;
+    } else {
+        if (consoleVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${consoleVal}</span>`;
+        if (anneeVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase italic">${anneeVal}</span>`;
+    }
+
     content.innerHTML = `
         <div class="flex flex-col w-full bg-background-dark">
             <div class="w-full bg-black flex items-center justify-center p-4">
@@ -143,22 +155,21 @@ function openProductDetail(data) {
             </div>
 
             <div class="px-6 -mt-4 relative z-10">
-                <div class="p-6 rounded-2xl glass-panel border border-primary/20 shadow-2xl">
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        <span class="px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${data['Console'] || data['Console Associée'] || ''}</span>
-                        ${data['Année de Sortie'] ? `<span class="px-3 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase italic">${data['Année de Sortie']}</span>` : ''}
+                <div class="p-6 rounded-2xl glass-panel border border-primary/20 shadow-2xl flex flex-col items-center text-center">
+                    <div class="flex flex-wrap justify-center gap-2 mb-4">
+                        ${badgesHtml}
                     </div>
                     
                     ${logoNom ? 
-                        `<img src="${logoNom}" class="h-14 w-auto object-contain mb-2">` : 
-                        `<h2 class="text-2xl font-black text-white mb-1 uppercase italic leading-none">${data['Titre'] || data['Nom'] || 'Détails'}</h2>`
+                        `<img src="${logoNom}" class="h-16 w-auto max-w-full object-contain mb-3 mx-auto">` : 
+                        `<h2 class="text-2xl font-black text-white mb-2 uppercase italic leading-tight">${data['Titre'] || data['Nom'] || 'Détails'}</h2>`
                     }
                     <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Constructeur'] || ''}</p>
                 </div>
             </div>
 
-            <div class="px-6 mt-8 space-y-8 pb-12">
-                <div class="grid grid-cols-2 gap-4">
+            <div class="px-6 mt-8 space-y-8 pb-12 text-center">
+                <div class="grid grid-cols-2 gap-4 text-center">
                     ${renderStat('État', data['Etat'])}
                     ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : null)}
                     ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : null)}
@@ -166,20 +177,20 @@ function openProductDetail(data) {
                 </div>
 
                 <div class="space-y-3">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2 italic">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex justify-center items-center gap-2 italic">
                         <span class="material-symbols-outlined text-primary text-lg">description</span> Notes
                     </h3>
-                    <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 font-medium text-xs text-slate-400 leading-relaxed italic">
+                    <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 font-medium text-xs text-slate-400 leading-relaxed italic text-center">
                         ${data['Notes'] || "Aucune note enregistrée."}
                     </div>
                 </div>
 
                 ${imageLoose ? `
                 <div class="space-y-4">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2 italic">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex justify-center items-center gap-2 italic">
                         <span class="material-symbols-outlined text-primary text-lg">straighten</span> Vue Produit / Loose
                     </h3>
-                    <div class="rounded-3xl overflow-hidden border border-white/10 bg-black/20 p-2 shadow-2xl">
+                    <div class="rounded-3xl overflow-hidden border border-white/10 bg-black/20 p-2 shadow-2xl flex justify-center">
                         <img src="${imageLoose}" class="w-full h-auto rounded-2xl">
                     </div>
                 </div>` : ''}
@@ -187,7 +198,6 @@ function openProductDetail(data) {
         </div>
     `;
     
-    // Empêche le scroll du fond
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
@@ -197,15 +207,14 @@ function renderStat(label, value, isProfit = false) {
     if (!value || value === '€' || value === '0€') return '';
     const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
     return `
-        <div class="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1 italic">${label}</p>
-            <p class="text-xl font-black italic ${color}">${value}</p>
+        <div class="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col items-center">
+            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1 italic text-center">${label}</p>
+            <p class="text-xl font-black italic ${color} text-center">${value}</p>
         </div>`;
 }
 
 window.closeGameDetail = function() {
     document.getElementById('game-detail-modal').classList.add('hidden');
-    // Rétablit le scroll
     document.body.style.overflow = 'auto';
     document.documentElement.style.overflow = 'auto';
 };
