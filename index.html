@@ -38,6 +38,17 @@
         /* Bloque le scroll horizontal et ajuste l'affichage */
         html, body { overflow-x: hidden; margin: 0; background: #1a1022; }
         
+        /* CACHE LA BARRE DE DEFILEMENT (SCROLLBAR) */
+        * {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+        *::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(12px);
@@ -61,16 +72,6 @@
             background-size: 100% 4px;
             pointer-events: none;
         }
-        /* Cache la barre de défilement pour Chrome, Safari et Samsung Internet */
-::-webkit-scrollbar {
-    display: none;
-}
-
-/* Cache la barre pour Firefox et Edge */
-html {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen selection:bg-primary/30">
@@ -203,10 +204,10 @@ html {
     </nav>
 
     <script src="logic.js"></script>
-   <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
-</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
 </body>
 </html>
