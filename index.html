@@ -45,6 +45,14 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        /* Style spécifique pour la fiche info (Stitch Style) */
+        .glass-panel {
+            background: rgba(26, 16, 34, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(157, 37, 244, 0.2);
+        }
+
         .material-symbols-outlined {
             font-family: 'Material Symbols Outlined' !important;
             font-size: 24px !important;
@@ -176,6 +184,17 @@
             </div>
         </section>
     </main>
+
+    <div id="game-detail-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-background-dark">
+        <nav class="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+            <button onclick="closeGameDetail()" class="flex items-center justify-center size-10 rounded-full bg-primary/10 text-primary">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h1 class="text-lg font-bold tracking-tight">Détails</h1>
+            <div class="size-10"></div>
+        </nav>
+        <main id="modal-dynamic-content"></main>
+    </div>
 
     <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
         <div class="glass-card rounded-full p-2 flex items-center justify-between shadow-2xl border-white/10 backdrop-blur-2xl">
