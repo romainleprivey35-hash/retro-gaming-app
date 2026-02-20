@@ -62,15 +62,17 @@ async function loadItems(brand, type) {
         const rows = data.table.rows;
         const headers = data.table.cols;
 
-        const headerLabels = headers.map(h => h ? h.label : '');
-
         const m = {
-            titre: findIdx(headers, 'Titre') !== -1 ? findIdx(headers, 'Titre') : findIdx(headers, 'Nom'),
+            titre: findIdx(headers, 'Titre'),
             brand: findIdx(headers, 'Constructeur'),
-            photo: findIdx(headers, 'Jaquette') !== -1 ? findIdx(headers, 'Jaquette') : findIdx(headers, 'Photo'),
+            photo: findIdx(headers, 'Jaquette'),
             format: findIdx(headers, 'Format'),
             achat: findIdx(headers, 'Achat'),
-            console: findIdx(headers, 'Console') !== -1 ? findIdx(headers, 'Console') : findIdx(headers, 'Console Associée')
+            console: findIdx(headers, 'Console'),
+            // Ajout explicite des colonnes manquantes
+            logoNom: findIdx(headers, 'Logo Nom'), // Colonne C
+            keyArt: findIdx(headers, 'Key art'),   // Colonne F
+            imageLoose: findIdx(headers, 'Image Jeux loose') // Colonne H
         };
 
         allFetchedItems = rows.filter(r => {
@@ -78,10 +80,24 @@ async function loadItems(brand, type) {
             const itemBrand = r.c[m.brand].v || ''; 
             return itemBrand.toString().toLowerCase() === brand.toLowerCase();
         }).map(r => {
-            let itemData = { _type: type };
-            r.c.forEach((cell, i) => {
-                if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : '';
-            });
+            // Mapping manuel pour être sûr de ne rien rater
+            let itemData = {
+                titre: r.c[m.titre] ? r.c[m.titre].v : '',
+                brand: r.c[m.brand] ? r.c[m.brand].v : '',
+                console: r.c[m.console] ? r.c[m.console].v : '',
+                format: r.c[m.format] ? r.c[m.format].v : '',
+                etat: r.c[findIdx(headers, 'Etat')] ? r.c[findIdx(headers, 'Etat')].v : '',
+                cote: r.c[findIdx(headers, 'Cote Actuelle')] ? r.c[findIdx(headers, 'Cote Actuelle')].v : '',
+                prixAchat: r.c[findIdx(headers, 'Prix d\'Achat (€)')] ? r.c[findIdx(headers, 'Prix d\'Achat (€)')].v : '',
+                gainPerte: r.c[findIdx(headers, 'Gain / Perte')] ? r.c[findIdx(headers, 'Gain / Perte')].v : '',
+                notes: r.c[findIdx(headers, 'Notes')] ? r.c[findIdx(headers, 'Notes')].v : '',
+                annee: r.c[findIdx(headers, 'Année de Sortie')] ? r.c[findIdx(headers, 'Année de Sortie')].v : '',
+                // Les Images
+                logoNomUrl: r.c[m.logoNom] ? toDirectLink(r.c[m.logoNom].v) : '',
+                keyArtUrl: r.c[m.keyArt] ? toDirectLink(r.c[m.keyArt].v) : '',
+                imageLooseUrl: r.c[m.imageLoose] ? toDirectLink(r.c[m.imageLoose].v) : '',
+                jaquetteUrl: r.c[m.photo] ? toDirectLink(r.c[m.photo].v) : ''
+            };
             return { ...r, colMap: m, rawData: itemData };
         });
 
@@ -105,82 +121,74 @@ function displayGrid(items) {
 
     items.forEach(r => {
         const m = r.colMap;
-        const title = (r.c[m.titre] && r.c[m.titre].v) ? r.c[m.titre].v : 'Sans Nom';
-        const rawPhoto = (r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '';
-        const imgUrl = toDirectLink(rawPhoto);
-        const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
+        const d = r.rawData;
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
         const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
         
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
-        
-        card.onclick = () => openProductDetail(r.rawData);
+        card.onclick = () => openProductDetail(d);
 
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-black/40 shadow-xl flex items-center justify-center">
-                ${imgUrl ? `<img class="w-full h-full object-contain p-1" src="${imgUrl}" loading="lazy">` : ''}
+                ${d.jaquetteUrl ? `<img class="w-full h-full object-contain p-1" src="${d.jaquetteUrl}" loading="lazy">` : ''}
                 ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg z-10">OWNED</div>' : ''}
             </div>
             <div class="px-1">
-                <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
-                <p class="text-primary text-[10px] font-black mt-1 uppercase italic tracking-widest">${formatInfo}</p>
+                <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${d.titre}</p>
+                <p class="text-primary text-[10px] font-black mt-1 uppercase italic tracking-widest">${d.format}</p>
             </div>`;
         grid.appendChild(card);
     });
 }
 
-function openProductDetail(data) {
+function openProductDetail(d) {
     const modal = document.getElementById('game-detail-modal');
     const content = document.getElementById('modal-dynamic-content');
     
-    const keyArt = toDirectLink(data['Key art'] || data['Photo']);
-    const logoNom = toDirectLink(data['Logo Nom']);
-    const imageLoose = toDirectLink(data['Image Jeux loose']);
-
     content.innerHTML = `
-        <div class="relative w-full bg-black flex items-center justify-center overflow-hidden" style="min-height: 250px;">
-            <img src="${keyArt}" class="w-full h-auto object-contain max-h-[60vh]">
+        <div class="relative w-full bg-black flex items-center justify-center" style="min-height: 280px;">
+            <img src="${d.keyArtUrl || d.jaquetteUrl}" class="w-full h-auto object-contain max-h-[50vh]">
             <div class="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent"></div>
             
             <div class="absolute bottom-6 left-6 right-6 p-6 rounded-xl glass-panel border border-primary/20">
                 <div class="flex flex-wrap gap-2 mb-4">
-                    <span class="px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-tighter">${data['Console'] || ''}</span>
-                    <span class="px-3 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase tracking-tighter">${data['Année de Sortie'] || ''}</span>
+                    <span class="px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${d.console}</span>
+                    <span class="px-3 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase italic">${d.annee}</span>
                 </div>
                 
-                ${logoNom ? 
-                    `<img src="${logoNom}" class="h-16 w-auto object-contain mb-2">` : 
-                    `<h2 class="text-3xl font-black text-white mb-1 uppercase italic">${data['Titre'] || data['Nom']}</h2>`
+                ${d.logoNomUrl ? 
+                    `<img src="${d.logoNomUrl}" class="h-14 w-auto object-contain mb-2">` : 
+                    `<h2 class="text-3xl font-black text-white mb-1 uppercase italic">${d.titre}</h2>`
                 }
-                <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Constructeur'] || ''}</p>
+                <p class="text-primary text-xs font-black uppercase italic tracking-widest">${d.brand}</p>
             </div>
         </div>
 
         <div class="px-6 mt-8 space-y-8 pb-12">
             <div class="grid grid-cols-2 gap-4">
-                ${renderStat('État', data['Etat'])}
-                ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : null)}
-                ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : null)}
-                ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : null, true)}
+                ${renderStat('État', d.etat)}
+                ${renderStat('Cote Actuelle', d.cote ? d.cote + '€' : null)}
+                ${renderStat('Prix d\'Achat', d.prixAchat ? d.prixAchat + '€' : null)}
+                ${renderStat('Gain / Perte', d.gainPerte ? d.gainPerte + '€' : null, true)}
             </div>
 
             <div class="space-y-3">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-lg">description</span> Notes
+                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2 italic">
+                    <span class="material-symbols-outlined text-primary text-lg">description</span> Notes Collection
                 </h3>
                 <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 font-medium text-xs text-slate-400 leading-relaxed italic">
-                    ${data['Notes'] || "Aucune note pour cet exemplaire."}
+                    ${d.notes || "Aucune note enregistrée."}
                 </div>
             </div>
 
-            ${imageLoose ? `
+            ${d.imageLooseUrl ? `
             <div class="space-y-4">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-lg">photo_library</span> Vue Produit
+                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2 italic">
+                    <span class="material-symbols-outlined text-primary text-lg">straighten</span> Vue Produit / Loose
                 </h3>
                 <div class="rounded-3xl overflow-hidden border border-white/10 bg-black/20 p-2 shadow-2xl">
-                    <img src="${imageLoose}" class="w-full h-auto rounded-2xl">
+                    <img src="${d.imageLooseUrl}" class="w-full h-auto rounded-2xl shadow-inner">
                 </div>
             </div>` : ''}
         </div>
@@ -194,7 +202,7 @@ function renderStat(label, value, isProfit = false) {
     const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
     return `
         <div class="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1">${label}</p>
+            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1 italic">${label}</p>
             <p class="text-xl font-black italic ${color}">${value}</p>
         </div>`;
 }
