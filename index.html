@@ -35,7 +35,6 @@
         }
     </script>
     <style>
-        /* Bloque le scroll horizontal et ajuste l'affichage */
         html, body { overflow-x: hidden; margin: 0; background: #1a1022; }
         
         .glass-card {
@@ -45,7 +44,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Style spécifique pour la fiche info (Stitch Style) */
         .glass-panel {
             background: rgba(26, 16, 34, 0.6);
             backdrop-filter: blur(20px);
@@ -70,7 +68,6 @@
             pointer-events: none;
         }
 
-        /* Masquage standard de la scrollbar */
         ::-webkit-scrollbar { display: none; }
         * { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -186,13 +183,9 @@
     </main>
 
     <div id="game-detail-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-background-dark">
-        <nav class="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
-            <button onclick="closeGameDetail()" class="flex items-center justify-center size-10 rounded-full bg-primary/10 text-primary">
-                <span class="material-symbols-outlined">arrow_back</span>
-            </button>
-            <h1 class="text-lg font-bold tracking-tight">Détails</h1>
-            <div class="size-10"></div>
-        </nav>
+        <button onclick="closeGameDetail()" class="fixed top-6 left-6 z-[110] flex items-center justify-center size-12 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 active:scale-90 transition-transform">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
         <main id="modal-dynamic-content"></main>
     </div>
 
