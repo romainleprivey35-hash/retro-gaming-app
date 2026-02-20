@@ -136,11 +136,14 @@ function openProductDetail(data) {
     const logoNom = toDirectLink(data['Logo Nom']);
     const imageLoose = toDirectLink(data['Image Jeux loose']);
 
-    // Logique de badges personnalisée par onglet
-    let badgesHtml = '';
-    const consoleVal = data['Console'] || data['Console Associée'] || '';
-    const anneeVal = data['Année de Sortie'] || '';
+    // RECHERCHE DYNAMIQUE DE L'ANNEE (Pour parer aux variations de noms de colonnes)
+    const keys = Object.keys(data);
+    const anneeKey = keys.find(k => k.toLowerCase().includes('année'));
+    const anneeVal = anneeKey ? data[anneeKey] : '';
 
+    const consoleVal = data['Console'] || data['Console Associée'] || '';
+
+    let badgesHtml = '';
     if (data['_type'] === 'Consoles') {
         if (anneeVal) badgesHtml = `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${anneeVal}</span>`;
     } else {
