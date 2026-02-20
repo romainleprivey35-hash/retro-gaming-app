@@ -12,7 +12,6 @@ function toDirectLink(val) {
 
 const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.label.trim().toLowerCase() === name.toLowerCase());
 
-// Supprime la barre de navigation basse si elle existe
 document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector('nav');
     if (nav) nav.remove();
@@ -27,18 +26,22 @@ window.showCategories = function(brand, type = 'Menu') {
         return;
     }
     content.innerHTML = `
-        <button onclick="window.location.reload()" class="w-10 h-10 flex items-center justify-center rounded-full glass-card text-white mb-6">
-            <span class="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h2 class="text-4xl font-black mb-8 uppercase italic text-white">${brand}</h2>
-        <div class="grid gap-4 w-full px-2">
-            ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
-                <div onclick="showCategories('${brand}', '${cat}')" class="glass-card rounded-2xl p-6 bg-slate-800/50 border border-white/5 cursor-pointer active:scale-95 transition-all">
-                    <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
-                        <span>${cat}</span>
-                        <span class="material-symbols-outlined">chevron_right</span>
-                    </div>
-                </div>`).join('')}
+        <div class="fixed top-6 left-6 z-50">
+            <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+        </div>
+        <div class="pt-20">
+            <h2 class="text-4xl font-black mb-8 uppercase italic text-white px-2">${brand}</h2>
+            <div class="grid gap-4 w-full px-2">
+                ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
+                    <div onclick="showCategories('${brand}', '${cat}')" class="glass-card rounded-2xl p-6 bg-slate-800/50 border border-white/5 cursor-pointer active:scale-95 transition-all">
+                        <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
+                            <span>${cat}</span>
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </div>
+                    </div>`).join('')}
+            </div>
         </div>`;
 };
 
@@ -51,18 +54,20 @@ function renderListLayout(brand, type) {
     if (headerTitle) headerTitle.innerText = `${type} ${brand}`;
 
     content.innerHTML = `
-        <div class="px-4 pt-2">
-            <button onclick="window.location.reload()" class="w-10 h-10 flex items-center justify-center rounded-full glass-card text-white mb-4">
+        <div class="fixed top-6 left-4 z-50">
+            <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/20 backdrop-blur-md">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
         </div>
 
-        ${type !== 'Consoles' ? `
-        <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
-            <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
-        </div>` : ''}
-        <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-10 text-white">
-            <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT...</div>
+        <div class="pt-20">
+            ${type !== 'Consoles' ? `
+            <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
+                <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
+            </div>` : ''}
+            <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-10 text-white">
+                <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT...</div>
+            </div>
         </div>
     `;
 }
