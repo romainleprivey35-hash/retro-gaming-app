@@ -3,7 +3,6 @@ const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID
 
 let allFetchedItems = []; 
 
-// FONCTION RÉCUPÉRÉE DE TON ANCIENNE APP
 function toDirectLink(val) {
     if (!val) return "";
     const str = val.toString();
@@ -35,13 +34,11 @@ window.showCategories = function(brand, type = 'Menu') {
         </div>`;
 };
 
-// --- MODIFICATION ICI : RENDERLISTLAYOUT ---
 function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
     const headerTitle = document.getElementById('header-title');
     const header = document.getElementById('dynamic-header');
     
-    // On met à jour le titre et on s'assure que le header est visible
     if (header) header.style.opacity = 1;
     if (headerTitle) headerTitle.innerText = `${type} ${brand}`;
 
@@ -65,6 +62,9 @@ async function loadItems(brand, type) {
         const rows = data.table.rows;
         const headers = data.table.cols;
 
+        // On stocke les headers pour la fiche info plus tard
+        const headerLabels = headers.map(h => h ? h.label : '');
+
         const m = {
             titre: findIdx(headers, 'Titre') !== -1 ? findIdx(headers, 'Titre') : findIdx(headers, 'Nom'),
             brand: findIdx(headers, 'Constructeur'),
@@ -78,7 +78,14 @@ async function loadItems(brand, type) {
             if (!r.c || !r.c[m.brand]) return false;
             const itemBrand = r.c[m.brand].v || ''; 
             return itemBrand.toString().toLowerCase() === brand.toLowerCase();
-        }).map(r => ({ ...r, colMap: m }));
+        }).map(r => {
+            // Création d'un objet simple clé:valeur pour la fiche info
+            let itemData = { _type: type };
+            r.c.forEach((cell, i) => {
+                if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : '';
+            });
+            return { ...r, colMap: m, rawData: itemData };
+        });
 
         if (type !== 'Consoles' && m.console !== -1) {
             const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
@@ -93,16 +100,6 @@ async function loadItems(brand, type) {
     } catch (e) { console.error("Erreur Technique:", e); }
 }
 
-function filterByConsole(name, idx, btn) {
-    document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.remove('bg-primary', 'text-white');
-        b.classList.add('glass-card', 'text-slate-400');
-    });
-    btn.classList.add('bg-primary', 'text-white');
-    const filtered = name === 'TOUT' ? allFetchedItems : allFetchedItems.filter(r => r.c[idx] && r.c[idx].v == name);
-    displayGrid(filtered);
-}
-
 function displayGrid(items) {
     const grid = document.getElementById('items-grid');
     if(!grid) return;
@@ -115,19 +112,17 @@ function displayGrid(items) {
         const imgUrl = toDirectLink(rawPhoto);
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
-
         const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
         
         const card = document.createElement('div');
-        card.className = `flex flex-col gap-3 transition-all ${isOwned ? '' : 'opacity-25 grayscale'}`;
+        card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
         
+        // AU CLIC : Ouvre la fiche avec les données préparées
+        card.onclick = () => openProductDetail(r.rawData);
+
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-black/40 shadow-xl flex items-center justify-center">
-                ${imgUrl ? `
-                    <img class="w-full h-full object-contain p-1" 
-                         src="${imgUrl}" 
-                         loading="lazy" 
-                         onerror="this.src='https://via.placeholder.com/300x400/0a0a0a/333?text=Erreur+Image'">` : ''}
+                ${imgUrl ? `<img class="w-full h-full object-contain p-1" src="${imgUrl}" loading="lazy">` : ''}
                 ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg z-10">OWNED</div>' : ''}
             </div>
             <div class="px-1">
@@ -138,29 +133,79 @@ function displayGrid(items) {
     });
 }
 
-// GESTION DU SCROLL : DISPARITION DU TITRE ET DE LA LOUPE
+// --- FONCTION FICHE INFO (STITCH STYLE) ---
+function openProductDetail(data) {
+    const modal = document.getElementById('game-detail-modal');
+    const content = document.getElementById('modal-dynamic-content');
+    
+    // On utilise tes colonnes enregistrées
+    const keyArt = toDirectLink(data['Key art'] || data['Photo']);
+    const jaquette = toDirectLink(data['Jaquette']);
+
+    content.innerHTML = `
+        <div class="relative w-full aspect-[4/5] overflow-hidden">
+            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${keyArt}');"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent"></div>
+            <div class="absolute bottom-6 left-6 right-6 p-6 rounded-xl glass-panel border border-primary/20">
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-primary text-white text-xs font-bold uppercase">${data['Console'] || ''}</span>
+                    <span class="px-3 py-1 rounded-full bg-slate-800/50 text-slate-300 text-xs font-bold uppercase">${data['Année de Sortie'] || ''}</span>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-1">${data['Titre'] || data['Nom'] || 'Détails'}</h2>
+                <p class="text-primary font-medium">${data['Constructeur'] || ''}</p>
+            </div>
+        </div>
+
+        <div class="px-6 mt-8 space-y-8 pb-12">
+            <div class="grid grid-cols-2 gap-4">
+                ${renderStat('État', data['Etat'])}
+                ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : null)}
+                ${renderStat('Prix Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : null)}
+                ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : null, true)}
+            </div>
+
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-sm">sticky_note_2</span> Collection Notes
+                </h3>
+                <div class="p-5 rounded-xl bg-slate-950 border-l-4 border-primary font-mono text-xs text-slate-300">
+                    <p>${data['Notes'] || "Aucune note enregistrée."}</p>
+                </div>
+            </div>
+
+            ${jaquette ? `<div class="space-y-3">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Vue Jaquette</p>
+                <img src="${jaquette}" class="w-full rounded-xl border border-white/10">
+            </div>` : ''}
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function renderStat(label, value, isProfit = false) {
+    if (!value || value === '€') return '';
+    const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
+    return `
+        <div class="p-4 rounded-xl bg-primary/5 border border-primary/10">
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">${label}</p>
+            <p class="text-lg font-bold ${color}">${value}</p>
+        </div>`;
+}
+
+window.closeGameDetail = function() {
+    document.getElementById('game-detail-modal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+};
+
+// GESTION DU SCROLL
 window.addEventListener('scroll', () => {
     const title = document.getElementById('header-title');
     const searchBtn = document.querySelector('button[onclick="openSearch()"]');
-    
     if (!title || !searchBtn) return;
-
-    const scrollPos = window.scrollY;
-    // On calcule l'opacité (disparition totale à 60px de scroll)
-    const opacity = Math.max(0, 1 - (scrollPos / 60));
-    
-    // On applique l'opacité
+    const opacity = Math.max(0, 1 - (window.scrollY / 60));
     title.style.opacity = opacity;
     searchBtn.style.opacity = opacity;
-    
-    // Pour éviter les bugs visuels (comme sur ta photo 2)
-    // On cache l'élément quand il est invisible
-    if (opacity <= 0) {
-        title.style.visibility = 'hidden';
-        searchBtn.style.visibility = 'hidden';
-    } else {
-        title.style.visibility = 'visible';
-        searchBtn.style.visibility = 'visible';
-        searchBtn.style.pointerEvents = 'auto';
-    }
+    title.style.visibility = opacity <= 0 ? 'hidden' : 'visible';
+    searchBtn.style.visibility = opacity <= 0 ? 'hidden' : 'visible';
 });
