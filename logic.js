@@ -62,7 +62,6 @@ async function loadItems(brand, type) {
         const rows = data.table.rows;
         const headers = data.table.cols;
 
-        // On stocke les headers pour la fiche info plus tard
         const headerLabels = headers.map(h => h ? h.label : '');
 
         const m = {
@@ -79,7 +78,6 @@ async function loadItems(brand, type) {
             const itemBrand = r.c[m.brand].v || ''; 
             return itemBrand.toString().toLowerCase() === brand.toLowerCase();
         }).map(r => {
-            // Création d'un objet simple clé:valeur pour la fiche info
             let itemData = { _type: type };
             r.c.forEach((cell, i) => {
                 if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : '';
@@ -117,7 +115,6 @@ function displayGrid(items) {
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
         
-        // AU CLIC : Ouvre la fiche avec les données préparées
         card.onclick = () => openProductDetail(r.rawData);
 
         card.innerHTML = `
@@ -133,26 +130,30 @@ function displayGrid(items) {
     });
 }
 
-// --- FONCTION FICHE INFO (STITCH STYLE) ---
 function openProductDetail(data) {
     const modal = document.getElementById('game-detail-modal');
     const content = document.getElementById('modal-dynamic-content');
     
-    // On utilise tes colonnes enregistrées
     const keyArt = toDirectLink(data['Key art'] || data['Photo']);
-    const jaquette = toDirectLink(data['Jaquette']);
+    const logoNom = toDirectLink(data['Logo Nom']);
+    const imageLoose = toDirectLink(data['Image Jeux loose']);
 
     content.innerHTML = `
-        <div class="relative w-full aspect-[4/5] overflow-hidden">
-            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('${keyArt}');"></div>
+        <div class="relative w-full bg-black flex items-center justify-center overflow-hidden" style="min-height: 250px;">
+            <img src="${keyArt}" class="w-full h-auto object-contain max-h-[60vh]">
             <div class="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent"></div>
+            
             <div class="absolute bottom-6 left-6 right-6 p-6 rounded-xl glass-panel border border-primary/20">
-                <div class="flex flex-wrap gap-2 mb-3">
-                    <span class="px-3 py-1 rounded-full bg-primary text-white text-xs font-bold uppercase">${data['Console'] || ''}</span>
-                    <span class="px-3 py-1 rounded-full bg-slate-800/50 text-slate-300 text-xs font-bold uppercase">${data['Année de Sortie'] || ''}</span>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-tighter">${data['Console'] || ''}</span>
+                    <span class="px-3 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase tracking-tighter">${data['Année de Sortie'] || ''}</span>
                 </div>
-                <h2 class="text-3xl font-bold text-white mb-1">${data['Titre'] || data['Nom'] || 'Détails'}</h2>
-                <p class="text-primary font-medium">${data['Constructeur'] || ''}</p>
+                
+                ${logoNom ? 
+                    `<img src="${logoNom}" class="h-16 w-auto object-contain mb-2">` : 
+                    `<h2 class="text-3xl font-black text-white mb-1 uppercase italic">${data['Titre'] || data['Nom']}</h2>`
+                }
+                <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Constructeur'] || ''}</p>
             </div>
         </div>
 
@@ -160,22 +161,27 @@ function openProductDetail(data) {
             <div class="grid grid-cols-2 gap-4">
                 ${renderStat('État', data['Etat'])}
                 ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : null)}
-                ${renderStat('Prix Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : null)}
+                ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : null)}
                 ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : null, true)}
             </div>
 
             <div class="space-y-3">
-                <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-sm">sticky_note_2</span> Collection Notes
+                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-lg">description</span> Notes
                 </h3>
-                <div class="p-5 rounded-xl bg-slate-950 border-l-4 border-primary font-mono text-xs text-slate-300">
-                    <p>${data['Notes'] || "Aucune note enregistrée."}</p>
+                <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 font-medium text-xs text-slate-400 leading-relaxed italic">
+                    ${data['Notes'] || "Aucune note pour cet exemplaire."}
                 </div>
             </div>
 
-            ${jaquette ? `<div class="space-y-3">
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Vue Jaquette</p>
-                <img src="${jaquette}" class="w-full rounded-xl border border-white/10">
+            ${imageLoose ? `
+            <div class="space-y-4">
+                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-lg">photo_library</span> Vue Produit
+                </h3>
+                <div class="rounded-3xl overflow-hidden border border-white/10 bg-black/20 p-2 shadow-2xl">
+                    <img src="${imageLoose}" class="w-full h-auto rounded-2xl">
+                </div>
             </div>` : ''}
         </div>
     `;
@@ -184,12 +190,12 @@ function openProductDetail(data) {
 }
 
 function renderStat(label, value, isProfit = false) {
-    if (!value || value === '€') return '';
+    if (!value || value === '€' || value === '0€') return '';
     const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
     return `
-        <div class="p-4 rounded-xl bg-primary/5 border border-primary/10">
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">${label}</p>
-            <p class="text-lg font-bold ${color}">${value}</p>
+        <div class="p-4 rounded-2xl bg-white/5 border border-white/5">
+            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1">${label}</p>
+            <p class="text-xl font-black italic ${color}">${value}</p>
         </div>`;
 }
 
@@ -198,7 +204,6 @@ window.closeGameDetail = function() {
     document.body.style.overflow = 'auto';
 };
 
-// GESTION DU SCROLL
 window.addEventListener('scroll', () => {
     const title = document.getElementById('header-title');
     const searchBtn = document.querySelector('button[onclick="openSearch()"]');
