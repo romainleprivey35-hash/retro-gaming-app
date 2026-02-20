@@ -61,6 +61,16 @@
             background-size: 100% 4px;
             pointer-events: none;
         }
+        /* Cache la barre de défilement pour Chrome, Safari et Samsung Internet */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* Cache la barre pour Firefox et Edge */
+html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen selection:bg-primary/30">
