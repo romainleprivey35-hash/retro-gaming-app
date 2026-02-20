@@ -12,6 +12,12 @@ function toDirectLink(val) {
 
 const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.label.trim().toLowerCase() === name.toLowerCase());
 
+// Masquer la nav barre dès le chargement si elle existe encore dans le HTML
+document.addEventListener("DOMContentLoaded", () => {
+    const nav = document.querySelector('nav');
+    if (nav) nav.remove();
+});
+
 window.showCategories = function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
     if (!content) return;
@@ -43,11 +49,12 @@ function renderListLayout(brand, type) {
     if (headerTitle) headerTitle.innerText = `${type} ${brand}`;
 
     content.innerHTML = `
+        <button onclick="window.location.reload()" class="mb-4 ml-4 flex items-center gap-2 text-primary font-bold"><span class="material-symbols-outlined">arrow_back</span> RETOUR</button>
         ${type !== 'Consoles' ? `
         <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
             <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
         </div>` : ''}
-        <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-24 text-white">
+        <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-10 text-white">
             <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT...</div>
         </div>
     `;
@@ -81,6 +88,7 @@ async function loadItems(brand, type) {
             r.c.forEach((cell, i) => {
                 if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : '';
             });
+            // On garde l'index de la colonne console pour le filtrage
             return { ...r, colMap: m, rawData: itemData };
         });
 
@@ -88,6 +96,8 @@ async function loadItems(brand, type) {
             const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
             const filterBar = document.getElementById('console-filter');
             if (filterBar) {
+                // On garde le bouton "TOUT" et on ajoute les consoles avec l'index m.console
+                filterBar.innerHTML = `<button id="btn-tout" onclick="filterByConsole('TOUT', ${m.console}, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>`;
                 consoles.forEach(c => {
                     filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
                 });
@@ -96,6 +106,23 @@ async function loadItems(brand, type) {
         displayGrid(allFetchedItems);
     } catch (e) { console.error("Erreur Technique:", e); }
 }
+
+window.filterByConsole = function(consoleName, colIdx, btn) {
+    // UI : Update boutons
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('bg-primary', 'text-white', 'shadow-lg');
+        b.classList.add('glass-card', 'text-slate-400', 'border-white/10');
+    });
+    btn.classList.add('bg-primary', 'text-white', 'shadow-lg');
+    btn.classList.remove('glass-card', 'text-slate-400', 'border-white/10');
+
+    if (consoleName === 'TOUT') {
+        displayGrid(allFetchedItems);
+    } else {
+        const filtered = allFetchedItems.filter(r => r.c[colIdx] && r.c[colIdx].v === consoleName);
+        displayGrid(filtered);
+    }
+};
 
 function displayGrid(items) {
     const grid = document.getElementById('items-grid');
@@ -136,11 +163,9 @@ function openProductDetail(data) {
     const logoNom = toDirectLink(data['Logo Nom']);
     const imageLoose = toDirectLink(data['Image Jeux loose']);
 
-    // RECHERCHE DYNAMIQUE DE L'ANNEE (Pour parer aux variations de noms de colonnes)
     const keys = Object.keys(data);
     const anneeKey = keys.find(k => k.toLowerCase().includes('année'));
     const anneeVal = anneeKey ? data[anneeKey] : '';
-
     const consoleVal = data['Console'] || data['Console Associée'] || '';
 
     let badgesHtml = '';
@@ -221,14 +246,3 @@ window.closeGameDetail = function() {
     document.body.style.overflow = 'auto';
     document.documentElement.style.overflow = 'auto';
 };
-
-window.addEventListener('scroll', () => {
-    const title = document.getElementById('header-title');
-    const searchBtn = document.querySelector('button[onclick="openSearch()"]');
-    if (!title || !searchBtn) return;
-    const opacity = Math.max(0, 1 - (window.scrollY / 60));
-    title.style.opacity = opacity;
-    searchBtn.style.opacity = opacity;
-    title.style.visibility = opacity <= 0 ? 'hidden' : 'visible';
-    searchBtn.style.visibility = opacity <= 0 ? 'hidden' : 'visible';
-});
