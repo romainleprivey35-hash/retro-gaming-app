@@ -15,82 +15,31 @@ const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.labe
 document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector('nav');
     if (nav) nav.remove();
-    updateMainMenuUI(); // Modifie les cartes du menu principal
 });
 
-// --- CETTE FONCTION MODIFIE TES CARTES (LOGO + SCORES) ---
-async function updateMainMenuUI() {
-    const brands = ['Nintendo', 'PlayStation', 'Xbox'];
-    const sheets = ['Consoles', 'Jeux', 'Accessoires'];
-    const logos = {
-        'Nintendo': '1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O',
-        'PlayStation': '1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv',
-        'Xbox': '1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv'
-    };
-
-    // 1. Remplacer les images de droite par tes logos Drive
-    brands.forEach(brand => {
-        // On cherche l'image dans la partie droite de la carte (souvent une balise img ou un bg)
-        // Ici on injecte le logo en superposition pour "manger" l'ancien visuel
-        const cards = document.querySelectorAll('.glass-card'); // Ajuste si tes cartes ont une classe spécifique
-        cards.forEach(card => {
-            if (card.innerText.includes(brand.toUpperCase())) {
-                const imgContainer = card.querySelector('div.w-1\\/3, .relative.overflow-hidden img, img[src*="console"]');
-                if (imgContainer) {
-                    imgContainer.src = `https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000`;
-                    imgContainer.style.objectFit = 'contain';
-                    imgContainer.style.opacity = '0.6'; // Pour garder le texte lisible
-                }
+// --- FONCTION DE CALCUL POUR TES CHIFFRES ../.. ---
+async function getStats(brand, sheetName) {
+    try {
+        const response = await fetch(getUrl(sheetName));
+        const text = await response.text();
+        const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonString);
+        const rows = data.table.rows;
+        const headers = data.table.cols;
+        const bIdx = findIdx(headers, 'Constructeur');
+        const aIdx = findIdx(headers, 'Achat');
+        let total = 0, owned = 0;
+        rows.forEach(r => {
+            if (r.c && r.c[bIdx] && r.c[bIdx].v && r.c[bIdx].v.toString().toLowerCase() === brand.toLowerCase()) {
+                total++;
+                if (r.c[aIdx] && r.c[aIdx].v && r.c[aIdx].v.toString().toLowerCase() === 'oui') owned++;
             }
         });
-    });
-
-    // 2. Calculer les scores réels
-    let stats = {
-        'Nintendo': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} },
-        'PlayStation': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} },
-        'Xbox': { 'Consoles': {o:0, t:0}, 'Jeux': {o:0, t:0}, 'Accessoires': {o:0, t:0} }
-    };
-
-    try {
-        for (const sName of sheets) {
-            const res = await fetch(getUrl(sName));
-            const text = await res.text();
-            const data = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-            const rows = data.table.rows;
-            const bIdx = findIdx(data.table.cols, 'Constructeur');
-            const aIdx = findIdx(data.table.cols, 'Achat');
-
-            rows.forEach(r => {
-                if (!r.c || !r.c[bIdx]) return;
-                const bName = r.c[bIdx].v;
-                const sheetKey = sName === 'Jeux' ? 'Jeux' : (sName === 'Consoles' ? 'Consoles' : 'Accessoires');
-                if (stats[bName] && stats[bName][sheetKey]) {
-                    stats[bName][sheetKey].t++;
-                    if (r.c[aIdx] && r.c[aIdx].v && r.c[aIdx].v.toString().toLowerCase() === 'oui') stats[bName][sheetKey].o++;
-                }
-            });
-        }
-        
-        // Mise à jour visuelle des chiffres dans les pilules
-        brands.forEach(b => {
-            const bL = b.toLowerCase();
-            const s = stats[b];
-            // On cherche les éléments qui contiennent les nombres (12, 432, 28 sur ta photo)
-            // Note: Il faudra peut-être que tu ajoutes des ID simples dans ton HTML pour cibler pile ces chiffres
-            updateValueIfFound(`count-${bL}-consoles`, `${s['Consoles'].o} / ${s['Consoles'].t}`);
-            updateValueIfFound(`count-${bL}-jeux`, `${s['Jeux'].o} / ${s['Jeux'].t}`);
-            updateValueIfFound(`count-${bL}-acc`, `${s['Accessoires'].o} / ${s['Accessoires'].t}`);
-        });
-    } catch (e) { console.error("Erreur Stats:", e); }
+        return `${owned} / ${total}`;
+    } catch (e) { return "0 / 0"; }
 }
 
-function updateValueIfFound(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.innerText = val;
-}
-
-window.showCategories = function(brand, type = 'Menu') {
+window.showCategories = async function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
     if (!content) return;
     if (type !== 'Menu') {
@@ -98,27 +47,49 @@ window.showCategories = function(brand, type = 'Menu') {
         loadItems(brand, type);
         return;
     }
+
+    // TES LOGOS DRIVE
+    const logos = {
+        'Nintendo': '1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O',
+        'PlayStation': '1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv',
+        'Xbox': '1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv'
+    };
+
+    // 1. BLOC UNIQUE AVEC LOGO ET NOMS CONSOLES CENTRÉS
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
         </div>
-        <div class="pt-20">
-            <h2 class="text-4xl font-black mb-8 uppercase italic text-white px-2">${brand}</h2>
+        <div class="pt-20 px-2">
+            <div class="relative w-full h-44 rounded-3xl overflow-hidden glass-card mb-8 border border-white/10 flex flex-col items-center justify-center text-center p-6">
+                <img src="https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000" class="h-16 object-contain mb-4">
+                <p class="text-[10px] text-primary font-bold uppercase tracking-widest">NES • SNES • N64 • GC • WII • SWITCH</p>
+            </div>
+
             <div class="grid gap-4 w-full px-2">
                 ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
                     <div onclick="showCategories('${brand}', '${cat}')" class="glass-card rounded-2xl p-6 bg-slate-800/50 border border-white/5 cursor-pointer active:scale-95 transition-all">
                         <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
                             <span>${cat}</span>
-                            <span class="material-symbols-outlined">chevron_right</span>
+                            <div class="flex items-center gap-3">
+                                <span id="stat-${cat}" class="text-[10px] bg-primary px-3 py-1 rounded-full font-black text-white">... / ...</span>
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </div>
                         </div>
                     </div>`).join('')}
             </div>
         </div>`;
+
+    // Lancement du calcul des nombres réels
+    document.getElementById('stat-Consoles').innerText = await getStats(brand, 'Consoles');
+    document.getElementById('stat-Jeux').innerText = await getStats(brand, 'Jeux');
+    document.getElementById('stat-Accessoires').innerText = await getStats(brand, 'Accessoires');
 };
 
-// --- LE RESTE DE TON CODE INCHANGÉ (renderListLayout, loadItems, displayGrid, etc.) ---
+// --- LE RESTE DE TON CODE (AUCUN CHANGEMENT ICI) ---
+
 function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
     const headerTitle = document.getElementById('header-title');
