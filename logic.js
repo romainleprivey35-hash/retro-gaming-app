@@ -32,7 +32,7 @@ async function getStats(brand, sheetName) {
         rows.forEach((r, index) => {
             if (r.c && r.c[bIdx] && r.c[bIdx].v) {
                 const itemBrand = r.c[bIdx].v.toString().trim().toLowerCase();
-                if (itemBrand === brand.toLowerCase()) {
+                if (brand === 'All' || itemBrand === brand.toLowerCase()) {
                     total++;
                     if (r.c[aIdx] && r.c[aIdx].v) {
                         const achatVal = r.c[aIdx].v.toString().trim().toLowerCase();
@@ -50,7 +50,6 @@ window.showCategories = async function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
     if (!content) return;
     
-    // Si on clique sur une sous-catégorie spécifique
     if (type !== 'Menu' && type !== 'Stats') {
         renderListLayout(brand, type);
         loadItems(brand, type);
@@ -64,27 +63,24 @@ window.showCategories = async function(brand, type = 'Menu') {
         'Xbox': '1SzJdKKuHIv5M3bGNc9noed8mN60fNm9y'
     };
 
-    // --- MODE STATS (INSIGHTS) ---
     if (type === 'Stats') {
         content.innerHTML = `
             <div class="fixed top-6 left-6 z-50">
-                <button onclick="showCategories('${brand}', 'Menu')" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
+                <button onclick="${brand === 'All' ? 'window.location.reload()' : `showCategories('${brand}', 'Menu')`}" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
                     <span class="material-symbols-outlined">arrow_back</span>
                 </button>
             </div>
             <div class="pt-20 px-4 space-y-6">
-                <div class="glass-card rounded-[2.5rem] p-8 relative overflow-hidden border border-white/10 bg-slate-900/40">
-                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic mb-2">Valeur Estimée Totale</p>
-                    <div class="flex items-baseline gap-2">
-                        <h2 id="stat-total-value" class="text-4xl font-black text-white italic">... €</h2>
-                    </div>
+                <div class="glass-card rounded-[2.5rem] p-8 relative overflow-hidden border border-white/10 bg-slate-900/40 text-center">
+                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic mb-2">Valeur Estimée ${brand === 'All' ? 'Totale' : brand}</p>
+                    <h2 id="stat-total-value" class="text-4xl font-black text-white italic">... €</h2>
                     <div class="mt-8 h-24 w-full relative">
                         <svg class="w-full h-full overflow-visible" viewBox="0 0 400 100">
                             <path d="M0,80 Q50,90 100,50 T200,60 T300,20 T400,40" fill="none" stroke="#9d25f4" stroke-width="4" stroke-linecap="round"></path>
                         </svg>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-4 text-center">
                     <div class="glass-card p-6 rounded-3xl border border-white/5 bg-slate-800/40">
                         <p class="text-[9px] text-slate-500 font-black uppercase italic mb-1">Investi</p>
                         <p id="stat-total-spent" class="text-xl font-black text-white italic">... €</p>
@@ -95,12 +91,10 @@ window.showCategories = async function(brand, type = 'Menu') {
                     </div>
                 </div>
             </div>`;
-        
         calculateDetailedStats(brand);
         return;
     }
 
-    // --- MODE MENU (DESIGN PHOTO 2) ---
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
@@ -112,7 +106,6 @@ window.showCategories = async function(brand, type = 'Menu') {
                 <div class="h-24 w-full flex items-center justify-center mb-8">
                     <img src="https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000" class="max-h-full object-contain">
                 </div>
-                
                 <div class="flex gap-2 mb-8 w-full justify-center">
                     ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
                         <button onclick="showCategories('${brand}', '${cat}')" class="bg-slate-800/40 border border-white/5 px-3 py-4 rounded-[2rem] flex flex-col items-center min-w-[90px] active:scale-95 transition-all">
@@ -121,7 +114,6 @@ window.showCategories = async function(brand, type = 'Menu') {
                         </button>
                     `).join('')}
                 </div>
-
                 <button onclick="showCategories('${brand}', 'Stats')" class="w-full py-5 bg-primary/20 border border-primary/30 rounded-[2rem] text-primary font-black uppercase italic text-xs tracking-[0.2em] active:scale-95 transition-all flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined !text-lg">insights</span>
                     Analytiques
@@ -141,7 +133,6 @@ window.showCategories = async function(brand, type = 'Menu') {
 async function calculateDetailedStats(brand) {
     let tValue = 0, tSpent = 0;
     const sheets = ['Consoles', 'Jeux', 'Accessoires'];
-    
     for (const s of sheets) {
         try {
             const response = await fetch(getUrl(s));
@@ -149,13 +140,11 @@ async function calculateDetailedStats(brand) {
             const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
             const data = JSON.parse(jsonString);
             const rows = data.table.rows;
-            
             const bIdx = 1;
-            const cIdx = (s === 'Consoles') ? 11 : 12; // Cote Actuelle
-            const pIdx = (s === 'Consoles') ? 12 : 16; // Prix d'Achat
-
+            const cIdx = (s === 'Consoles') ? 11 : 12; 
+            const pIdx = (s === 'Consoles') ? 12 : 16; 
             rows.forEach(r => {
-                if (r.c && r.c[bIdx] && r.c[bIdx].v && r.c[bIdx].v.toLowerCase() === brand.toLowerCase()) {
+                if (r.c && r.c[bIdx] && r.c[bIdx].v && (brand === 'All' || r.c[bIdx].v.toLowerCase() === brand.toLowerCase())) {
                     const cote = r.c[cIdx] ? parseFloat(r.c[cIdx].v) || 0 : 0;
                     const prix = r.c[pIdx] ? parseFloat(r.c[pIdx].v) || 0 : 0;
                     tValue += cote;
@@ -164,7 +153,6 @@ async function calculateDetailedStats(brand) {
             });
         } catch (e) {}
     }
-
     const profit = tValue - tSpent;
     document.getElementById('stat-total-value').innerText = `${tValue.toLocaleString()} €`;
     document.getElementById('stat-total-spent').innerText = `${tSpent.toLocaleString()} €`;
@@ -201,7 +189,6 @@ async function loadItems(brand, type) {
         const rows = data.table.rows;
         const headers = data.table.cols;
         const headerLabels = headers.map(h => h ? h.label : '');
-        
         const m = {
             titre: 0,
             brand: 1,
@@ -210,7 +197,6 @@ async function loadItems(brand, type) {
             achat: (type === 'Consoles') ? 10 : 14,
             console: (type === 'Jeux') ? 4 : (type === 'Accessoires' ? 3 : -1)
         };
-
         allFetchedItems = rows.filter(r => {
             if (!r.c || !r.c[m.brand]) return false;
             return r.c[m.brand].v.toString().toLowerCase() === brand.toLowerCase();
@@ -219,7 +205,6 @@ async function loadItems(brand, type) {
             r.c.forEach((cell, i) => { if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : ''; });
             return { ...r, colMap: m, rawData: itemData };
         });
-
         if (type !== 'Consoles' && m.console !== -1) {
             const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
             const filterBar = document.getElementById('console-filter');
@@ -257,7 +242,6 @@ function displayGrid(items) {
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
         const isOwned = (achatStatus && achatStatus.toString().toLowerCase() === 'oui' || r.c[m.achat].v === true);
-        
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
         card.onclick = () => openProductDetail(r.rawData);
@@ -285,7 +269,6 @@ function openProductDetail(data) {
     const anneeKey = keys.find(k => k.toLowerCase().includes('année'));
     const anneeVal = anneeKey ? data[anneeKey] : '';
     const consoleVal = data['Console'] || data['Console Associée'] || '';
-    
     let badgesHtml = '';
     if (data['_type'] === 'Consoles') {
         if (anneeVal) badgesHtml = `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${anneeVal}</span>`;
@@ -293,7 +276,6 @@ function openProductDetail(data) {
         if (consoleVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${consoleVal}</span>`;
         if (anneeVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase italic">${anneeVal}</span>`;
     }
-
     content.innerHTML = `
         <div class="flex flex-col w-full bg-background-dark pb-10">
             <div class="w-full bg-black flex items-center justify-center p-4">
@@ -326,7 +308,6 @@ function openProductDetail(data) {
             </div>
         </div>`;
     modal.classList.remove('hidden');
-    
     modal.scrollTop = 0;
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
@@ -347,7 +328,34 @@ window.closeGameDetail = function() {
     document.body.style.overflow = '';
 };
 
+// --- INITIALISATION ACCUEIL AVEC LA PILULE TABLEAU DE BORD ---
 window.addEventListener('DOMContentLoaded', () => {
+    const content = document.getElementById('app-content');
+    if (content) {
+        // Ajout de la pilule au début du contenu
+        const dashboardHtml = `
+            <div class="px-2 mb-8">
+                <button onclick="showCategories('All', 'Stats')" class="w-full glass-card rounded-[2.5rem] p-5 border border-white/10 bg-slate-900/40 flex items-center justify-between active:scale-95 transition-all shadow-xl">
+                    <div class="flex items-center gap-4">
+                        <div class="size-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+                            <span class="material-symbols-outlined text-primary">analytics</span>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-white font-black italic uppercase text-[13px] leading-none tracking-tight">Tableau de Bord</p>
+                            <p class="text-slate-500 text-[9px] font-bold uppercase italic mt-1 tracking-widest">Valeur & Stats Globales</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-primary font-black italic text-xs">VOIR</span>
+                        <span class="material-symbols-outlined text-primary !text-lg">chevron_right</span>
+                    </div>
+                </button>
+            </div>`;
+        
+        // On injecte au début si on est sur la vue principale (qui contient Nintendo, etc.)
+        content.insertAdjacentHTML('afterbegin', dashboardHtml);
+    }
+
     const brands = ['Nintendo', 'Playstation', 'Xbox'];
     brands.forEach(brand => {
         const b = brand.toLowerCase();
