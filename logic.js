@@ -26,21 +26,38 @@ async function getStats(brand, sheetName) {
         const data = JSON.parse(jsonString);
         const rows = data.table.rows;
         
-        // Index basés sur ton résumé : Constructeur (1), Achat (10 pour Consoles, 14 pour les autres)
+        // Tes index réels : Constructeur (1), Achat (10 pour Consoles, 14 pour les autres)
         let bIdx = 1; 
         let aIdx = (sheetName === 'Consoles') ? 10 : 14; 
 
         let total = 0, owned = 0;
-        rows.forEach(r => {
-            if (r.c && r.c[bIdx] && r.c[bIdx].v && r.c[bIdx].v.toString().toLowerCase() === brand.toLowerCase()) {
-                total++;
-                if (r.c[aIdx] && r.c[aIdx].v && r.c[aIdx].v.toString().toLowerCase() === 'oui') owned++;
+
+        rows.forEach((r, index) => {
+            // On ignore la première ligne si elle répète les titres des colonnes
+            if (index === 0 && r.c[bIdx] && r.c[bIdx].v === "Constructeur") return;
+
+            if (r.c && r.c[bIdx] && r.c[bIdx].v) {
+                const itemBrand = r.c[bIdx].v.toString().trim().toLowerCase();
+                
+                if (itemBrand === brand.toLowerCase()) {
+                    total++;
+                    
+                    // Vérification sécurisée de la colonne Achat
+                    if (r.c[aIdx] && r.c[aIdx].v) {
+                        const achatVal = r.c[aIdx].v.toString().trim().toLowerCase();
+                        if (achatVal === 'oui') {
+                            owned++;
+                        }
+                    }
+                }
             }
         });
         return `${owned} / ${total}`;
-    } catch (e) { return "0 / 0"; }
+    } catch (e) { 
+        console.error("Erreur calcul stats:", e);
+        return "0 / 0"; 
+    }
 }
-
 window.showCategories = async function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
     if (!content) return;
