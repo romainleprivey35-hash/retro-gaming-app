@@ -45,25 +45,62 @@ async function getStats(brand, sheetName) {
     } catch (e) { return "0 / 0"; }
 }
 
-// --- AFFICHAGE DU MENU CATEGORIES (CORRECTIF IDs) ---
+// --- AFFICHAGE DU MENU CATEGORIES (VERSION PILULES + STATS) ---
 window.showCategories = async function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
     if (!content) return;
     
-    if (type !== 'Menu') {
+    // Si on clique sur une sous-catégorie spécifique
+    if (type !== 'Menu' && type !== 'Stats') {
         renderListLayout(brand, type);
         loadItems(brand, type);
         return;
     }
 
+    const bLower = brand.toLowerCase();
     const logos = {
         'Nintendo': '11g1hLkCEY-wLQgMOHuDdRcmBbq33Lkn7',
         'PlayStation': '1XzZYJwDRWiPBpW-16TGYPcTYSGRB-fC0',
         'Xbox': '1SzJdKKuHIv5M3bGNc9noed8mN60fNm9y'
     };
 
-    const bLower = brand.toLowerCase();
+    // --- MODE STATS (INSIGHTS) ---
+    if (type === 'Stats') {
+        content.innerHTML = `
+            <div class="fixed top-6 left-6 z-50">
+                <button onclick="showCategories('${brand}', 'Menu')" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+            </div>
+            <div class="pt-20 px-4 space-y-6">
+                <div class="glass-card rounded-[2.5rem] p-8 relative overflow-hidden border border-white/10 bg-slate-900/40">
+                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic mb-2">Valeur Estimée Totale</p>
+                    <div class="flex items-baseline gap-2">
+                        <h2 id="stat-total-value" class="text-4xl font-black text-white italic">... €</h2>
+                    </div>
+                    <div class="mt-8 h-24 w-full relative">
+                        <svg class="w-full h-full overflow-visible" viewBox="0 0 400 100">
+                            <path d="M0,80 Q50,90 100,50 T200,60 T300,20 T400,40" fill="none" stroke="#9d25f4" stroke-width="4" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-card p-6 rounded-3xl border border-white/5 bg-slate-800/40">
+                        <p class="text-[9px] text-slate-500 font-black uppercase italic mb-1">Investi</p>
+                        <p id="stat-total-spent" class="text-xl font-black text-white italic">... €</p>
+                    </div>
+                    <div class="glass-card p-6 rounded-3xl border border-white/5 bg-slate-800/40">
+                        <p class="text-[9px] text-slate-500 font-black uppercase italic mb-1">Plus-Value</p>
+                        <p id="stat-total-profit" class="text-xl font-black text-emerald-400 italic">... €</p>
+                    </div>
+                </div>
+            </div>`;
+        
+        calculateDetailedStats(brand);
+        return;
+    }
 
+    // --- MODE MENU (DESIGN PHOTO 2) ---
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
@@ -71,31 +108,68 @@ window.showCategories = async function(brand, type = 'Menu') {
             </button>
         </div>
         <div class="pt-20 px-2">
-            <div class="relative w-full h-44 rounded-3xl overflow-hidden glass-card mb-8 border border-white/10 flex flex-col items-center justify-center text-center p-6 bg-slate-800/30">
-                <div class="h-16 w-full flex items-center justify-center mb-4">
+            <div class="relative w-full rounded-[3.5rem] overflow-hidden glass-card border border-white/10 flex flex-col items-center justify-center text-center p-8 bg-slate-900/50">
+                <div class="h-24 w-full flex items-center justify-center mb-8">
                     <img src="https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000" class="max-h-full object-contain">
                 </div>
-                <p class="text-[10px] text-primary font-bold uppercase tracking-widest italic">COLLECTION ${brand.toUpperCase()}</p>
-            </div>
+                
+                <div class="flex gap-2 mb-8 w-full justify-center">
+                    ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
+                        <button onclick="showCategories('${brand}', '${cat}')" class="bg-slate-800/40 border border-white/5 px-3 py-4 rounded-[2rem] flex flex-col items-center min-w-[90px] active:scale-95 transition-all">
+                            <span class="text-[8px] text-slate-500 font-black uppercase mb-1 tracking-tighter">${cat === 'Accessoires' ? 'ACC.' : cat.toUpperCase()}</span>
+                            <span id="count-${bLower}-${cat.toLowerCase()}" class="text-white text-[11px] font-black italic">...</span>
+                        </button>
+                    `).join('')}
+                </div>
 
-            <div class="grid gap-4 w-full px-2">
-                ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
-                    <div onclick="showCategories('${brand}', '${cat}')" class="glass-card rounded-2xl p-6 bg-slate-800/50 border border-white/5 cursor-pointer active:scale-95 transition-all">
-                        <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
-                            <span>${cat}</span>
-                            <div class="flex items-center gap-3">
-                                <span id="count-${bLower}-${cat.toLowerCase()}" class="text-[10px] bg-primary px-3 py-1 rounded-full font-black text-white italic">... / ...</span>
-                                <span class="material-symbols-outlined">chevron_right</span>
-                            </div>
-                        </div>
-                    </div>`).join('')}
+                <button onclick="showCategories('${brand}', 'Stats')" class="w-full py-5 bg-primary/20 border border-primary/30 rounded-[2rem] text-primary font-black uppercase italic text-xs tracking-[0.2em] active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined !text-lg">insights</span>
+                    Analytiques
+                </button>
             </div>
         </div>`;
 
-    getStats(brand, 'Consoles').then(res => { if(document.getElementById(`count-${bLower}-consoles`)) document.getElementById(`count-${bLower}-consoles`).innerText = res; });
-    getStats(brand, 'Jeux').then(res => { if(document.getElementById(`count-${bLower}-jeux`)) document.getElementById(`count-${bLower}-jeux`).innerText = res; });
-    getStats(brand, 'Accessoires').then(res => { if(document.getElementById(`count-${bLower}-accessoires`)) document.getElementById(`count-${bLower}-accessoires`).innerText = res; });
+    ['Consoles', 'Jeux', 'Accessoires'].forEach(cat => {
+        getStats(brand, cat).then(res => {
+            const el = document.getElementById(`count-${bLower}-${cat.toLowerCase()}`);
+            if(el) el.innerText = res;
+        });
+    });
 };
+
+// --- LOGIQUE CALCUL STATS GLOBALES ---
+async function calculateDetailedStats(brand) {
+    let tValue = 0, tSpent = 0;
+    const sheets = ['Consoles', 'Jeux', 'Accessoires'];
+    
+    for (const s of sheets) {
+        try {
+            const response = await fetch(getUrl(s));
+            const text = await response.text();
+            const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+            const data = JSON.parse(jsonString);
+            const rows = data.table.rows;
+            
+            const bIdx = 1;
+            const cIdx = (s === 'Consoles') ? 11 : 12; // Cote Actuelle
+            const pIdx = (s === 'Consoles') ? 12 : 16; // Prix d'Achat
+
+            rows.forEach(r => {
+                if (r.c && r.c[bIdx] && r.c[bIdx].v && r.c[bIdx].v.toLowerCase() === brand.toLowerCase()) {
+                    const cote = r.c[cIdx] ? parseFloat(r.c[cIdx].v) || 0 : 0;
+                    const prix = r.c[pIdx] ? parseFloat(r.c[pIdx].v) || 0 : 0;
+                    tValue += cote;
+                    tSpent += prix;
+                }
+            });
+        } catch (e) {}
+    }
+
+    const profit = tValue - tSpent;
+    document.getElementById('stat-total-value').innerText = `${tValue.toLocaleString()} €`;
+    document.getElementById('stat-total-spent').innerText = `${tSpent.toLocaleString()} €`;
+    document.getElementById('stat-total-profit').innerText = `${profit > 0 ? '+' : ''}${profit.toLocaleString()} €`;
+}
 
 // --- LAYOUT DE LA LISTE ---
 function renderListLayout(brand, type) {
@@ -253,7 +327,6 @@ function openProductDetail(data) {
         </div>`;
     modal.classList.remove('hidden');
     
-    // BLOCAGE DU SCROLL (Méthode forte)
     modal.scrollTop = 0;
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
@@ -270,7 +343,6 @@ function renderStat(label, value, isProfit = false) {
 
 window.closeGameDetail = function() {
     document.getElementById('game-detail-modal').classList.add('hidden');
-    // RÉACTIVATION DU SCROLL
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
 };
