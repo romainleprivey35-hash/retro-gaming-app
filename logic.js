@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (nav) nav.remove();
 });
 
-// --- FONCTION DE CALCUL POUR TES NOMBRES (PROPRIÉTÉ 2) ---
+// --- FONCTION DE CALCUL CORRIGÉE (INDEX RÉELS) ---
 async function getStats(brand, sheetName) {
     try {
         const response = await fetch(getUrl(sheetName));
@@ -25,9 +25,11 @@ async function getStats(brand, sheetName) {
         const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonString);
         const rows = data.table.rows;
-        const headers = data.table.cols;
-        const bIdx = findIdx(headers, 'Constructeur');
-        const aIdx = findIdx(headers, 'Achat');
+        
+        // Index basés sur ton résumé : Constructeur (1), Achat (10 pour Consoles, 14 pour les autres)
+        let bIdx = 1; 
+        let aIdx = (sheetName === 'Consoles') ? 10 : 14; 
+
         let total = 0, owned = 0;
         rows.forEach(r => {
             if (r.c && r.c[bIdx] && r.c[bIdx].v && r.c[bIdx].v.toString().toLowerCase() === brand.toLowerCase()) {
@@ -48,14 +50,12 @@ window.showCategories = async function(brand, type = 'Menu') {
         return;
     }
 
-    // LOGOS DRIVE (PROPRIÉTÉ 1)
     const logos = {
-        'Nintendo': '1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O',
-        'PlayStation': '1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv',
-        'Xbox': '1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv'
+        'Nintendo': '11g1hLkCEY-wLQgMOHuDdRcmBbq33Lkn7',
+        'PlayStation': '1XzZYJwDRWiPBpW-16TGYPcTYSGRB-fC0',
+        'Xbox': '1SzJdKKuHIv5M3bGNc9noed8mN60fNm9y'
     };
 
-    // 1. BLOC UNIQUE LOGO DRIVE + CONSOLES CENTRÉES
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
@@ -64,8 +64,10 @@ window.showCategories = async function(brand, type = 'Menu') {
         </div>
         <div class="pt-20 px-2">
             <div class="relative w-full h-44 rounded-3xl overflow-hidden glass-card mb-8 border border-white/10 flex flex-col items-center justify-center text-center p-6 bg-slate-800/30">
-                <img src="https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000" class="h-16 object-contain mb-4">
-                <p class="text-[10px] text-primary font-bold uppercase tracking-widest">NES • SNES • N64 • GC • WII • SWITCH</p>
+                <div class="h-16 w-full flex items-center justify-center mb-4">
+                    <img src="https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000" class="max-h-full object-contain">
+                </div>
+                <p class="text-[10px] text-primary font-bold uppercase tracking-widest italic">COLLECTION ${brand.toUpperCase()}</p>
             </div>
 
             <div class="grid gap-4 w-full px-2">
@@ -82,19 +84,13 @@ window.showCategories = async function(brand, type = 'Menu') {
             </div>
         </div>`;
 
-    // Mise à jour des nombres sans bloquer l'affichage
     document.getElementById('stat-Consoles').innerText = await getStats(brand, 'Consoles');
     document.getElementById('stat-Jeux').innerText = await getStats(brand, 'Jeux');
     document.getElementById('stat-Accessoires').innerText = await getStats(brand, 'Accessoires');
 };
 
-// --- LE RESTE DE TON CODE INCHANGÉ ---
 function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
-    const headerTitle = document.getElementById('header-title');
-    const header = document.getElementById('dynamic-header');
-    if (header) header.style.opacity = 1;
-    if (headerTitle) headerTitle.innerText = `${type} ${brand}`;
     content.innerHTML = `
         <div class="fixed top-6 left-4 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/20 backdrop-blur-md">
@@ -121,23 +117,26 @@ async function loadItems(brand, type) {
         const rows = data.table.rows;
         const headers = data.table.cols;
         const headerLabels = headers.map(h => h ? h.label : '');
+        
+        // Mapping basé sur tes index réels
         const m = {
-            titre: findIdx(headers, 'Titre') !== -1 ? findIdx(headers, 'Titre') : findIdx(headers, 'Nom'),
-            brand: findIdx(headers, 'Constructeur'),
-            photo: findIdx(headers, 'Jaquette') !== -1 ? findIdx(headers, 'Jaquette') : findIdx(headers, 'Photo'),
-            format: findIdx(headers, 'Format'),
-            achat: findIdx(headers, 'Achat'),
-            console: findIdx(headers, 'Console') !== -1 ? findIdx(headers, 'Console') : findIdx(headers, 'Console Associée')
+            titre: 0,
+            brand: 1,
+            photo: (type === 'Jeux') ? 6 : (type === 'Consoles' ? 6 : 2),
+            format: (type === 'Consoles') ? 4 : 8,
+            achat: (type === 'Consoles') ? 10 : 14,
+            console: (type === 'Jeux') ? 4 : (type === 'Accessoires' ? 3 : -1)
         };
+
         allFetchedItems = rows.filter(r => {
             if (!r.c || !r.c[m.brand]) return false;
-            const itemBrand = r.c[m.brand].v || ''; 
-            return itemBrand.toString().toLowerCase() === brand.toLowerCase();
+            return r.c[m.brand].v.toString().toLowerCase() === brand.toLowerCase();
         }).map(r => {
             let itemData = { _type: type };
             r.c.forEach((cell, i) => { if(headerLabels[i]) itemData[headerLabels[i]] = cell ? cell.v : ''; });
             return { ...r, colMap: m, rawData: itemData };
         });
+
         if (type !== 'Consoles' && m.console !== -1) {
             const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
             const filterBar = document.getElementById('console-filter');
@@ -170,11 +169,11 @@ function displayGrid(items) {
     items.forEach(r => {
         const m = r.colMap;
         const title = (r.c[m.titre] && r.c[m.titre].v) ? r.c[m.titre].v : 'Sans Nom';
-        const rawPhoto = (r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '';
-        const imgUrl = toDirectLink(rawPhoto);
+        const imgUrl = toDirectLink((r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '');
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
-        const isOwned = (achatStatus && achatStatus.toString().toLowerCase() !== 'non' && achatStatus !== '');
+        const isOwned = (achatStatus && achatStatus.toString().toLowerCase() === 'oui');
+        
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
         card.onclick = () => openProductDetail(r.rawData);
@@ -201,6 +200,7 @@ function openProductDetail(data) {
     const anneeKey = keys.find(k => k.toLowerCase().includes('année'));
     const anneeVal = anneeKey ? data[anneeKey] : '';
     const consoleVal = data['Console'] || data['Console Associée'] || '';
+    
     let badgesHtml = '';
     if (data['_type'] === 'Consoles') {
         if (anneeVal) badgesHtml = `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${anneeVal}</span>`;
@@ -208,6 +208,7 @@ function openProductDetail(data) {
         if (consoleVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${consoleVal}</span>`;
         if (anneeVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase italic">${anneeVal}</span>`;
     }
+
     content.innerHTML = `
         <div class="flex flex-col w-full bg-background-dark">
             <div class="w-full bg-black flex items-center justify-center p-4">
@@ -221,7 +222,7 @@ function openProductDetail(data) {
                 </div>
             </div>
             <div class="px-6 mt-8 space-y-8 pb-12 text-center">
-                <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="grid grid-cols-2 gap-4">
                     ${renderStat('État', data['Etat'])}
                     ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : null)}
                     ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : null)}
@@ -231,7 +232,7 @@ function openProductDetail(data) {
                     <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex justify-center items-center gap-2 italic">
                         <span class="material-symbols-outlined text-primary text-lg">description</span> Notes
                     </h3>
-                    <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 font-medium text-xs text-slate-400 leading-relaxed italic text-center">
+                    <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 font-medium text-xs text-slate-400 leading-relaxed italic">
                         ${data['Notes'] || "Aucune note enregistrée."}
                     </div>
                 </div>
@@ -246,21 +247,18 @@ function openProductDetail(data) {
             </div>
         </div>`;
     modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
 }
 
 function renderStat(label, value, isProfit = false) {
     if (!value || value === '€' || value === '0€') return '';
     const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
     return `<div class="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col items-center">
-            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1 italic text-center">${label}</p>
-            <p class="text-xl font-black italic ${color} text-center">${value}</p>
+            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1 italic">${label}</p>
+            <p class="text-xl font-black italic ${color}">${value}</p>
         </div>`;
 }
 
 window.closeGameDetail = function() {
     document.getElementById('game-detail-modal').classList.add('hidden');
     document.body.style.overflow = 'auto';
-    document.documentElement.style.overflow = 'auto';
 };
