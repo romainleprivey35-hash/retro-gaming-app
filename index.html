@@ -1,202 +1,392 @@
 <!DOCTYPE html>
+
 <html class="dark" lang="en">
+
 <head>
+
     <meta charset="utf-8"/>
+
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
     <title>Retro Collector - Home</title>
+
     
+
     <meta name="apple-mobile-web-app-capable" content="yes">
+
     <meta name="mobile-web-app-capable" content="yes">
+
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+
 
     <link rel="manifest" href="/manifest.json">
 
+
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
+
+
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
+
+
     <script id="tailwind-config">
+
         tailwind.config = {
+
             darkMode: "class",
+
             theme: {
+
                 extend: {
+
                     colors: {
+
                         "primary": "#9d25f4",
+
                         "background-light": "#f7f5f8",
+
                         "background-dark": "#1a1022",
+
                     },
+
                     fontFamily: {
+
                         "display": ["Space Grotesk"]
+
                     },
+
                     borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+
                 },
+
             },
+
         }
+
     </script>
+
     <style>
+
         html, body { overflow-x: hidden; margin: 0; background: #1a1022; }
+
         
+
         .glass-card {
+
             background: rgba(255, 255, 255, 0.03);
+
             backdrop-filter: blur(12px);
+
             -webkit-backdrop-filter: blur(12px);
+
             border: 1px solid rgba(255, 255, 255, 0.1);
+
         }
+
+
 
         .glass-panel {
+
             background: rgba(26, 16, 34, 0.6);
+
             backdrop-filter: blur(20px);
+
             -webkit-backdrop-filter: blur(20px);
+
             border: 1px solid rgba(157, 37, 244, 0.2);
+
         }
+
+
 
         .material-symbols-outlined {
+
             font-family: 'Material Symbols Outlined' !important;
+
             font-size: 24px !important;
+
             display: inline-block;
+
             line-height: 1;
+
         }
+
+
 
         .glow-nintendo { box-shadow: 0 0 40px -10px rgba(230, 0, 18, 0.3); }
+
         .glow-playstation { box-shadow: 0 0 40px -10px rgba(0, 55, 145, 0.3); }
+
         .glow-xbox { box-shadow: 0 0 40px -10px rgba(16, 124, 16, 0.3); }
+
         
+
         .scanline {
+
             background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.1) 50%);
+
             background-size: 100% 4px;
+
             pointer-events: none;
+
         }
+
+
 
         ::-webkit-scrollbar { display: none; }
+
         * { -ms-overflow-style: none; scrollbar-width: none; }
+
     </style>
+
 </head>
+
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen selection:bg-primary/30">
+
     <div class="fixed inset-0 scanline opacity-20 z-50 pointer-events-none"></div>
 
+
+
     <main id="app-content" class="relative pb-32 max-w-2xl mx-auto px-4 pt-6">
+
         <div class="space-y-6">
+
             
+
             <section class="glass-card rounded-xl overflow-hidden glow-nintendo border-red-500/10">
+
                 <div class="h-40 bg-gradient-to-b from-red-600/10 to-transparent relative flex flex-col items-center justify-center text-center px-6">
-                    <div class="h-12 flex items-center justify-center mb-3">
-                        <img src="https://lh3.googleusercontent.com/u/0/d/1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O" class="max-h-full object-contain" onerror="this.src='https://drive.google.com/thumbnail?id=1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O&sz=w1000'">
-                    </div>
+
+                    <img src="https://drive.google.com/thumbnail?id=1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O&sz=w1000" class="h-12 object-contain mb-3">
+
                     <p class="text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">Game Boy • N64 • GameCube • Switch</p>
+
                 </div>
+
                 <div class="p-4 grid grid-cols-3 gap-2">
+
                     <button onclick="showCategories('Nintendo', 'Consoles')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Consoles</span>
+
                         <span id="count-nintendo-consoles" class="text-white italic">...</span>
+
                     </button>
+
                     <button onclick="showCategories('Nintendo', 'Jeux')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Jeux</span>
+
                         <span id="count-nintendo-jeux" class="text-white italic">...</span>
+
                     </button>
+
                     <button onclick="showCategories('Nintendo', 'Accessoires')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Acc.</span>
+
                         <span id="count-nintendo-accessoires" class="text-white italic">...</span>
+
                     </button>
+
                 </div>
+
             </section>
+
+
 
             <section class="glass-card rounded-xl overflow-hidden glow-playstation border-blue-500/10">
+
                 <div class="h-40 bg-gradient-to-b from-blue-600/10 to-transparent relative flex flex-col items-center justify-center text-center px-6">
-                    <div class="h-12 flex items-center justify-center mb-3">
-                        <img src="https://lh3.googleusercontent.com/u/0/d/1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv" class="max-h-full object-contain" onerror="this.src='https://drive.google.com/thumbnail?id=1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv&sz=w1000'">
-                    </div>
+
+                    <img src="https://drive.google.com/thumbnail?id=1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv&sz=w1000" class="h-12 object-contain mb-3">
+
                     <p class="text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">PS1 • PS2 • PS3 • PS4 • PS5</p>
+
                 </div>
+
                 <div class="p-4 grid grid-cols-3 gap-2">
+
                     <button onclick="showCategories('Playstation', 'Consoles')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Consoles</span>
+
                         <span id="count-playstation-consoles" class="text-white italic">...</span>
+
                     </button>
+
                     <button onclick="showCategories('Playstation', 'Jeux')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Jeux</span>
+
                         <span id="count-playstation-jeux" class="text-white italic">...</span>
+
                     </button>
+
                     <button onclick="showCategories('Playstation', 'Accessoires')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Acc.</span>
+
                         <span id="count-playstation-accessoires" class="text-white italic">...</span>
+
                     </button>
+
                 </div>
+
             </section>
+
+
 
             <section class="glass-card rounded-xl overflow-hidden glow-xbox border-green-500/10">
+
                 <div class="h-40 bg-gradient-to-b from-green-600/10 to-transparent relative flex flex-col items-center justify-center text-center px-6">
-                    <div class="h-12 flex items-center justify-center mb-3">
-                        <img src="https://lh3.googleusercontent.com/u/0/d/1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv" class="max-h-full object-contain" onerror="this.src='https://drive.google.com/thumbnail?id=1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv&sz=w1000'">
-                    </div>
+
+                    <img src="https://drive.google.com/thumbnail?id=1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv&sz=w1000" class="h-12 object-contain mb-3">
+
                     <p class="text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">XBOX ORIGINAL</p>
+
                 </div>
+
                 <div class="p-4 grid grid-cols-3 gap-2">
+
                     <button onclick="showCategories('Xbox', 'Consoles')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Consoles</span>
+
                         <span id="count-xbox-consoles" class="text-white italic">...</span>
+
                     </button>
+
                     <button onclick="showCategories('Xbox', 'Jeux')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Jeux</span>
+
                         <span id="count-xbox-jeux" class="text-white italic">...</span>
+
                     </button>
+
                     <button onclick="showCategories('Xbox', 'Accessoires')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
+
                         <span class="text-slate-400 text-[9px] uppercase mb-1">Acc.</span>
+
                         <span id="count-xbox-accessoires" class="text-white italic">...</span>
+
                     </button>
+
                 </div>
+
             </section>
+
         </div>
+
+
 
         <section class="grid grid-cols-2 gap-4 mt-8 mb-10">
+
             <div class="glass-card rounded-xl p-5 relative overflow-hidden group">
+
                 <p class="text-xs font-semibold text-slate-400 uppercase mb-1">Total Value</p>
+
                 <p id="total-value" class="text-2xl font-bold tracking-tight">...</p>
+
                 <div class="mt-2 flex items-center gap-1 text-emerald-400 text-xs font-bold">
+
                     <span class="material-symbols-outlined text-sm">trending_up</span>
+
                     <span>+2.4%</span>
+
                 </div>
+
             </div>
+
             <div class="glass-card rounded-xl p-5 relative overflow-hidden group">
+
                 <p class="text-xs font-semibold text-slate-400 uppercase mb-1">Total Items</p>
+
                 <p id="total-items" class="text-2xl font-bold tracking-tight">...</p>
+
                 <div class="mt-2 flex items-center gap-1 text-slate-400 text-xs font-bold">
+
                     <span class="material-symbols-outlined text-sm">inventory_2</span>
+
                     <span>12 systems</span>
+
                 </div>
+
             </div>
+
         </section>
+
     </main>
 
+
+
     <div id="game-detail-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-background-dark">
+
         <button onclick="closeGameDetail()" class="fixed top-6 left-6 z-[110] flex items-center justify-center size-12 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 active:scale-90 transition-transform">
+
             <span class="material-symbols-outlined">arrow_back</span>
+
         </button>
+
         <main id="modal-dynamic-content"></main>
+
     </div>
 
+
+
     <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
+
         <div class="glass-card rounded-full p-2 flex items-center justify-between shadow-2xl border-white/10 backdrop-blur-2xl">
+
             <button onclick="window.location.reload()" class="flex flex-col items-center justify-center size-12 rounded-full bg-primary text-white">
+
                 <span class="material-symbols-outlined">home</span>
+
             </button>
+
             <button onclick="openSearch()" class="flex flex-col items-center justify-center size-12 rounded-full text-slate-400 hover:text-white transition-colors">
+
                 <span class="material-symbols-outlined">search</span>
+
             </button>
+
             <button class="flex flex-col items-center justify-center size-12 rounded-full text-slate-400 hover:text-white transition-colors">
+
                 <span class="material-symbols-outlined">favorite</span>
+
             </button>
+
             <button class="flex flex-col items-center justify-center size-12 rounded-full text-slate-400 hover:text-white transition-colors">
+
                 <span class="material-symbols-outlined">settings</span>
+
             </button>
+
         </div>
+
     </nav>
 
+
+
     <script src="logic.js"></script>
+
     <script>
+
         if ('serviceWorker' in navigator) {
+
             navigator.serviceWorker.register('sw.js');
+
         }
+
     </script>
+
 </body>
+
 </html>
+
