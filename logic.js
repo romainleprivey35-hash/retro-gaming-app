@@ -36,7 +36,6 @@ async function getStats(brand, sheetName) {
                     total++;
                     if (r.c[aIdx] && r.c[aIdx].v) {
                         const achatVal = r.c[aIdx].v.toString().trim().toLowerCase();
-                        // Vérifie si c'est "oui" ou le booléen true (pour les cases à cocher)
                         if (achatVal === 'oui' || r.c[aIdx].v === true) owned++;
                     }
                 }
@@ -93,7 +92,6 @@ window.showCategories = async function(brand, type = 'Menu') {
             </div>
         </div>`;
 
-    // Mise à jour des compteurs
     getStats(brand, 'Consoles').then(res => { if(document.getElementById(`count-${bLower}-consoles`)) document.getElementById(`count-${bLower}-consoles`).innerText = res; });
     getStats(brand, 'Jeux').then(res => { if(document.getElementById(`count-${bLower}-jeux`)) document.getElementById(`count-${bLower}-jeux`).innerText = res; });
     getStats(brand, 'Accessoires').then(res => { if(document.getElementById(`count-${bLower}-accessoires`)) document.getElementById(`count-${bLower}-accessoires`).innerText = res; });
@@ -254,6 +252,8 @@ function openProductDetail(data) {
             </div>
         </div>`;
     modal.classList.remove('hidden');
+    // BLOQUE LE SCROLL
+    document.body.style.overflow = 'hidden';
 }
 
 function renderStat(label, value, isProfit = false) {
@@ -267,15 +267,14 @@ function renderStat(label, value, isProfit = false) {
 
 window.closeGameDetail = function() {
     document.getElementById('game-detail-modal').classList.add('hidden');
+    // RÉACTIVE LE SCROLL
     document.body.style.overflow = 'auto';
 };
 
-// Ajoute ça tout à la fin de ton logic.js pour activer les compteurs au démarrage
 window.addEventListener('DOMContentLoaded', () => {
     const brands = ['Nintendo', 'Playstation', 'Xbox'];
     brands.forEach(brand => {
         const b = brand.toLowerCase();
-        // Remplit les compteurs Consoles, Jeux et Accessoires de la page d'accueil
         getStats(brand, 'Consoles').then(res => { if(document.getElementById(`count-${b}-consoles`)) document.getElementById(`count-${b}-consoles`).innerText = res; });
         getStats(brand, 'Jeux').then(res => { if(document.getElementById(`count-${b}-jeux`)) document.getElementById(`count-${b}-jeux`).innerText = res; });
         getStats(brand, 'Accessoires').then(res => { if(document.getElementById(`count-${b}-accessoires`)) document.getElementById(`count-${b}-accessoires`).innerText = res; });
