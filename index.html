@@ -77,86 +77,66 @@
 
     <main id="app-content" class="relative pb-32 max-w-2xl mx-auto px-4 pt-6">
         <div class="space-y-6">
+            
             <section class="glass-card rounded-xl overflow-hidden glow-nintendo border-red-500/10">
-                <div class="h-32 bg-gradient-to-r from-red-600/20 to-transparent relative px-6 flex items-center">
-                    <div class="absolute right-0 top-0 h-full w-1/2 opacity-20 grayscale pointer-events-none overflow-hidden">
-                        <img alt="Nintendo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEaZ5kMoELe6tNGf3sF5j0_eLyiEPgdnM0zuuHBDJzdTXqkK7BYHcN_GgUbKf72OjxMXMQFreknNnIX8O6nXHmopmhrObinBdjAIYtp9HcsUu3QqD1TwYavxHVx0CB7x7Ko7HQ56SgX6HwOOr6ZRavfJWUqd_Zz56IZc9BDrcG83pe3ejFGT4FDAke5XBMJuCcHrlwkKZilCYoG_sZNIteb73xqPfBO0WiVEV-KOg53hq_7rDDPKiJ61orr-sNqGiBX1U-g27b2hur"/>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="bg-red-600 px-3 py-1 rounded-sm inline-block mb-2">
-                            <span class="text-white font-bold tracking-tighter text-xl">Nintendo</span>
-                        </div>
-                        <p class="text-slate-300 text-sm font-medium">Game Boy • N64 • GameCube • Switch</p>
-                    </div>
+                <div class="h-40 bg-gradient-to-b from-red-600/10 to-transparent relative flex flex-col items-center justify-center text-center px-6">
+                    <img src="https://drive.google.com/thumbnail?id=1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O&sz=w1000" class="h-12 object-contain mb-3">
+                    <p class="text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">Game Boy • N64 • GameCube • Switch</p>
                 </div>
                 <div class="p-4 grid grid-cols-3 gap-2">
                     <button onclick="showCategories('Nintendo', 'Consoles')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Consoles</span>
-                        <span class="text-white">12</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Consoles</span>
+                        <span id="count-nintendo-consoles" class="text-white italic">...</span>
                     </button>
                     <button onclick="showCategories('Nintendo', 'Jeux')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Games</span>
-                        <span class="text-white">432</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Jeux</span>
+                        <span id="count-nintendo-jeux" class="text-white italic">...</span>
                     </button>
                     <button onclick="showCategories('Nintendo', 'Accessoires')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Acc.</span>
-                        <span class="text-white">28</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Acc.</span>
+                        <span id="count-nintendo-accessoires" class="text-white italic">...</span>
                     </button>
                 </div>
             </section>
 
             <section class="glass-card rounded-xl overflow-hidden glow-playstation border-blue-500/10">
-                <div class="h-32 bg-gradient-to-r from-blue-600/20 to-transparent relative px-6 flex items-center">
-                    <div class="absolute right-0 top-0 h-full w-1/2 opacity-20 grayscale pointer-events-none overflow-hidden">
-                        <img alt="PlayStation" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOi5qV2TEIVpPaGmqek1wKBwIS1jriKLVyUQAn4HP5LSRwAhzdFJWDoBpCIOg6PBKVf1w0fWjKV8jE-VXWqjlvnf5PAgMEac3_1VgahZIcTRpTTgmoOR6hCN6XVqMZPjKuLQpIitNhQUYEoH-IQhwORP7D5KjEALSuxjsf8M3wZYUOmCWjEPW-hPsVlMiJa2BZ7C6GCKilnQDv0Q0Z9tupnMPQ1q-0Vb80IVFE0undF3n2SqFycoq8HLQUpMG0Mq-HbHSRzO_GRXcU"/>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-white font-bold tracking-tight text-xl uppercase">PlayStation</span>
-                        </div>
-                        <p class="text-slate-300 text-sm font-medium">PS1 • PS2 • PS3 • PS4 • PS5</p>
-                    </div>
+                <div class="h-40 bg-gradient-to-b from-blue-600/10 to-transparent relative flex flex-col items-center justify-center text-center px-6">
+                    <img src="https://drive.google.com/thumbnail?id=1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv&sz=w1000" class="h-12 object-contain mb-3">
+                    <p class="text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">PS1 • PS2 • PS3 • PS4 • PS5</p>
                 </div>
                 <div class="p-4 grid grid-cols-3 gap-2">
                     <button onclick="showCategories('Playstation', 'Consoles')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Consoles</span>
-                        <span class="text-white">8</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Consoles</span>
+                        <span id="count-playstation-consoles" class="text-white italic">...</span>
                     </button>
                     <button onclick="showCategories('Playstation', 'Jeux')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Games</span>
-                        <span class="text-white">215</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Jeux</span>
+                        <span id="count-playstation-jeux" class="text-white italic">...</span>
                     </button>
                     <button onclick="showCategories('Playstation', 'Accessoires')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Acc.</span>
-                        <span class="text-white">14</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Acc.</span>
+                        <span id="count-playstation-accessoires" class="text-white italic">...</span>
                     </button>
                 </div>
             </section>
 
             <section class="glass-card rounded-xl overflow-hidden glow-xbox border-green-500/10">
-                <div class="h-32 bg-gradient-to-r from-green-600/20 to-transparent relative px-6 flex items-center">
-                    <div class="absolute right-0 top-0 h-full w-1/2 opacity-20 grayscale pointer-events-none overflow-hidden">
-                        <img alt="Xbox" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoT2vv2VdDnly_0WsKJrcEH-RC3gRjiE0kXqmE52ZOQL78ke3WwHEKCmMSNL1pJNPb2B7Qqm3nlADz21hh0rl_8bxMEB4D974di_TYuUFcEyD4iYn0M_fBdMFLGHNjn7jmtG6iB75WTwkmzlmWtDvfFSQpW7JXMKQfFRAvdP5APen7u3UwrlaIhVXQ4LUF_g7P3Kr_8gwF0STO9mW68DM2PwaXCS7ME5B8KdJYTrXdAVsvWELI-vs94Tuetluzu22VSsRzok24WirX"/>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-white font-bold tracking-tight text-xl uppercase italic">XBOX</span>
-                        </div>
-                        <p class="text-slate-300 text-sm font-medium">Original • 360</p>
-                    </div>
+                <div class="h-40 bg-gradient-to-b from-green-600/10 to-transparent relative flex flex-col items-center justify-center text-center px-6">
+                    <img src="https://drive.google.com/thumbnail?id=1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv&sz=w1000" class="h-12 object-contain mb-3">
+                    <p class="text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">XBOX ORIGINAL</p>
                 </div>
                 <div class="p-4 grid grid-cols-3 gap-2">
                     <button onclick="showCategories('Xbox', 'Consoles')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Consoles</span>
-                        <span class="text-white">4</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Consoles</span>
+                        <span id="count-xbox-consoles" class="text-white italic">...</span>
                     </button>
                     <button onclick="showCategories('Xbox', 'Jeux')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Games</span>
-                        <span class="text-white">188</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Jeux</span>
+                        <span id="count-xbox-jeux" class="text-white italic">...</span>
                     </button>
                     <button onclick="showCategories('Xbox', 'Accessoires')" class="bg-slate-800/50 text-xs font-bold py-3 rounded-full border border-white/5 flex flex-col items-center">
-                        <span class="text-slate-400 text-[10px] uppercase">Acc.</span>
-                        <span class="text-white">31</span>
+                        <span class="text-slate-400 text-[9px] uppercase mb-1">Acc.</span>
+                        <span id="count-xbox-accessoires" class="text-white italic">...</span>
                     </button>
                 </div>
             </section>
