@@ -332,9 +332,9 @@ window.closeGameDetail = function() {
 window.addEventListener('DOMContentLoaded', () => {
     const content = document.getElementById('app-content');
     if (content) {
-        // Ajout de la pilule au début du contenu
+        // Ajout de la pilule à la fin du contenu (sous Nintendo/Playstation/Xbox)
         const dashboardHtml = `
-            <div class="px-2 mb-8">
+            <div class="px-2 mt-8 mb-12">
                 <button onclick="showCategories('All', 'Stats')" class="w-full glass-card rounded-[2.5rem] p-5 border border-white/10 bg-slate-900/40 flex items-center justify-between active:scale-95 transition-all shadow-xl">
                     <div class="flex items-center gap-4">
                         <div class="size-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
@@ -352,8 +352,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 </button>
             </div>`;
         
-        // On injecte au début si on est sur la vue principale (qui contient Nintendo, etc.)
-        content.insertAdjacentHTML('afterbegin', dashboardHtml);
+        content.insertAdjacentHTML('beforeend', dashboardHtml);
     }
 
     const brands = ['Nintendo', 'Playstation', 'Xbox'];
