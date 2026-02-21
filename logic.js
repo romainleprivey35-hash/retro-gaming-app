@@ -252,7 +252,10 @@ function openProductDetail(data) {
             </div>
         </div>`;
     modal.classList.remove('hidden');
-    // BLOQUE LE SCROLL
+    
+    // BLOCAGE DU SCROLL (Méthode forte)
+    modal.scrollTop = 0;
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
 }
 
@@ -267,8 +270,9 @@ function renderStat(label, value, isProfit = false) {
 
 window.closeGameDetail = function() {
     document.getElementById('game-detail-modal').classList.add('hidden');
-    // RÉACTIVE LE SCROLL
-    document.body.style.overflow = 'auto';
+    // RÉACTIVATION DU SCROLL
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
 };
 
 window.addEventListener('DOMContentLoaded', () => {
