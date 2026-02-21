@@ -10,14 +10,13 @@ function toDirectLink(val) {
     return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w800` : "";
 }
 
-const findIdx = (headers, name) => headers.findIndex(h => h && h.label && h.label.trim().toLowerCase() === name.toLowerCase());
-
+// --- SUPPRESSION DE LA NAV SI BESOIN ---
 document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector('nav');
     if (nav) nav.remove();
 });
 
-// --- FONCTION DE CALCUL CORRIGÉE (INDEX RÉELS) ---
+// --- CALCUL DES STATS (AVEC TES INDEX RÉELS) ---
 async function getStats(brand, sheetName) {
     try {
         const response = await fetch(getUrl(sheetName));
@@ -26,41 +25,32 @@ async function getStats(brand, sheetName) {
         const data = JSON.parse(jsonString);
         const rows = data.table.rows;
         
-        // Tes index réels : Constructeur (1), Achat (10 pour Consoles, 14 pour les autres)
-        let bIdx = 1; 
-        let aIdx = (sheetName === 'Consoles') ? 10 : 14; 
+        let bIdx = 1; // Constructeur (2ème colonne)
+        let aIdx = (sheetName === 'Consoles') ? 10 : 14; // Achat (11ème ou 15ème colonne)
 
         let total = 0, owned = 0;
-
         rows.forEach((r, index) => {
-            // On ignore la première ligne si elle répète les titres des colonnes
-            if (index === 0 && r.c[bIdx] && r.c[bIdx].v === "Constructeur") return;
-
             if (r.c && r.c[bIdx] && r.c[bIdx].v) {
                 const itemBrand = r.c[bIdx].v.toString().trim().toLowerCase();
-                
                 if (itemBrand === brand.toLowerCase()) {
                     total++;
-                    
-                    // Vérification sécurisée de la colonne Achat
                     if (r.c[aIdx] && r.c[aIdx].v) {
                         const achatVal = r.c[aIdx].v.toString().trim().toLowerCase();
-                        if (achatVal === 'oui') {
-                            owned++;
-                        }
+                        // Vérifie si c'est "oui" ou le booléen true (pour les cases à cocher)
+                        if (achatVal === 'oui' || r.c[aIdx].v === true) owned++;
                     }
                 }
             }
         });
         return `${owned} / ${total}`;
-    } catch (e) { 
-        console.error("Erreur calcul stats:", e);
-        return "0 / 0"; 
-    }
+    } catch (e) { return "0 / 0"; }
 }
+
+// --- AFFICHAGE DU MENU CATEGORIES (CORRECTIF IDs) ---
 window.showCategories = async function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
     if (!content) return;
+    
     if (type !== 'Menu') {
         renderListLayout(brand, type);
         loadItems(brand, type);
@@ -72,6 +62,8 @@ window.showCategories = async function(brand, type = 'Menu') {
         'PlayStation': '1XzZYJwDRWiPBpW-16TGYPcTYSGRB-fC0',
         'Xbox': '1SzJdKKuHIv5M3bGNc9noed8mN60fNm9y'
     };
+
+    const bLower = brand.toLowerCase();
 
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
@@ -93,7 +85,7 @@ window.showCategories = async function(brand, type = 'Menu') {
                         <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
                             <span>${cat}</span>
                             <div class="flex items-center gap-3">
-                                <span id="stat-${cat}" class="text-[10px] bg-primary px-3 py-1 rounded-full font-black text-white italic">... / ...</span>
+                                <span id="count-${bLower}-${cat.toLowerCase()}" class="text-[10px] bg-primary px-3 py-1 rounded-full font-black text-white italic">... / ...</span>
                                 <span class="material-symbols-outlined">chevron_right</span>
                             </div>
                         </div>
@@ -101,11 +93,13 @@ window.showCategories = async function(brand, type = 'Menu') {
             </div>
         </div>`;
 
-    document.getElementById('stat-Consoles').innerText = await getStats(brand, 'Consoles');
-    document.getElementById('stat-Jeux').innerText = await getStats(brand, 'Jeux');
-    document.getElementById('stat-Accessoires').innerText = await getStats(brand, 'Accessoires');
+    // Mise à jour des compteurs
+    getStats(brand, 'Consoles').then(res => { if(document.getElementById(`count-${bLower}-consoles`)) document.getElementById(`count-${bLower}-consoles`).innerText = res; });
+    getStats(brand, 'Jeux').then(res => { if(document.getElementById(`count-${bLower}-jeux`)) document.getElementById(`count-${bLower}-jeux`).innerText = res; });
+    getStats(brand, 'Accessoires').then(res => { if(document.getElementById(`count-${bLower}-accessoires`)) document.getElementById(`count-${bLower}-accessoires`).innerText = res; });
 };
 
+// --- LAYOUT DE LA LISTE ---
 function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
     content.innerHTML = `
@@ -125,6 +119,7 @@ function renderListLayout(brand, type) {
         </div>`;
 }
 
+// --- CHARGEMENT DES ITEMS (INDEX RÉELS) ---
 async function loadItems(brand, type) {
     try {
         const response = await fetch(getUrl(type)); 
@@ -135,7 +130,6 @@ async function loadItems(brand, type) {
         const headers = data.table.cols;
         const headerLabels = headers.map(h => h ? h.label : '');
         
-        // Mapping basé sur tes index réels
         const m = {
             titre: 0,
             brand: 1,
@@ -165,7 +159,7 @@ async function loadItems(brand, type) {
             }
         }
         displayGrid(allFetchedItems);
-    } catch (e) { console.error("Erreur Technique:", e); }
+    } catch (e) { console.error("Erreur:", e); }
 }
 
 window.filterByConsole = function(consoleName, colIdx, btn) {
@@ -179,6 +173,7 @@ window.filterByConsole = function(consoleName, colIdx, btn) {
     else { const filtered = allFetchedItems.filter(r => r.c[colIdx] && r.c[colIdx].v === consoleName); displayGrid(filtered); }
 };
 
+// --- GRILLE D'AFFICHAGE ---
 function displayGrid(items) {
     const grid = document.getElementById('items-grid');
     if(!grid) return;
@@ -189,7 +184,7 @@ function displayGrid(items) {
         const imgUrl = toDirectLink((r.c[m.photo] && r.c[m.photo].v) ? r.c[m.photo].v : '');
         const formatInfo = (r.c[m.format] && r.c[m.format].v) ? r.c[m.format].v : ''; 
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
-        const isOwned = (achatStatus && achatStatus.toString().toLowerCase() === 'oui');
+        const isOwned = (achatStatus && achatStatus.toString().toLowerCase() === 'oui' || r.c[m.achat].v === true);
         
         const card = document.createElement('div');
         card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
@@ -207,6 +202,7 @@ function displayGrid(items) {
     });
 }
 
+// --- MODALE DETAILS ---
 function openProductDetail(data) {
     const modal = document.getElementById('game-detail-modal');
     const content = document.getElementById('modal-dynamic-content');
@@ -227,7 +223,7 @@ function openProductDetail(data) {
     }
 
     content.innerHTML = `
-        <div class="flex flex-col w-full bg-background-dark">
+        <div class="flex flex-col w-full bg-background-dark pb-10">
             <div class="w-full bg-black flex items-center justify-center p-4">
                 <img src="${keyArt}" class="w-full h-auto object-contain max-h-[50vh] rounded-xl shadow-2xl">
             </div>
@@ -238,7 +234,7 @@ function openProductDetail(data) {
                     <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Constructeur'] || ''}</p>
                 </div>
             </div>
-            <div class="px-6 mt-8 space-y-8 pb-12 text-center">
+            <div class="px-6 mt-8 space-y-8 text-center">
                 <div class="grid grid-cols-2 gap-4">
                     ${renderStat('État', data['Etat'])}
                     ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : null)}
@@ -246,20 +242,14 @@ function openProductDetail(data) {
                     ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : null, true)}
                 </div>
                 <div class="space-y-3">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex justify-center items-center gap-2 italic">
-                        <span class="material-symbols-outlined text-primary text-lg">description</span> Notes
-                    </h3>
-                    <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 font-medium text-xs text-slate-400 leading-relaxed italic">
-                        ${data['Notes'] || "Aucune note enregistrée."}
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 italic">Notes</h3>
+                    <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 text-xs text-slate-400 italic">
+                        ${data['Notes'] || "Aucune note."}
                     </div>
                 </div>
                 ${imageLoose ? `<div class="space-y-4">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex justify-center items-center gap-2 italic">
-                        <span class="material-symbols-outlined text-primary text-lg">straighten</span> Vue Produit / Loose
-                    </h3>
-                    <div class="rounded-3xl overflow-hidden border border-white/10 bg-black/20 p-2 shadow-2xl flex justify-center">
-                        <img src="${imageLoose}" class="w-full h-auto rounded-2xl">
-                    </div>
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 italic">Vue Produit / Loose</h3>
+                    <img src="${imageLoose}" class="w-full h-auto rounded-2xl shadow-2xl">
                 </div>` : ''}
             </div>
         </div>`;
@@ -269,8 +259,8 @@ function openProductDetail(data) {
 function renderStat(label, value, isProfit = false) {
     if (!value || value === '€' || value === '0€') return '';
     const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
-    return `<div class="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col items-center">
-            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black mb-1 italic">${label}</p>
+    return `<div class="p-4 rounded-2xl bg-white/5 border border-white/5">
+            <p class="text-[9px] text-slate-500 uppercase font-black mb-1 italic">${label}</p>
             <p class="text-xl font-black italic ${color}">${value}</p>
         </div>`;
 }
