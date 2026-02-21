@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (nav) nav.remove();
 });
 
-// --- FONCTION DE CALCUL POUR TES CHIFFRES ../.. ---
+// --- FONCTION DE CALCUL POUR TES NOMBRES (PROPRIÉTÉ 2) ---
 async function getStats(brand, sheetName) {
     try {
         const response = await fetch(getUrl(sheetName));
@@ -48,14 +48,14 @@ window.showCategories = async function(brand, type = 'Menu') {
         return;
     }
 
-    // TES LOGOS DRIVE
+    // LOGOS DRIVE (PROPRIÉTÉ 1)
     const logos = {
         'Nintendo': '1T7p_0-uD4oMvU0F9zI-G6-E6m8j5tY6O',
         'PlayStation': '1O7R_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv',
         'Xbox': '1X7B_vM6Qv_0e-A-o8U6E7v-M6R_vM6Qv'
     };
 
-    // 1. BLOC UNIQUE AVEC LOGO ET NOMS CONSOLES CENTRÉS
+    // 1. BLOC UNIQUE LOGO DRIVE + CONSOLES CENTRÉES
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
             <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
@@ -63,7 +63,7 @@ window.showCategories = async function(brand, type = 'Menu') {
             </button>
         </div>
         <div class="pt-20 px-2">
-            <div class="relative w-full h-44 rounded-3xl overflow-hidden glass-card mb-8 border border-white/10 flex flex-col items-center justify-center text-center p-6">
+            <div class="relative w-full h-44 rounded-3xl overflow-hidden glass-card mb-8 border border-white/10 flex flex-col items-center justify-center text-center p-6 bg-slate-800/30">
                 <img src="https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000" class="h-16 object-contain mb-4">
                 <p class="text-[10px] text-primary font-bold uppercase tracking-widest">NES • SNES • N64 • GC • WII • SWITCH</p>
             </div>
@@ -74,7 +74,7 @@ window.showCategories = async function(brand, type = 'Menu') {
                         <div class="flex justify-between items-center text-white text-xl font-black uppercase italic">
                             <span>${cat}</span>
                             <div class="flex items-center gap-3">
-                                <span id="stat-${cat}" class="text-[10px] bg-primary px-3 py-1 rounded-full font-black text-white">... / ...</span>
+                                <span id="stat-${cat}" class="text-[10px] bg-primary px-3 py-1 rounded-full font-black text-white italic">... / ...</span>
                                 <span class="material-symbols-outlined">chevron_right</span>
                             </div>
                         </div>
@@ -82,14 +82,13 @@ window.showCategories = async function(brand, type = 'Menu') {
             </div>
         </div>`;
 
-    // Lancement du calcul des nombres réels
+    // Mise à jour des nombres sans bloquer l'affichage
     document.getElementById('stat-Consoles').innerText = await getStats(brand, 'Consoles');
     document.getElementById('stat-Jeux').innerText = await getStats(brand, 'Jeux');
     document.getElementById('stat-Accessoires').innerText = await getStats(brand, 'Accessoires');
 };
 
-// --- LE RESTE DE TON CODE (AUCUN CHANGEMENT ICI) ---
-
+// --- LE RESTE DE TON CODE INCHANGÉ ---
 function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
     const headerTitle = document.getElementById('header-title');
