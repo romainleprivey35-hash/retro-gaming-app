@@ -192,7 +192,7 @@ function displayGrid(items) {
         card.innerHTML = `
             <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-black/40 shadow-xl flex items-center justify-center">
                 ${imgUrl ? `<img class="w-full h-full object-contain p-1" src="${imgUrl}" loading="lazy">` : ''}
-                ${isOwned ? '<div class="absolute top-2 right-2 bg-primary text-[8px] font-black px-2 py-1 rounded-full text-white uppercase shadow-lg z-10">OWNED</div>' : ''}
+                ${isOwned ? '<div class="absolute top-2 right-2 flex items-center justify-center size-7 rounded-full bg-primary/80 backdrop-blur-sm text-white shadow-lg z-10 border border-white/20"><span class="material-symbols-outlined !text-[18px] font-bold">workspace_premium</span></div>' : ''}
             </div>
             <div class="px-1 text-center">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
