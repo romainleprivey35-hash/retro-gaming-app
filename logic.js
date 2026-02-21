@@ -269,3 +269,15 @@ window.closeGameDetail = function() {
     document.getElementById('game-detail-modal').classList.add('hidden');
     document.body.style.overflow = 'auto';
 };
+
+// Ajoute ça tout à la fin de ton logic.js pour activer les compteurs au démarrage
+window.addEventListener('DOMContentLoaded', () => {
+    const brands = ['Nintendo', 'Playstation', 'Xbox'];
+    brands.forEach(brand => {
+        const b = brand.toLowerCase();
+        // Remplit les compteurs Consoles, Jeux et Accessoires de la page d'accueil
+        getStats(brand, 'Consoles').then(res => { if(document.getElementById(`count-${b}-consoles`)) document.getElementById(`count-${b}-consoles`).innerText = res; });
+        getStats(brand, 'Jeux').then(res => { if(document.getElementById(`count-${b}-jeux`)) document.getElementById(`count-${b}-jeux`).innerText = res; });
+        getStats(brand, 'Accessoires').then(res => { if(document.getElementById(`count-${b}-accessoires`)) document.getElementById(`count-${b}-accessoires`).innerText = res; });
+    });
+});
