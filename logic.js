@@ -66,13 +66,13 @@ window.showCategories = async function(brand, type = 'Menu') {
     if (type === 'Stats') {
         content.innerHTML = `
             <div class="fixed top-6 left-6 z-50">
-                <button onclick="${brand === 'All' ? 'window.location.reload()' : `showCategories('${brand}', 'Menu')`}" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
+                <button onclick="${brand === 'All' ? 'window.location.reload()' : `showCategories('${brand}', 'Menu')`}" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl">
                     <span class="material-symbols-outlined">arrow_back</span>
                 </button>
             </div>
             <div class="pt-20 px-4 space-y-6 pb-20">
-                <div class="glass-card rounded-[2.5rem] p-8 relative overflow-hidden border border-white/10 bg-slate-900/40 text-center">
-                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic mb-2">Valeur Estimée ${brand === 'All' ? 'Totale' : brand}</p>
+                <div class="glass-card rounded-[2.5rem] p-8 relative overflow-hidden text-center">
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] italic mb-2">Valeur Estimée ${brand === 'All' ? 'Totale' : brand}</p>
                     <h2 id="stat-total-value" class="text-4xl font-black text-white italic">... €</h2>
                     <div class="mt-8 h-24 w-full relative">
                         <svg class="w-full h-full overflow-visible" viewBox="0 0 400 100">
@@ -82,23 +82,23 @@ window.showCategories = async function(brand, type = 'Menu') {
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 text-center">
-                    <div class="glass-card p-6 rounded-3xl border border-white/5 bg-slate-800/40">
-                        <p class="text-[9px] text-slate-500 font-black uppercase italic mb-1">Investi</p>
+                    <div class="glass-card p-6 rounded-3xl">
+                        <p class="text-[9px] text-slate-400 font-black uppercase italic mb-1">Investi</p>
                         <p id="stat-total-spent" class="text-xl font-black text-white italic">... €</p>
                     </div>
-                    <div class="glass-card p-6 rounded-3xl border border-white/5 bg-slate-800/40">
-                        <p class="text-[9px] text-slate-500 font-black uppercase italic mb-1">Plus-Value</p>
+                    <div class="glass-card p-6 rounded-3xl">
+                        <p class="text-[9px] text-slate-400 font-black uppercase italic mb-1">Plus-Value</p>
                         <p id="stat-total-profit" class="text-xl font-black text-emerald-400 italic">... €</p>
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6 border border-white/10 bg-slate-900/40">
+                <div class="glass-card rounded-[2rem] p-6">
                     <div class="flex items-center gap-3 mb-6">
                         <span class="material-symbols-outlined text-primary">donut_large</span>
                         <p class="text-white font-black italic uppercase text-xs tracking-widest">Distribution</p>
                     </div>
                     <div class="flex items-center justify-around">
-                        <div class="size-24 rounded-full border-8 border-primary/20 flex items-center justify-center">
+                        <div class="size-24 rounded-full border-8 border-primary/20 flex items-center justify-center bg-black/20">
                              <span class="text-white font-black italic text-sm">...</span>
                         </div>
                         <div class="space-y-2">
@@ -109,7 +109,7 @@ window.showCategories = async function(brand, type = 'Menu') {
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6 border border-white/10 bg-slate-900/40">
+                <div class="glass-card rounded-[2rem] p-6">
                     <div class="flex items-center gap-3 mb-6">
                         <span class="material-symbols-outlined text-primary">analytics</span>
                         <p class="text-white font-black italic uppercase text-xs tracking-widest">Complétion Librairie</p>
@@ -119,13 +119,13 @@ window.showCategories = async function(brand, type = 'Menu') {
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6 border border-white/10 bg-slate-900/40 flex items-center justify-between">
+                <div class="glass-card rounded-[2rem] p-6 flex items-center justify-between">
                     <div>
-                        <p class="text-slate-500 text-[9px] font-black uppercase italic mb-1 tracking-widest">Plus grosse valeur</p>
+                        <p class="text-slate-400 text-[9px] font-black uppercase italic mb-1 tracking-widest">Plus grosse valeur</p>
                         <p id="top-item-name" class="text-white font-black italic text-sm uppercase">...</p>
                         <p id="top-item-price" class="text-primary font-black italic text-lg mt-1">... €</p>
                     </div>
-                    <div id="top-item-img" class="size-16 rounded-xl bg-black/40 border border-white/10 overflow-hidden"></div>
+                    <div id="top-item-img" class="size-16 rounded-xl bg-black/40 border border-white/10 overflow-hidden shadow-inner"></div>
                 </div>
             </div>`;
         calculateDetailedStats(brand);
