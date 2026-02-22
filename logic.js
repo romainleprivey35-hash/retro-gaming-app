@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (nav) nav.remove();
 });
 
-// --- CALCUL DES STATS (AVEC TES INDEX RÉELS) ---
+// --- CALCUL DES STATS ---
 async function getStats(brand, sheetName) {
     try {
         const response = await fetch(getUrl(sheetName));
@@ -25,11 +25,11 @@ async function getStats(brand, sheetName) {
         const data = JSON.parse(jsonString);
         const rows = data.table.rows;
         
-        let bIdx = 1; // Constructeur (2ème colonne)
-        let aIdx = (sheetName === 'Consoles') ? 10 : 14; // Achat (11ème ou 15ème colonne)
+        let bIdx = 1; 
+        let aIdx = (sheetName === 'Consoles') ? 10 : 14; 
 
         let total = 0, owned = 0;
-        rows.forEach((r, index) => {
+        rows.forEach((r) => {
             if (r.c && r.c[bIdx] && r.c[bIdx].v) {
                 const itemBrand = r.c[bIdx].v.toString().trim().toLowerCase();
                 if (brand === 'All' || itemBrand === brand.toLowerCase()) {
@@ -45,7 +45,7 @@ async function getStats(brand, sheetName) {
     } catch (e) { return "0 / 0"; }
 }
 
-// --- AFFICHAGE DU MENU CATEGORIES (VERSION PILULES + STATS) ---
+// --- AFFICHAGE DU MENU CATEGORIES ---
 window.showCategories = async function(brand, type = 'Menu') {
     const content = document.getElementById('app-content');
     if (!content) return;
@@ -76,7 +76,7 @@ window.showCategories = async function(brand, type = 'Menu') {
                     <h2 id="stat-total-value" class="text-4xl font-black text-white italic">... €</h2>
                     <div class="mt-8 h-24 w-full relative">
                         <svg class="w-full h-full overflow-visible" viewBox="0 0 400 100">
-                            <path d="M0,80 Q50,90 100,50 T200,60 T300,20 T400,40" fill="none" stroke="#9d25f4" stroke-width="4" stroke-linecap="round"></path>
+                            <path d="M0,80 Q50,90 100,50 T200,60 T300,20 T400,40" fill="none" stroke="#b14dff" stroke-width="4" stroke-linecap="round"></path>
                         </svg>
                     </div>
                 </div>
@@ -98,13 +98,13 @@ window.showCategories = async function(brand, type = 'Menu') {
                         <p class="text-white font-black italic uppercase text-xs tracking-widest">Distribution</p>
                     </div>
                     <div class="flex items-center justify-around">
-                        <div class="size-24 rounded-full border-8 border-primary/20 flex items-center justify-center bg-black/20">
+                        <div class="size-24 rounded-full border-8 border-primary/20 flex items-center justify-center bg-white/5">
                              <span class="text-white font-black italic text-sm">...</span>
                         </div>
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 italic uppercase"><div class="size-2 rounded-full bg-primary"></div> Nintendo</div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 italic uppercase"><div class="size-2 rounded-full bg-blue-500"></div> Sony</div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 italic uppercase"><div class="size-2 rounded-full bg-emerald-500"></div> Microsoft</div>
+                        <div class="space-y-2 text-white/70">
+                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-primary shadow-[0_0_8px_#b14dff]"></div> Nintendo</div>
+                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div> Sony</div>
+                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div> Microsoft</div>
                         </div>
                     </div>
                 </div>
@@ -125,7 +125,7 @@ window.showCategories = async function(brand, type = 'Menu') {
                         <p id="top-item-name" class="text-white font-black italic text-sm uppercase">...</p>
                         <p id="top-item-price" class="text-primary font-black italic text-lg mt-1">... €</p>
                     </div>
-                    <div id="top-item-img" class="size-16 rounded-xl bg-black/40 border border-white/10 overflow-hidden shadow-inner"></div>
+                    <div id="top-item-img" class="size-16 rounded-xl bg-white/5 border border-white/10 overflow-hidden shadow-inner flex items-center justify-center"></div>
                 </div>
             </div>`;
         calculateDetailedStats(brand);
@@ -134,18 +134,18 @@ window.showCategories = async function(brand, type = 'Menu') {
 
     content.innerHTML = `
         <div class="fixed top-6 left-6 z-50">
-            <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/10">
+            <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
         </div>
         <div class="pt-20 px-2">
-            <div class="relative w-full rounded-[3.5rem] overflow-hidden glass-card border border-white/10 flex flex-col items-center justify-center text-center p-8 bg-slate-900/50">
+            <div class="relative w-full rounded-[3.5rem] overflow-hidden glass-card flex flex-col items-center justify-center text-center p-8">
                 <div class="h-24 w-full flex items-center justify-center mb-8">
                     <img src="https://drive.google.com/thumbnail?id=${logos[brand]}&sz=w1000" class="max-h-full object-contain">
                 </div>
                 <div class="flex gap-2 mb-8 w-full justify-center">
                     ${['Consoles', 'Jeux', 'Accessoires'].map(cat => `
-                        <button onclick="showCategories('${brand}', '${cat}')" class="bg-slate-800/40 border border-white/5 px-3 py-4 rounded-[2rem] flex flex-col items-center min-w-[90px] active:scale-95 transition-all">
+                        <button onclick="showCategories('${brand}', '${cat}')" class="bg-white/5 border border-white/5 px-3 py-4 rounded-[2rem] flex flex-col items-center min-w-[90px] active:scale-95 transition-all">
                             <span class="text-[8px] text-slate-500 font-black uppercase mb-1 tracking-tighter">${cat === 'Accessoires' ? 'ACC.' : cat.toUpperCase()}</span>
                             <span id="count-${bLower}-${cat.toLowerCase()}" class="text-white text-[11px] font-black italic">...</span>
                         </button>
@@ -201,7 +201,7 @@ function renderListLayout(brand, type) {
     const content = document.getElementById('app-content');
     content.innerHTML = `
         <div class="fixed top-6 left-4 z-50">
-            <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl border border-white/20 backdrop-blur-md">
+            <button onclick="window.location.reload()" class="w-12 h-12 flex items-center justify-center rounded-full glass-card text-white shadow-2xl">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
         </div>
@@ -211,12 +211,12 @@ function renderListLayout(brand, type) {
                 <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
             </div>` : ''}
             <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-10 text-white">
-                <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse">CHARGEMENT...</div>
+                <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse uppercase tracking-widest text-xs">Chargement Collection...</div>
             </div>
         </div>`;
 }
 
-// --- CHARGEMENT DES ITEMS (INDEX RÉELS) ---
+// --- CHARGEMENT DES ITEMS ---
 async function loadItems(brand, type) {
     try {
         const response = await fetch(getUrl(type)); 
@@ -248,7 +248,7 @@ async function loadItems(brand, type) {
             if (filterBar) {
                 filterBar.innerHTML = `<button id="btn-tout" onclick="filterByConsole('TOUT', ${m.console}, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>`;
                 consoles.forEach(c => {
-                    filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap border border-white/10 transition-all">${c}</button>`;
+                    filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap transition-all">${c}</button>`;
                 });
             }
         }
@@ -259,10 +259,10 @@ async function loadItems(brand, type) {
 window.filterByConsole = function(consoleName, colIdx, btn) {
     document.querySelectorAll('.filter-btn').forEach(b => {
         b.classList.remove('bg-primary', 'text-white', 'shadow-lg');
-        b.classList.add('glass-card', 'text-slate-400', 'border-white/10');
+        b.classList.add('glass-card', 'text-slate-400');
     });
     btn.classList.add('bg-primary', 'text-white', 'shadow-lg');
-    btn.classList.remove('glass-card', 'text-slate-400', 'border-white/10');
+    btn.classList.remove('glass-card', 'text-slate-400');
     if (consoleName === 'TOUT') { displayGrid(allFetchedItems); } 
     else { const filtered = allFetchedItems.filter(r => r.c[colIdx] && r.c[colIdx].v === consoleName); displayGrid(filtered); }
 };
@@ -283,7 +283,7 @@ function displayGrid(items) {
         card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
         card.onclick = () => openProductDetail(r.rawData);
         card.innerHTML = `
-            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/5 bg-black/40 shadow-xl flex items-center justify-center">
+            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-xl flex items-center justify-center">
                 ${imgUrl ? `<img class="w-full h-full object-contain p-1" src="${imgUrl}" loading="lazy">` : ''}
                 ${isOwned ? '<div class="absolute top-2 right-2 flex items-center justify-center size-7 rounded-full bg-primary/80 backdrop-blur-sm text-white shadow-lg z-10 border border-white/20"><span class="material-symbols-outlined !text-[18px] font-bold">workspace_premium</span></div>' : ''}
             </div>
@@ -308,18 +308,18 @@ function openProductDetail(data) {
     const consoleVal = data['Console'] || data['Console Associée'] || '';
     let badgesHtml = '';
     if (data['_type'] === 'Consoles') {
-        if (anneeVal) badgesHtml = `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${anneeVal}</span>`;
+        if (anneeVal) badgesHtml = `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic shadow-[0_0_10px_#b14dff66]">${anneeVal}</span>`;
     } else {
-        if (consoleVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic">${consoleVal}</span>`;
-        if (anneeVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-slate-800/50 text-slate-300 text-[10px] font-black uppercase italic">${anneeVal}</span>`;
+        if (consoleVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic shadow-[0_0_10px_#b14dff66]">${consoleVal}</span>`;
+        if (anneeVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-white/10 text-white/70 text-[10px] font-black uppercase italic">${anneeVal}</span>`;
     }
     content.innerHTML = `
-        <div class="flex flex-col w-full bg-background-dark pb-10">
+        <div class="flex flex-col w-full bg-black pb-10">
             <div class="w-full bg-black flex items-center justify-center p-4">
-                <img src="${keyArt}" class="w-full h-auto object-contain max-h-[50vh] rounded-xl shadow-2xl">
+                <img src="${keyArt}" class="w-full h-auto object-contain max-h-[50vh] rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)]">
             </div>
             <div class="px-6 -mt-4 relative z-10">
-                <div class="p-6 rounded-2xl glass-panel border border-primary/20 shadow-2xl flex flex-col items-center text-center">
+                <div class="p-6 rounded-2xl glass-card border border-primary/40 shadow-2xl flex flex-col items-center text-center">
                     <div class="flex flex-wrap justify-center gap-2 mb-4">${badgesHtml}</div>
                     ${logoNom ? `<img src="${logoNom}" class="h-16 w-auto max-w-full object-contain mb-3 mx-auto">` : `<h2 class="text-2xl font-black text-white mb-2 uppercase italic leading-tight">${data['Titre'] || data['Nom'] || 'Détails'}</h2>`}
                     <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Constructeur'] || ''}</p>
@@ -333,14 +333,14 @@ function openProductDetail(data) {
                     ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : null, true)}
                 </div>
                 <div class="space-y-3">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 italic">Notes</h3>
-                    <div class="p-5 rounded-2xl bg-slate-900/50 border border-white/5 text-xs text-slate-400 italic">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 italic">Notes</h3>
+                    <div class="p-5 rounded-2xl bg-white/5 border border-white/5 text-xs text-white/60 italic">
                         ${data['Notes'] || "Aucune note."}
                     </div>
                 </div>
                 ${imageLoose ? `<div class="space-y-4">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 italic">Vue Produit / Loose</h3>
-                    <img src="${imageLoose}" class="w-full h-auto rounded-2xl shadow-2xl">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 italic">Vue Produit / Loose</h3>
+                    <img src="${imageLoose}" class="w-full h-auto rounded-2xl shadow-2xl border border-white/5">
                 </div>` : ''}
             </div>
         </div>`;
@@ -353,8 +353,8 @@ function openProductDetail(data) {
 function renderStat(label, value, isProfit = false) {
     if (!value || value === '€' || value === '0€') return '';
     const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
-    return `<div class="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p class="text-[9px] text-slate-500 uppercase font-black mb-1 italic">${label}</p>
+    return `<div class="p-4 rounded-2xl bg-white/5 border border-white/10 shadow-lg">
+            <p class="text-[9px] text-white/40 uppercase font-black mb-1 italic">${label}</p>
             <p class="text-xl font-black italic ${color}">${value}</p>
         </div>`;
 }
@@ -365,21 +365,20 @@ window.closeGameDetail = function() {
     document.body.style.overflow = '';
 };
 
-// --- INITIALISATION ACCUEIL AVEC LA PILULE TABLEAU DE BORD ---
+// --- INITIALISATION ACCUEIL ---
 window.addEventListener('DOMContentLoaded', () => {
     const content = document.getElementById('app-content');
     if (content) {
-        // Ajout de la pilule à la fin du contenu (sous Nintendo/Playstation/Xbox)
         const dashboardHtml = `
             <div class="px-2 mt-8 mb-12">
-                <button onclick="showCategories('All', 'Stats')" class="w-full glass-card rounded-[2.5rem] p-5 border border-white/10 bg-slate-900/40 flex items-center justify-between active:scale-95 transition-all shadow-xl">
+                <button onclick="showCategories('All', 'Stats')" class="w-full glass-card rounded-[2.5rem] p-5 flex items-center justify-between active:scale-95 transition-all shadow-xl">
                     <div class="flex items-center gap-4">
-                        <div class="size-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+                        <div class="size-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shadow-[0_0_15px_rgba(157,37,244,0.2)]">
                             <span class="material-symbols-outlined text-primary">analytics</span>
                         </div>
                         <div class="text-left">
                             <p class="text-white font-black italic uppercase text-[13px] leading-none tracking-tight">Tableau de Bord</p>
-                            <p class="text-slate-500 text-[9px] font-bold uppercase italic mt-1 tracking-widest">Valeur & Stats Globales</p>
+                            <p class="text-white/40 text-[9px] font-bold uppercase italic mt-1 tracking-widest">Valeur & Stats Globales</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
