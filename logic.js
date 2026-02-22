@@ -302,45 +302,72 @@ function openProductDetail(data) {
     const keyArt = toDirectLink(data['Key art'] || data['Photo'] || data['Jaquette']);
     const logoNom = toDirectLink(data['Logo Nom']);
     const imageLoose = toDirectLink(data['Image Jeux loose']);
-    const keys = Object.keys(data);
-    const anneeKey = keys.find(k => k.toLowerCase().includes('année'));
-    const anneeVal = anneeKey ? data[anneeKey] : '';
-    const consoleVal = data['Console'] || data['Console Associée'] || '';
-    let badgesHtml = '';
-    if (data['_type'] === 'Consoles') {
-        if (anneeVal) badgesHtml = `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic shadow-[0_0_10px_#b14dff66]">${anneeVal}</span>`;
-    } else {
-        if (consoleVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase italic shadow-[0_0_10px_#b14dff66]">${consoleVal}</span>`;
-        if (anneeVal) badgesHtml += `<span class="px-4 py-1 rounded-full bg-white/10 text-white/70 text-[10px] font-black uppercase italic">${anneeVal}</span>`;
+    
+    // Logique des étoiles pour l'état
+    const etat = (data['Etat'] || "").toLowerCase();
+    const isOwned = (data['Achat'] === 'oui' || data['Achat'] === true);
+    let stars = 0;
+    if (etat.includes("neuf")) stars = 5;
+    else if (etat.includes("tres bon")) stars = 4;
+    else if (etat.includes("bon")) stars = 3;
+    else if (etat.includes("correct")) stars = 2;
+    else if (etat.includes("mauvais")) stars = 1;
+
+    let starsHtml = "";
+    for(let i=1; i<=5; i++) {
+        const color = isOwned ? (i <= stars ? "text-yellow-400" : "text-white/20") : "text-white/10";
+        starsHtml += `<span class="material-symbols-outlined ${color} !text-2xl">star</span>`;
     }
+
     content.innerHTML = `
         <div class="flex flex-col w-full bg-black pb-10">
             <div class="w-full bg-black flex items-center justify-center p-4">
-                <img src="${keyArt}" class="w-full h-auto object-contain max-h-[50vh] rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+                <img src="${keyArt}" class="w-full h-auto object-contain max-h-[45vh] rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)]">
             </div>
-            <div class="px-6 -mt-4 relative z-10">
-                <div class="p-6 rounded-2xl glass-card border border-primary/40 shadow-2xl flex flex-col items-center text-center">
-                    <div class="flex flex-wrap justify-center gap-2 mb-4">${badgesHtml}</div>
+
+            <div class="px-6 -mt-4 relative z-10 space-y-4">
+                <div class="p-6 rounded-3xl glass-card border border-primary/40 flex flex-col items-center text-center">
                     ${logoNom ? `<img src="${logoNom}" class="h-16 w-auto max-w-full object-contain mb-3 mx-auto">` : `<h2 class="text-2xl font-black text-white mb-2 uppercase italic leading-tight">${data['Titre'] || data['Nom'] || 'Détails'}</h2>`}
-                    <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Constructeur'] || ''}</p>
+                    <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Console'] || data['Constructeur'] || ''}</p>
                 </div>
-            </div>
-            <div class="px-6 mt-8 space-y-8 text-center">
-                <div class="grid grid-cols-2 gap-4">
-                    ${renderStat('État', data['Etat'])}
-                    ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : null)}
-                    ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : null)}
-                    ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : null, true)}
+
+                <div class="w-full py-4 rounded-3xl glass-card border border-white/10 flex flex-col items-center justify-center bg-white/5">
+                    <p class="text-[9px] text-white/40 uppercase font-black mb-1 italic">État du produit</p>
+                    <div class="flex gap-1">${starsHtml}</div>
+                    <p class="text-[10px] text-white/60 font-bold uppercase mt-1 italic">${data['Etat'] || 'Non spécifié'}</p>
                 </div>
-                <div class="space-y-3">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 italic">Notes</h3>
-                    <div class="p-5 rounded-2xl bg-white/5 border border-white/5 text-xs text-white/60 italic">
+
+                <div class="grid grid-cols-2 gap-3">
+                    ${renderStat('Format', data['Format'])}
+                    ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : '-')}
+                    ${renderStat('Cote Jour Achat', data['Cote jour achat'] ? data['Cote jour achat'] + '€' : '-')}
+                    ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : '-', true)}
+                    ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : '-')}
+                    ${renderStat('Cote +1 Mois', data['Cote + 1 mois'] ? data['Cote + 1 mois'] + '€' : '-')}
+                </div>
+
+                <div class="w-full p-6 rounded-3xl glass-card border border-white/10 bg-white/5">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-[9px] text-white/40 uppercase font-black italic">Évolution 12 mois</p>
+                        <span class="text-emerald-400 text-[10px] font-black italic">+12.5%</span>
+                    </div>
+                    <div class="h-20 w-full relative">
+                        <svg class="w-full h-full overflow-visible" viewBox="0 0 400 100">
+                            <path d="M0,80 Q50,90 100,50 T200,60 T300,20 T400,40" fill="none" stroke="#b14dff" stroke-width="4" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="space-y-2 text-center">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 italic">Notes & Observations</h3>
+                    <div class="p-5 rounded-3xl bg-white/5 border border-white/5 text-xs text-white/70 italic leading-relaxed text-center">
                         ${data['Notes'] || "Aucune note."}
                     </div>
                 </div>
-                ${imageLoose ? `<div class="space-y-4">
+
+                ${imageLoose ? `<div class="space-y-4 pt-4 text-center">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 italic">Vue Produit / Loose</h3>
-                    <img src="${imageLoose}" class="w-full h-auto rounded-2xl shadow-2xl border border-white/5">
+                    <img src="${imageLoose}" class="w-full h-auto rounded-3xl shadow-2xl border border-white/10 mx-auto">
                 </div>` : ''}
             </div>
         </div>`;
