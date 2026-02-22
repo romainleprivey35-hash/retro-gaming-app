@@ -70,7 +70,7 @@ window.showCategories = async function(brand, type = 'Menu') {
                     <span class="material-symbols-outlined">arrow_back</span>
                 </button>
             </div>
-            <div class="pt-20 px-4 space-y-6">
+            <div class="pt-20 px-4 space-y-6 pb-20">
                 <div class="glass-card rounded-[2.5rem] p-8 relative overflow-hidden border border-white/10 bg-slate-900/40 text-center">
                     <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic mb-2">Valeur Estimée ${brand === 'All' ? 'Totale' : brand}</p>
                     <h2 id="stat-total-value" class="text-4xl font-black text-white italic">... €</h2>
@@ -80,6 +80,7 @@ window.showCategories = async function(brand, type = 'Menu') {
                         </svg>
                     </div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-4 text-center">
                     <div class="glass-card p-6 rounded-3xl border border-white/5 bg-slate-800/40">
                         <p class="text-[9px] text-slate-500 font-black uppercase italic mb-1">Investi</p>
@@ -89,6 +90,42 @@ window.showCategories = async function(brand, type = 'Menu') {
                         <p class="text-[9px] text-slate-500 font-black uppercase italic mb-1">Plus-Value</p>
                         <p id="stat-total-profit" class="text-xl font-black text-emerald-400 italic">... €</p>
                     </div>
+                </div>
+
+                <div class="glass-card rounded-[2rem] p-6 border border-white/10 bg-slate-900/40">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-primary">donut_large</span>
+                        <p class="text-white font-black italic uppercase text-xs tracking-widest">Distribution</p>
+                    </div>
+                    <div class="flex items-center justify-around">
+                        <div class="size-24 rounded-full border-8 border-primary/20 flex items-center justify-center">
+                             <span class="text-white font-black italic text-sm">...</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 italic uppercase"><div class="size-2 rounded-full bg-primary"></div> Nintendo</div>
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 italic uppercase"><div class="size-2 rounded-full bg-blue-500"></div> Sony</div>
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 italic uppercase"><div class="size-2 rounded-full bg-emerald-500"></div> Microsoft</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-[2rem] p-6 border border-white/10 bg-slate-900/40">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-primary">analytics</span>
+                        <p class="text-white font-black italic uppercase text-xs tracking-widest">Complétion Librairie</p>
+                    </div>
+                    <div class="space-y-4" id="completion-bars">
+                        <div class="text-center text-slate-500 italic text-[10px]">Chargement des objectifs...</div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-[2rem] p-6 border border-white/10 bg-slate-900/40 flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-500 text-[9px] font-black uppercase italic mb-1 tracking-widest">Plus grosse valeur</p>
+                        <p id="top-item-name" class="text-white font-black italic text-sm uppercase">...</p>
+                        <p id="top-item-price" class="text-primary font-black italic text-lg mt-1">... €</p>
+                    </div>
+                    <div id="top-item-img" class="size-16 rounded-xl bg-black/40 border border-white/10 overflow-hidden"></div>
                 </div>
             </div>`;
         calculateDetailedStats(brand);
