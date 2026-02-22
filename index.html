@@ -16,15 +16,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <script id="tailwind-config">
+   <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#9d25f4",
+                        "primary": "#b14dff", // Violet plus vibrant/néon
                         "background-light": "#f7f5f8",
-                        "background-dark": "#352B42",
+                        "background-dark": "#000000", // Noir Pur OLED
                     },
                     fontFamily: {
                         "display": ["Space Grotesk"]
@@ -34,16 +34,16 @@
             },
         }
     </script>
-    <style>
-        html, body { overflow-x: hidden; margin: 0; background: #1a1022; }
-        
-        .glass-card {
-    background: rgba(255, 255, 255, 0.08); /* Plus d'opacité pour le fond */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.25); /* Bordure beaucoup plus marquée */
-}
-
+   <style>
+    html, body { overflow-x: hidden; margin: 0; background: #000000; }
+    
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(157, 37, 244, 0.4); /* Bordure Violet Néon Stitch */
+    }
+</style>
         .glass-panel {
             background: rgba(26, 16, 34, 0.6);
             backdrop-filter: blur(20px);
