@@ -109,22 +109,22 @@ window.showCategories = async function(brand, type = 'Menu') {
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6 overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6">
+                <div class="glass-card rounded-[2rem] py-6 overflow-hidden">
+                    <div class="flex items-center gap-3 mb-6 px-6">
                         <span class="material-symbols-outlined text-primary">emoji_events</span>
                         <p class="text-white font-black italic uppercase text-xs tracking-widest">Hall of Fame (Possédés)</p>
                     </div>
-                    <div id="owned-rankings" class="flex overflow-x-auto gap-4 no-scrollbar scroll-smooth p-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <div id="owned-rankings" class="flex overflow-x-auto gap-6 px-6 no-scrollbar snap-x snap-mandatory" style="scrollbar-width: none; -ms-overflow-style: none;">
                         <div class="text-center text-slate-500 italic text-[10px] py-4 w-full">Analyse...</div>
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6 overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6">
+                <div class="glass-card rounded-[2rem] py-6 overflow-hidden">
+                    <div class="flex items-center gap-3 mb-6 px-6">
                         <span class="material-symbols-outlined text-amber-400">priority_high</span>
                         <p class="text-white font-black italic uppercase text-xs tracking-widest">Priorités d'Achat (Manquants)</p>
                     </div>
-                    <div id="wishlist-rankings" class="flex overflow-x-auto gap-4 no-scrollbar scroll-smooth p-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <div id="wishlist-rankings" class="flex overflow-x-auto gap-6 px-6 no-scrollbar snap-x snap-mandatory" style="scrollbar-width: none; -ms-overflow-style: none;">
                         <div class="text-center text-slate-500 italic text-[10px] py-4 w-full">Analyse...</div>
                     </div>
                 </div>
@@ -223,7 +223,7 @@ async function calculateDetailedStats(brand) {
     renderRankings(allOwnedItems, allWishlistItems);
 }
 
-// --- CLASSEMENT DES MEILLEURS PRODUITS (CARROUSELS) ---
+// --- CLASSEMENT DES MEILLEURS PRODUITS (CARROUSELS PAR CATEGORIE) ---
 function renderRankings(ownedData, wishData) {
     const ownedContainer = document.getElementById('owned-rankings');
     const wishlistContainer = document.getElementById('wishlist-rankings');
@@ -231,38 +231,44 @@ function renderRankings(ownedData, wishData) {
     
     const sortFn = (a, b) => b.cote - a.cote;
 
-    const generateCarouselHTML = (data, cats) => {
-        let itemsToDisplay = [];
-        cats.forEach(c => {
-            const sorted = data[c.name].sort(sortFn).slice(0, c.limit);
-            itemsToDisplay = itemsToDisplay.concat(sorted);
-        });
+    const generateCategorySections = (data) => {
+        const cats = [
+            { label: 'JEUX', key: 'Jeux', limit: 10 },
+            { label: 'CONSOLES', key: 'Consoles', limit: 10 },
+            { label: 'ACCESSOIRES', key: 'Accessoires', limit: 10 }
+        ];
 
-        if (itemsToDisplay.length === 0) return `<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit trouvé</div>`;
+        return cats.map(cat => {
+            const sortedItems = data[cat.key].sort(sortFn).slice(0, cat.limit);
+            if (sortedItems.length === 0) return '';
 
-        return itemsToDisplay.map((item, idx) => `
-            <div onclick='openProductDetail(${JSON.stringify(item.rawData)})' class="flex-none w-48 space-y-3 bg-white/5 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all">
-                <div class="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-black/20 shadow-inner">
-                    <img src="${toDirectLink(item.photo)}" class="w-full h-full object-cover">
-                    <div class="absolute top-2 left-2 size-6 rounded-full bg-primary/80 backdrop-blur-md flex items-center justify-center text-[10px] font-black italic text-white shadow-lg">#${idx + 1}</div>
-                </div>
-                <div class="px-1">
-                    <p class="text-[11px] font-bold text-white truncate uppercase italic leading-tight">${item.titre}</p>
-                    <div class="flex justify-between items-center mt-2">
-                        <p class="text-[9px] text-white/40 font-black uppercase italic">${item.etat || 'N/A'}</p>
-                        <p class="text-[11px] font-black text-primary italic">${item.cote}€</p>
+            return `
+                <div class="flex-none w-[85vw] snap-center">
+                    <p class="text-[9px] font-black text-primary uppercase italic mb-4 tracking-[0.3em]">${cat.label} TOP ${sortedItems.length}</p>
+                    <div class="flex flex-col gap-3">
+                        ${sortedItems.map((item, idx) => `
+                            <div onclick='openProductDetail(${JSON.stringify(item.rawData)})' class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98] transition-all">
+                                <div class="relative size-16 flex-none rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                                    <img src="${toDirectLink(item.photo)}" class="w-full h-full object-cover">
+                                    <div class="absolute top-0 left-0 size-5 bg-primary flex items-center justify-center text-[8px] font-black text-white rounded-br-lg">#${idx + 1}</div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[11px] font-bold text-white truncate uppercase italic">${item.titre}</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <p class="text-[8px] text-white/40 font-black uppercase italic">${item.etat || 'N/A'}</p>
+                                        <p class="text-[10px] font-black text-primary italic">${item.cote}€</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     };
 
-    // Configuration des carrousels
-    const ownedCats = [{ name: 'Jeux', limit: 10 }, { name: 'Consoles', limit: 5 }, { name: 'Accessoires', limit: 5 }];
-    const wishCats = [{ name: 'Jeux', limit: 10 }, { name: 'Consoles', limit: 5 }, { name: 'Accessoires', limit: 5 }];
-
-    ownedContainer.innerHTML = generateCarouselHTML(ownedData, ownedCats);
-    wishlistContainer.innerHTML = generateCarouselHTML(wishData, wishCats);
+    ownedContainer.innerHTML = generateCategorySections(ownedData) || '<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit</div>';
+    wishlistContainer.innerHTML = generateCategorySections(wishData) || '<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit</div>';
 }
 
 // --- LAYOUT DE LA LISTE ---
