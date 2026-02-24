@@ -119,9 +119,9 @@ window.showCategories = async function(brand, type = 'Menu') {
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6 flex items-center justify-between">
+                <div class="glass-card rounded-[2rem] p-6 flex items-center justify-between" id="priority-block">
                     <div>
-                        <p class="text-slate-400 text-[9px] font-black uppercase italic mb-1 tracking-widest">Plus grosse valeur</p>
+                        <p class="text-slate-400 text-[9px] font-black uppercase italic mb-1 tracking-widest">Priorité d'Achat</p>
                         <p id="top-item-name" class="text-white font-black italic text-sm uppercase">...</p>
                         <p id="top-item-price" class="text-primary font-black italic text-lg mt-1">... €</p>
                     </div>
@@ -170,6 +170,7 @@ window.showCategories = async function(brand, type = 'Menu') {
 async function calculateDetailedStats(brand) {
     let tValue = 0, tSpent = 0;
     let allOwnedItems = { Jeux: [], Consoles: [], Accessoires: [] };
+    let allWishlistItems = { Jeux: [], Consoles: [], Accessoires: [] };
     const sheets = ['Consoles', 'Jeux', 'Accessoires'];
     
     for (const s of sheets) {
@@ -192,19 +193,22 @@ async function calculateDetailedStats(brand) {
                     const isOwned = (r.c[aIdx] && (r.c[aIdx].v.toString().toLowerCase() === 'oui' || r.c[aIdx].v === true));
                     const cote = r.c[cIdx] ? parseFloat(r.c[cIdx].v) || 0 : 0;
                     const prix = r.c[pIdx] ? parseFloat(r.c[pIdx].v) || 0 : 0;
-                    tValue += cote;
-                    tSpent += prix;
+
+                    let itemObj = {
+                        titre: r.c[0] ? r.c[0].v : 'Inconnu',
+                        cote: cote,
+                        etat: r.c[s === 'Consoles' ? 10 : 11] ? r.c[s === 'Consoles' ? 10 : 11].v : '',
+                        photo: r.c[photoIdx] ? r.c[photoIdx].v : '',
+                        rawData: {}
+                    };
+                    r.c.forEach((cell, i) => { if(headers[i]) itemObj.rawData[headers[i]] = cell ? cell.v : ''; });
 
                     if (isOwned) {
-                        let itemObj = {
-                            titre: r.c[0] ? r.c[0].v : 'Inconnu',
-                            cote: cote,
-                            etat: r.c[s === 'Consoles' ? 10 : 11] ? r.c[s === 'Consoles' ? 10 : 11].v : '', // Correction index Etat
-                            photo: r.c[photoIdx] ? r.c[photoIdx].v : '',
-                            rawData: {}
-                        };
-                        r.c.forEach((cell, i) => { if(headers[i]) itemObj.rawData[headers[i]] = cell ? cell.v : ''; });
+                        tValue += cote;
+                        tSpent += prix;
                         allOwnedItems[s].push(itemObj);
+                    } else {
+                        allWishlistItems[s].push(itemObj);
                     }
                 }
             });
@@ -215,20 +219,22 @@ async function calculateDetailedStats(brand) {
     document.getElementById('stat-total-spent').innerText = `${tSpent.toLocaleString()} €`;
     document.getElementById('stat-total-profit').innerText = `${profit > 0 ? '+' : ''}${profit.toLocaleString()} €`;
 
-    renderRankings(allOwnedItems);
+    renderRankings(allOwnedItems, allWishlistItems);
 }
 
 // --- CLASSEMENT DES MEILLEURS PRODUITS ---
-function renderRankings(data) {
+function renderRankings(ownedData, wishData) {
     const container = document.getElementById('top-rankings');
+    const priorityBlock = document.getElementById('priority-block');
     if(!container) return;
     
     const sortFn = (a, b) => b.cote - a.cote || (b.etat.length - a.etat.length);
 
+    // 1. Affichage du Top Rareté (Possédés)
     const categories = [
-        { name: 'Jeux', limit: 10, items: data.Jeux.sort(sortFn) },
-        { name: 'Consoles', limit: 5, items: data.Consoles.sort(sortFn) },
-        { name: 'Accessoires', limit: 5, items: data.Accessoires.sort(sortFn) }
+        { name: 'Jeux', limit: 10, items: ownedData.Jeux.sort(sortFn) },
+        { name: 'Consoles', limit: 5, items: ownedData.Consoles.sort(sortFn) },
+        { name: 'Accessoires', limit: 5, items: ownedData.Accessoires.sort(sortFn) }
     ];
 
     container.innerHTML = categories.map(cat => `
@@ -253,6 +259,20 @@ function renderRankings(data) {
             </div>
         </div>
     `).join('');
+
+    // 2. Affichage de la Priorité d'Achat (Le plus cher de la Wishlist)
+    const allWishlist = [...wishData.Jeux, ...wishData.Consoles, ...wishData.Accessoires].sort(sortFn);
+    const priorityItem = allWishlist[0];
+
+    if (priorityItem && priorityBlock) {
+        document.getElementById('top-item-name').innerText = priorityItem.titre;
+        document.getElementById('top-item-price').innerText = `${priorityItem.cote} €`;
+        document.getElementById('top-item-img').innerHTML = `<img src="${toDirectLink(priorityItem.photo)}" class="w-full h-full object-cover">`;
+        
+        // Rendre le bloc interactif
+        priorityBlock.onclick = () => openProductDetail(priorityItem.rawData);
+        priorityBlock.classList.add('cursor-pointer', 'active:scale-95', 'transition-all');
+    }
 }
 
 // --- LAYOUT DE LA LISTE ---
@@ -362,10 +382,8 @@ function openProductDetail(data) {
     const logoNom = toDirectLink(data['Logo Nom']);
     const imageLoose = toDirectLink(data['Image Jeux loose']);
     
-    // Récupération dynamique de l'année selon l'onglet
     const annee = data['Année de Sortie'] || data['Année'];
     
-    // Logique des étoiles pour l'état
     const etat = (data['Etat'] || "").toLowerCase();
     const isOwned = (data['Achat'] === 'oui' || data['Achat'] === true);
     let stars = 0;
