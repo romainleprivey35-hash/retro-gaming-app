@@ -109,23 +109,24 @@ window.showCategories = async function(brand, type = 'Menu') {
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6">
+                <div class="glass-card rounded-[2rem] p-6 overflow-hidden">
                     <div class="flex items-center gap-3 mb-6">
                         <span class="material-symbols-outlined text-primary">emoji_events</span>
-                        <p class="text-white font-black italic uppercase text-xs tracking-widest">Classement Rareté</p>
+                        <p class="text-white font-black italic uppercase text-xs tracking-widest">Hall of Fame (Possédés)</p>
                     </div>
-                    <div class="space-y-6" id="top-rankings">
-                        <div class="text-center text-slate-500 italic text-[10px] py-4">Analyse de la collection...</div>
+                    <div id="owned-rankings" class="flex overflow-x-auto gap-4 no-scrollbar scroll-smooth p-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+                        <div class="text-center text-slate-500 italic text-[10px] py-4 w-full">Analyse...</div>
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6 flex items-center justify-between" id="priority-block">
-                    <div>
-                        <p class="text-slate-400 text-[9px] font-black uppercase italic mb-1 tracking-widest">Priorité d'Achat</p>
-                        <p id="top-item-name" class="text-white font-black italic text-sm uppercase">...</p>
-                        <p id="top-item-price" class="text-primary font-black italic text-lg mt-1">... €</p>
+                <div class="glass-card rounded-[2rem] p-6 overflow-hidden">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-amber-400">priority_high</span>
+                        <p class="text-white font-black italic uppercase text-xs tracking-widest">Priorités d'Achat (Manquants)</p>
                     </div>
-                    <div id="top-item-img" class="size-16 rounded-xl bg-white/5 border border-white/10 overflow-hidden shadow-inner flex items-center justify-center"></div>
+                    <div id="wishlist-rankings" class="flex overflow-x-auto gap-4 no-scrollbar scroll-smooth p-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+                        <div class="text-center text-slate-500 italic text-[10px] py-4 w-full">Analyse...</div>
+                    </div>
                 </div>
             </div>`;
         calculateDetailedStats(brand);
@@ -222,57 +223,46 @@ async function calculateDetailedStats(brand) {
     renderRankings(allOwnedItems, allWishlistItems);
 }
 
-// --- CLASSEMENT DES MEILLEURS PRODUITS ---
+// --- CLASSEMENT DES MEILLEURS PRODUITS (CARROUSELS) ---
 function renderRankings(ownedData, wishData) {
-    const container = document.getElementById('top-rankings');
-    const priorityBlock = document.getElementById('priority-block');
-    if(!container) return;
+    const ownedContainer = document.getElementById('owned-rankings');
+    const wishlistContainer = document.getElementById('wishlist-rankings');
+    if(!ownedContainer || !wishlistContainer) return;
     
-    const sortFn = (a, b) => b.cote - a.cote || (b.etat.length - a.etat.length);
+    const sortFn = (a, b) => b.cote - a.cote;
 
-    // 1. Affichage du Top Rareté (Possédés)
-    const categories = [
-        { name: 'Jeux', limit: 10, items: ownedData.Jeux.sort(sortFn) },
-        { name: 'Consoles', limit: 5, items: ownedData.Consoles.sort(sortFn) },
-        { name: 'Accessoires', limit: 5, items: ownedData.Accessoires.sort(sortFn) }
-    ];
+    const generateCarouselHTML = (data, cats) => {
+        let itemsToDisplay = [];
+        cats.forEach(c => {
+            const sorted = data[c.name].sort(sortFn).slice(0, c.limit);
+            itemsToDisplay = itemsToDisplay.concat(sorted);
+        });
 
-    container.innerHTML = categories.map(cat => `
-        <div class="space-y-3">
-            <div class="flex justify-between items-end border-b border-white/5 pb-2">
-                <p class="text-[10px] font-black text-primary uppercase italic tracking-[0.1em]">Top ${cat.limit} ${cat.name}</p>
-            </div>
-            <div class="space-y-2">
-                ${cat.items.slice(0, cat.limit).map((item, idx) => `
-                    <div onclick='openProductDetail(${JSON.stringify(item.rawData)})' class="flex items-center gap-3 p-2 rounded-2xl bg-white/5 active:scale-95 transition-all">
-                        <div class="size-8 rounded-lg bg-black/40 flex items-center justify-center text-[10px] font-black italic text-white/40">#${idx + 1}</div>
-                        <div class="size-10 rounded-lg overflow-hidden border border-white/10">
-                            <img src="${toDirectLink(item.photo)}" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[11px] font-bold text-white truncate uppercase italic leading-tight">${item.titre}</p>
-                            <p class="text-[9px] text-white/40 font-black uppercase italic">${item.etat || ''}</p>
-                        </div>
-                        <p class="text-[12px] font-black text-primary italic">${item.cote}€</p>
+        if (itemsToDisplay.length === 0) return `<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit trouvé</div>`;
+
+        return itemsToDisplay.map((item, idx) => `
+            <div onclick='openProductDetail(${JSON.stringify(item.rawData)})' class="flex-none w-48 space-y-3 bg-white/5 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all">
+                <div class="relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 bg-black/20 shadow-inner">
+                    <img src="${toDirectLink(item.photo)}" class="w-full h-full object-cover">
+                    <div class="absolute top-2 left-2 size-6 rounded-full bg-primary/80 backdrop-blur-md flex items-center justify-center text-[10px] font-black italic text-white shadow-lg">#${idx + 1}</div>
+                </div>
+                <div class="px-1">
+                    <p class="text-[11px] font-bold text-white truncate uppercase italic leading-tight">${item.titre}</p>
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-[9px] text-white/40 font-black uppercase italic">${item.etat || 'N/A'}</p>
+                        <p class="text-[11px] font-black text-primary italic">${item.cote}€</p>
                     </div>
-                `).join('')}
+                </div>
             </div>
-        </div>
-    `).join('');
+        `).join('');
+    };
 
-    // 2. Affichage de la Priorité d'Achat (Le plus cher de la Wishlist)
-    const allWishlist = [...wishData.Jeux, ...wishData.Consoles, ...wishData.Accessoires].sort(sortFn);
-    const priorityItem = allWishlist[0];
+    // Configuration des carrousels
+    const ownedCats = [{ name: 'Jeux', limit: 10 }, { name: 'Consoles', limit: 5 }, { name: 'Accessoires', limit: 5 }];
+    const wishCats = [{ name: 'Jeux', limit: 10 }, { name: 'Consoles', limit: 5 }, { name: 'Accessoires', limit: 5 }];
 
-    if (priorityItem && priorityBlock) {
-        document.getElementById('top-item-name').innerText = priorityItem.titre;
-        document.getElementById('top-item-price').innerText = `${priorityItem.cote} €`;
-        document.getElementById('top-item-img').innerHTML = `<img src="${toDirectLink(priorityItem.photo)}" class="w-full h-full object-cover">`;
-        
-        // Rendre le bloc interactif
-        priorityBlock.onclick = () => openProductDetail(priorityItem.rawData);
-        priorityBlock.classList.add('cursor-pointer', 'active:scale-95', 'transition-all');
-    }
+    ownedContainer.innerHTML = generateCarouselHTML(ownedData, ownedCats);
+    wishlistContainer.innerHTML = generateCarouselHTML(wishData, wishCats);
 }
 
 // --- LAYOUT DE LA LISTE ---
