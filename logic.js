@@ -303,6 +303,9 @@ function openProductDetail(data) {
     const logoNom = toDirectLink(data['Logo Nom']);
     const imageLoose = toDirectLink(data['Image Jeux loose']);
     
+    // Récupération dynamique de l'année selon l'onglet
+    const annee = data['Année de Sortie'] || data['Année'];
+    
     // Logique des étoiles pour l'état
     const etat = (data['Etat'] || "").toLowerCase();
     const isOwned = (data['Achat'] === 'oui' || data['Achat'] === true);
@@ -329,7 +332,7 @@ function openProductDetail(data) {
                 <div class="p-6 rounded-3xl glass-card border border-primary/40 flex flex-col items-center text-center">
                     <div class="flex items-center gap-2 mb-2">
                         <p class="text-primary text-[10px] font-black uppercase italic tracking-widest">${data['Constructeur'] || ''}</p>
-                        ${data['Année de Sortie'] ? `<span class="w-1 h-1 rounded-full bg-white/20"></span><p class="text-white/40 text-[10px] font-black uppercase italic tracking-widest">${data['Année de Sortie']}</p>` : ''}
+                        ${annee ? `<span class="w-1 h-1 rounded-full bg-white/20"></span><p class="text-white/40 text-[10px] font-black uppercase italic tracking-widest">${annee}</p>` : ''}
                     </div>
                     ${logoNom ? `<img src="${logoNom}" class="h-16 w-auto max-w-full object-contain mb-3 mx-auto">` : `<h2 class="text-2xl font-black text-white mb-2 uppercase italic leading-tight">${data['Titre'] || data['Nom'] || 'Détails'}</h2>`}
                     <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Console'] || data['Constructeur'] || ''}</p>
