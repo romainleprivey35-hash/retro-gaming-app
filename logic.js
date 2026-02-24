@@ -111,11 +111,11 @@ window.showCategories = async function(brand, type = 'Menu') {
 
                 <div class="glass-card rounded-[2rem] p-6">
                     <div class="flex items-center gap-3 mb-6">
-                        <span class="material-symbols-outlined text-primary">analytics</span>
-                        <p class="text-white font-black italic uppercase text-xs tracking-widest">Complétion Librairie</p>
+                        <span class="material-symbols-outlined text-primary">emoji_events</span>
+                        <p class="text-white font-black italic uppercase text-xs tracking-widest">Classement Rareté</p>
                     </div>
-                    <div class="space-y-4" id="completion-bars">
-                        <div class="text-center text-slate-500 italic text-[10px]">Chargement des objectifs...</div>
+                    <div class="space-y-6" id="top-rankings">
+                        <div class="text-center text-slate-500 italic text-[10px] py-4">Analyse de la collection...</div>
                     </div>
                 </div>
 
@@ -169,7 +169,9 @@ window.showCategories = async function(brand, type = 'Menu') {
 // --- LOGIQUE CALCUL STATS GLOBALES ---
 async function calculateDetailedStats(brand) {
     let tValue = 0, tSpent = 0;
+    let allOwnedItems = { Jeux: [], Consoles: [], Accessoires: [] };
     const sheets = ['Consoles', 'Jeux', 'Accessoires'];
+    
     for (const s of sheets) {
         try {
             const response = await fetch(getUrl(s));
@@ -177,15 +179,33 @@ async function calculateDetailedStats(brand) {
             const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
             const data = JSON.parse(jsonString);
             const rows = data.table.rows;
+            const headers = data.table.cols.map(h => h ? h.label : '');
+            
             const bIdx = 1;
             const cIdx = (s === 'Consoles') ? 11 : 12; 
             const pIdx = (s === 'Consoles') ? 12 : 16; 
+            const aIdx = (s === 'Consoles') ? 10 : 14;
+            const photoIdx = (s === 'Jeux') ? 6 : (s === 'Consoles' ? 6 : 2);
+
             rows.forEach(r => {
                 if (r.c && r.c[bIdx] && r.c[bIdx].v && (brand === 'All' || r.c[bIdx].v.toLowerCase() === brand.toLowerCase())) {
+                    const isOwned = (r.c[aIdx] && (r.c[aIdx].v.toString().toLowerCase() === 'oui' || r.c[aIdx].v === true));
                     const cote = r.c[cIdx] ? parseFloat(r.c[cIdx].v) || 0 : 0;
                     const prix = r.c[pIdx] ? parseFloat(r.c[pIdx].v) || 0 : 0;
                     tValue += cote;
                     tSpent += prix;
+
+                    if (isOwned) {
+                        let itemObj = {
+                            titre: r.c[0] ? r.c[0].v : 'Inconnu',
+                            cote: cote,
+                            etat: r.c[s === 'Consoles' ? 10 : 11] ? r.c[s === 'Consoles' ? 10 : 11].v : '', // Correction index Etat
+                            photo: r.c[photoIdx] ? r.c[photoIdx].v : '',
+                            rawData: {}
+                        };
+                        r.c.forEach((cell, i) => { if(headers[i]) itemObj.rawData[headers[i]] = cell ? cell.v : ''; });
+                        allOwnedItems[s].push(itemObj);
+                    }
                 }
             });
         } catch (e) {}
@@ -194,6 +214,45 @@ async function calculateDetailedStats(brand) {
     document.getElementById('stat-total-value').innerText = `${tValue.toLocaleString()} €`;
     document.getElementById('stat-total-spent').innerText = `${tSpent.toLocaleString()} €`;
     document.getElementById('stat-total-profit').innerText = `${profit > 0 ? '+' : ''}${profit.toLocaleString()} €`;
+
+    renderRankings(allOwnedItems);
+}
+
+// --- CLASSEMENT DES MEILLEURS PRODUITS ---
+function renderRankings(data) {
+    const container = document.getElementById('top-rankings');
+    if(!container) return;
+    
+    const sortFn = (a, b) => b.cote - a.cote || (b.etat.length - a.etat.length);
+
+    const categories = [
+        { name: 'Jeux', limit: 10, items: data.Jeux.sort(sortFn) },
+        { name: 'Consoles', limit: 5, items: data.Consoles.sort(sortFn) },
+        { name: 'Accessoires', limit: 5, items: data.Accessoires.sort(sortFn) }
+    ];
+
+    container.innerHTML = categories.map(cat => `
+        <div class="space-y-3">
+            <div class="flex justify-between items-end border-b border-white/5 pb-2">
+                <p class="text-[10px] font-black text-primary uppercase italic tracking-[0.1em]">Top ${cat.limit} ${cat.name}</p>
+            </div>
+            <div class="space-y-2">
+                ${cat.items.slice(0, cat.limit).map((item, idx) => `
+                    <div onclick='openProductDetail(${JSON.stringify(item.rawData)})' class="flex items-center gap-3 p-2 rounded-2xl bg-white/5 active:scale-95 transition-all">
+                        <div class="size-8 rounded-lg bg-black/40 flex items-center justify-center text-[10px] font-black italic text-white/40">#${idx + 1}</div>
+                        <div class="size-10 rounded-lg overflow-hidden border border-white/10">
+                            <img src="${toDirectLink(item.photo)}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-bold text-white truncate uppercase italic leading-tight">${item.titre}</p>
+                            <p class="text-[9px] text-white/40 font-black uppercase italic">${item.etat || ''}</p>
+                        </div>
+                        <p class="text-[12px] font-black text-primary italic">${item.cote}€</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
 }
 
 // --- LAYOUT DE LA LISTE ---
