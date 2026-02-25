@@ -228,24 +228,22 @@ function renderRankings(ownedData, wishData) {
             const sortedItems = data[cat.key].sort(sortFn).slice(0, cat.limit);
             if (sortedItems.length === 0) return '';
 
-            // Le h-auto ici permet de supprimer l'espace vide si seulement 5 items
+            // Le secret est ici : flex-none + w-[85vw] + snap-center
             return `
-                <div class="flex-none w-[85vw] snap-center h-auto mb-4">
+                <div class="flex-none w-[85vw] snap-center flex flex-col h-auto">
                     <p class="text-[9px] font-black text-primary uppercase italic mb-4 tracking-[0.3em] text-center w-full">${cat.label} TOP ${sortedItems.length}</p>
                     <div class="flex flex-col gap-3">
                         ${sortedItems.map((item, idx) => {
                             const secureData = btoa(unescape(encodeURIComponent(JSON.stringify(item.rawData))));
                             return `
-                            <div onclick="openProductDetail(JSON.parse(decodeURIComponent(escape(atob('${secureData}')))))" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98] transition-all">
+                            <div onclick="openProductDetail(JSON.parse(decodeURIComponent(escape(atob('${secureData}')))))" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98]">
                                 <div class="relative size-14 flex-none rounded-xl overflow-hidden border border-white/10 bg-black/20">
                                     <img src="${toDirectLink(item.photo)}" class="w-full h-full object-contain">
                                     <div class="absolute top-1 left-1 size-4 bg-white/20 backdrop-blur-md flex items-center justify-center text-[7px] font-black text-white rounded-full">#${idx + 1}</div>
                                 </div>
                                 <div class="flex-1 min-w-0 text-left">
                                     <p class="text-[10px] font-bold text-white truncate uppercase italic">${item.titre}</p>
-                                    <div class="flex justify-between items-center mt-1">
-                                        <p class="text-[10px] font-black text-primary italic">${item.cote || 0}€</p>
-                                    </div>
+                                    <p class="text-[10px] font-black text-primary italic">${item.cote || 0}€</p>
                                 </div>
                             </div>`;
                         }).join('')}
@@ -253,6 +251,13 @@ function renderRankings(ownedData, wishData) {
                 </div>`;
         }).join('');
     };
+
+    // On force le scroll snap sur les containers ici même
+    [ownedContainer, wishlistContainer].forEach(c => {
+        c.style.scrollSnapType = "x mandatory";
+        c.style.display = "flex";
+        c.style.overflowX = "auto";
+    });
 
     ownedContainer.innerHTML = generateCategorySections(ownedData) || '<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit</div>';
     wishlistContainer.innerHTML = generateCategorySections(wishData) || '<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit</div>';
@@ -271,8 +276,7 @@ function renderListLayout(brand, type) {
             ${type !== 'Consoles' ? `
             <div id="console-filter" class="flex items-center overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
                 <div class="relative flex-none">
-                    <button id="btn-tout" onclick="toggleSortMenu(event)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg flex items-center gap-2">
-                        TOUT <span class="material-symbols-outlined text-sm">expand_more</span>
+                  <button id="btn-tout" onclick="filterByConsole('TOUT', -1, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
                     </button>
                     <div id="sort-menu" class="hidden absolute top-full left-0 mt-2 w-48 glass-card rounded-2xl border border-white/10 py-2 z-[60] shadow-2xl backdrop-blur-xl">
                         <button onclick="applySort('cote')" class="w-full text-left px-4 py-2 text-[11px] font-bold text-white uppercase italic hover:bg-white/5">Cote Actuelle</button>
