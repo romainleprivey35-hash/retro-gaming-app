@@ -215,7 +215,7 @@ function renderRankings(ownedData, wishData) {
     const wishlistContainer = document.getElementById('wishlist-rankings');
     if(!ownedContainer || !wishlistContainer) return;
     
-    const sortFn = (a, b) => b.cote - a.cote;
+    const sortFn = (a, b) => (b.cote || 0) - (a.cote || 0);
 
     const generateCategorySections = (data) => {
         const cats = [
@@ -228,23 +228,23 @@ function renderRankings(ownedData, wishData) {
             const sortedItems = data[cat.key].sort(sortFn).slice(0, cat.limit);
             if (sortedItems.length === 0) return '';
 
+            // Le h-auto ici permet de supprimer l'espace vide si seulement 5 items
             return `
-                <div class="flex-none w-[85vw] snap-center">
-                    <p class="text-[9px] font-black text-primary uppercase italic mb-4 tracking-[0.3em]">${cat.label} TOP ${sortedItems.length}</p>
+                <div class="flex-none w-[85vw] snap-center h-auto mb-4">
+                    <p class="text-[9px] font-black text-primary uppercase italic mb-4 tracking-[0.3em] text-center w-full">${cat.label} TOP ${sortedItems.length}</p>
                     <div class="flex flex-col gap-3">
                         ${sortedItems.map((item, idx) => {
                             const secureData = btoa(unescape(encodeURIComponent(JSON.stringify(item.rawData))));
                             return `
-                            <div onclick="openProductDetail(JSON.parse(decodeURIComponent(escape(atob('${secureData}')))))" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98] transition-all cursor-pointer">
-                                <div class="relative size-16 flex-none rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                            <div onclick="openProductDetail(JSON.parse(decodeURIComponent(escape(atob('${secureData}')))))" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98] transition-all">
+                                <div class="relative size-14 flex-none rounded-xl overflow-hidden border border-white/10 bg-black/20">
                                     <img src="${toDirectLink(item.photo)}" class="w-full h-full object-contain">
-                                    <div class="absolute top-1 left-1 size-5 bg-white/20 backdrop-blur-md flex items-center justify-center text-[8px] font-black text-white rounded-full border border-white/20">#${idx + 1}</div>
+                                    <div class="absolute top-1 left-1 size-4 bg-white/20 backdrop-blur-md flex items-center justify-center text-[7px] font-black text-white rounded-full">#${idx + 1}</div>
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-[11px] font-bold text-white truncate uppercase italic">${item.titre}</p>
+                                <div class="flex-1 min-w-0 text-left">
+                                    <p class="text-[10px] font-bold text-white truncate uppercase italic">${item.titre}</p>
                                     <div class="flex justify-between items-center mt-1">
-                                        <p class="text-[8px] text-white/40 font-black uppercase italic">${item.etat || 'N/A'}</p>
-                                        <p class="text-[10px] font-black text-primary italic">${item.cote}€</p>
+                                        <p class="text-[10px] font-black text-primary italic">${item.cote || 0}€</p>
                                     </div>
                                 </div>
                             </div>`;
