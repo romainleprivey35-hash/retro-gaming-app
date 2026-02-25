@@ -246,8 +246,10 @@ function renderRankings(ownedData, wishData) {
                 <div class="flex-none w-[85vw] snap-center">
                     <p class="text-[9px] font-black text-primary uppercase italic mb-4 tracking-[0.3em]">${cat.label} TOP ${sortedItems.length}</p>
                     <div class="flex flex-col gap-3">
-                        ${sortedItems.map((item, idx) => `
-                            <div onclick='openProductDetail(${JSON.stringify(item.rawData)})' class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98] transition-all cursor-pointer">
+                        ${sortedItems.map((item, idx) => {
+                            const secureData = btoa(unescape(encodeURIComponent(JSON.stringify(item.rawData))));
+                            return `
+                            <div onclick="openProductDetail(JSON.parse(decodeURIComponent(escape(atob('${secureData}')))))" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98] transition-all cursor-pointer">
                                 <div class="relative size-16 flex-none rounded-xl overflow-hidden border border-white/10 bg-black/20">
                                     <img src="${toDirectLink(item.photo)}" class="w-full h-full object-contain">
                                     <div class="absolute top-1 left-1 size-5 bg-white/20 backdrop-blur-md flex items-center justify-center text-[8px] font-black text-white rounded-full border border-white/20">#${idx + 1}</div>
@@ -259,11 +261,10 @@ function renderRankings(ownedData, wishData) {
                                         <p class="text-[10px] font-black text-primary italic">${item.cote}€</p>
                                     </div>
                                 </div>
-                            </div>
-                        `).join('')}
+                            </div>`;
+                        }).join('')}
                     </div>
-                </div>
-            `;
+                </div>`;
         }).join('');
     };
 
@@ -351,7 +352,6 @@ async function loadItems(brand, type) {
             const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
             const filterBar = document.getElementById('console-filter');
             if (filterBar) {
-                // On garde le bouton tri, puis on ajoute les consoles
                 consoles.forEach(c => {
                     filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap transition-all">${c}</button>`;
                 });
