@@ -247,10 +247,10 @@ function renderRankings(ownedData, wishData) {
                     <p class="text-[9px] font-black text-primary uppercase italic mb-4 tracking-[0.3em]">${cat.label} TOP ${sortedItems.length}</p>
                     <div class="flex flex-col gap-3">
                         ${sortedItems.map((item, idx) => `
-                            <div onclick='openProductDetail(${JSON.stringify(item.rawData)})' class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98] transition-all">
+                            <div onclick='openProductDetail(${JSON.stringify(item.rawData)})' class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98] transition-all cursor-pointer">
                                 <div class="relative size-16 flex-none rounded-xl overflow-hidden border border-white/10 bg-black/20">
-                                    <img src="${toDirectLink(item.photo)}" class="w-full h-full object-cover">
-                                    <div class="absolute top-0 left-0 size-5 bg-primary flex items-center justify-center text-[8px] font-black text-white rounded-br-lg">#${idx + 1}</div>
+                                    <img src="${toDirectLink(item.photo)}" class="w-full h-full object-contain">
+                                    <div class="absolute top-1 left-1 size-5 bg-white/20 backdrop-blur-md flex items-center justify-center text-[8px] font-black text-white rounded-full border border-white/20">#${idx + 1}</div>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-[11px] font-bold text-white truncate uppercase italic">${item.titre}</p>
@@ -282,14 +282,44 @@ function renderListLayout(brand, type) {
         </div>
         <div class="pt-20">
             ${type !== 'Consoles' ? `
-            <div id="console-filter" class="flex overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
-                <button id="btn-tout" onclick="filterByConsole('TOUT', null, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>
+            <div id="console-filter" class="flex items-center overflow-x-auto gap-3 py-4 no-scrollbar px-4 mb-2" style="scrollbar-width: none;">
+                <div class="relative flex-none">
+                    <button id="btn-tout" onclick="toggleSortMenu(event)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg flex items-center gap-2">
+                        TOUT <span class="material-symbols-outlined text-sm">expand_more</span>
+                    </button>
+                    <div id="sort-menu" class="hidden absolute top-full left-0 mt-2 w-48 glass-card rounded-2xl border border-white/10 py-2 z-[60] shadow-2xl backdrop-blur-xl">
+                        <button onclick="applySort('cote')" class="w-full text-left px-4 py-2 text-[11px] font-bold text-white uppercase italic hover:bg-white/5">Cote Actuelle</button>
+                        <button onclick="applySort('gain')" class="w-full text-left px-4 py-2 text-[11px] font-bold text-white uppercase italic hover:bg-white/5">Plus gros Gain (€)</button>
+                        <button onclick="applySort('perte')" class="w-full text-left px-4 py-2 text-[11px] font-bold text-white uppercase italic hover:bg-white/5">Plus grosse Perte (€)</button>
+                        <button onclick="applySort('manquants')" class="w-full text-left px-4 py-2 text-[11px] font-bold text-white uppercase italic hover:bg-white/5">Manquants</button>
+                        <button onclick="applySort('evo+')" class="w-full text-left px-4 py-2 text-[11px] font-bold text-white uppercase italic hover:bg-white/5">Évolution + (12m)</button>
+                        <button onclick="applySort('evo-')" class="w-full text-left px-4 py-2 text-[11px] font-bold text-white uppercase italic hover:bg-white/5">Évolution - (12m)</button>
+                    </div>
+                </div>
             </div>` : ''}
             <div id="items-grid" class="grid grid-cols-2 gap-4 px-4 pb-10 text-white">
                 <div class="col-span-2 text-center py-20 text-slate-500 italic animate-pulse uppercase tracking-widest text-xs">Chargement Collection...</div>
             </div>
         </div>`;
 }
+
+// --- LOGIQUE DE TRI ---
+window.toggleSortMenu = (e) => { e.stopPropagation(); document.getElementById('sort-menu').classList.toggle('hidden'); };
+window.applySort = (criteria) => {
+    document.getElementById('sort-menu').classList.add('hidden');
+    let sorted = [...allFetchedItems];
+    const getVal = (r, label) => { let v = r.rawData[label]; return v ? parseFloat(v.toString().replace(',','.')) || 0 : 0; };
+    
+    if (criteria === 'cote') sorted.sort((a,b) => getVal(b,'Cote Actuelle') - getVal(a,'Cote Actuelle'));
+    else if (criteria === 'gain') sorted.sort((a,b) => getVal(b,'Gain / Perte') - getVal(a,'Gain / Perte'));
+    else if (criteria === 'perte') sorted.sort((a,b) => getVal(a,'Gain / Perte') - getVal(b,'Gain / Perte'));
+    else if (criteria === 'manquants') sorted = sorted.filter(r => { let a = r.rawData['Achat']; return !(a === 'oui' || a === true); });
+    else if (criteria === 'evo+') sorted.sort((a,b) => (getVal(b,'Cote Actuelle')-getVal(b,'Cote -1 mois')) - (getVal(a,'Cote Actuelle')-getVal(a,'Cote -1 mois')));
+    else if (criteria === 'evo-') sorted.sort((a,b) => (getVal(a,'Cote Actuelle')-getVal(a,'Cote -1 mois')) - (getVal(b,'Cote Actuelle')-getVal(b,'Cote -1 mois')));
+    
+    displayGrid(sorted);
+};
+document.addEventListener('click', () => { const menu = document.getElementById('sort-menu'); if(menu) menu.classList.add('hidden'); });
 
 // --- CHARGEMENT DES ITEMS ---
 async function loadItems(brand, type) {
@@ -321,7 +351,7 @@ async function loadItems(brand, type) {
             const consoles = [...new Set(allFetchedItems.map(r => (r.c[m.console] ? r.c[m.console].v : '')).filter(c => c))].sort();
             const filterBar = document.getElementById('console-filter');
             if (filterBar) {
-                filterBar.innerHTML = `<button id="btn-tout" onclick="filterByConsole('TOUT', ${m.console}, this)" class="filter-btn px-6 py-2 bg-primary text-white rounded-full font-bold whitespace-nowrap shadow-lg">TOUT</button>`;
+                // On garde le bouton tri, puis on ajoute les consoles
                 consoles.forEach(c => {
                     filterBar.innerHTML += `<button onclick="filterByConsole('${c}', ${m.console}, this)" class="filter-btn px-6 py-2 glass-card text-slate-400 rounded-full font-bold whitespace-nowrap transition-all">${c}</button>`;
                 });
@@ -356,7 +386,6 @@ function displayGrid(items) {
         const isOwned = (achatStatus && (achatStatus.toString().toLowerCase() === 'oui' || r.c[m.achat].v === true));
         const card = document.createElement('div');
         
-        // APPLICATION DE LA TRANSPARENCE ET DU GRIS SUR TOUTE LA CARTE SI PAS POSSÉDÉ
         card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
         card.onclick = () => openProductDetail(r.rawData);
         card.innerHTML = `
@@ -381,7 +410,6 @@ function openProductDetail(data) {
     const imageLoose = toDirectLink(data['Image Jeux loose']);
     
     const annee = data['Année de Sortie'] || data['Année'];
-    
     const etat = (data['Etat'] || "").toLowerCase();
     const isOwned = (data['Achat'] === 'oui' || data['Achat'] === true);
     let stars = 0;
@@ -402,7 +430,6 @@ function openProductDetail(data) {
             <div class="w-full bg-black flex items-center justify-center p-4">
                 <img src="${keyArt}" class="w-full h-auto object-contain max-h-[45vh] rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)]">
             </div>
-
             <div class="px-6 -mt-4 relative z-10 space-y-4">
                 <div class="p-6 rounded-3xl glass-card border border-primary/40 flex flex-col items-center text-center">
                     <div class="flex items-center gap-2 mb-2">
@@ -412,13 +439,11 @@ function openProductDetail(data) {
                     ${logoNom ? `<img src="${logoNom}" class="h-16 w-auto max-w-full object-contain mb-3 mx-auto">` : `<h2 class="text-2xl font-black text-white mb-2 uppercase italic leading-tight">${data['Titre'] || data['Nom'] || 'Détails'}</h2>`}
                     <p class="text-primary text-xs font-black uppercase italic tracking-widest">${data['Console'] || data['Constructeur'] || ''}</p>
                 </div>
-
                 <div class="w-full py-4 rounded-3xl glass-card border border-white/10 flex flex-col items-center justify-center bg-white/5">
                     <p class="text-[9px] text-white/40 uppercase font-black mb-1 italic">État du produit</p>
                     <div class="flex gap-1">${starsHtml}</div>
                     <p class="text-[10px] text-white/60 font-bold uppercase mt-1 italic">${data['Etat'] || 'Non spécifié'}</p>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     ${renderStat('Format', data['Format'])}
                     ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : '-')}
@@ -427,7 +452,6 @@ function openProductDetail(data) {
                     ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : '-')}
                     ${renderStat('Cote +1 Mois', data['Cote + 1 mois'] ? data['Cote + 1 mois'] + '€' : '-')}
                 </div>
-
                 <div class="w-full p-6 rounded-3xl glass-card border border-white/10 bg-white/5">
                     <div class="flex justify-between items-center mb-2">
                         <p class="text-[9px] text-white/40 uppercase font-black italic">Évolution 12 mois</p>
@@ -439,14 +463,12 @@ function openProductDetail(data) {
                         </svg>
                     </div>
                 </div>
-
                 <div class="space-y-2 text-center">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 italic">Notes & Observations</h3>
                     <div class="p-5 rounded-3xl bg-white/5 border border-white/5 text-xs text-white/70 italic leading-relaxed text-center">
                         ${data['Notes'] || "Aucune note."}
                     </div>
                 </div>
-
                 ${imageLoose ? `<div class="space-y-4 pt-4 text-center">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 italic">Vue Produit / Loose</h3>
                     <img src="${imageLoose}" class="w-full h-auto rounded-3xl shadow-2xl border border-white/10 mx-auto">
@@ -496,10 +518,8 @@ window.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </button>
             </div>`;
-        
         content.insertAdjacentHTML('beforeend', dashboardHtml);
     }
-
     const brands = ['Nintendo', 'Playstation', 'Xbox'];
     brands.forEach(brand => {
         const b = brand.toLowerCase();
