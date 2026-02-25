@@ -1,3 +1,11 @@
+// --- EFFET AIMANT CARROUSEL ---
+const style = document.createElement('style');
+style.textContent = `
+    .snap-x { scroll-snap-type: x mandatory; }
+    .snap-center { scroll-snap-align: center; -webkit-column-break-inside: avoid; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+`;
+document.head.appendChild(style);
 const SHEET_ID = '1Vw439F_75oc7AcxkDriWi_fwX2oBbAejnp-f_Puw-FU';
 const getUrl = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
@@ -71,60 +79,38 @@ window.showCategories = async function(brand, type = 'Menu') {
                 </button>
             </div>
             <div class="pt-20 px-4 space-y-6 pb-20">
-                <div class="glass-card rounded-[2.5rem] p-8 relative overflow-hidden text-center">
+                <div class="glass-card rounded-[2.5rem] p-8 text-center">
                     <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] italic mb-2">Valeur Estimée ${brand === 'All' ? 'Totale' : brand}</p>
                     <h2 id="stat-total-value" class="text-4xl font-black text-white italic">... €</h2>
-                    <div class="mt-8 h-24 w-full relative">
-                        <svg class="w-full h-full overflow-visible" viewBox="0 0 400 100">
-                            <path d="M0,80 Q50,90 100,50 T200,60 T300,20 T400,40" fill="none" stroke="#b14dff" stroke-width="4" stroke-linecap="round"></path>
-                        </svg>
-                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 text-center">
-                    <div class="glass-card p-6 rounded-3xl">
+                    <div class="glass-card p-6 rounded-3xl flex flex-col items-center">
                         <p class="text-[9px] text-slate-400 font-black uppercase italic mb-1">Investi</p>
                         <p id="stat-total-spent" class="text-xl font-black text-white italic">... €</p>
                     </div>
-                    <div class="glass-card p-6 rounded-3xl">
+                    <div class="glass-card p-6 rounded-3xl flex flex-col items-center">
                         <p class="text-[9px] text-slate-400 font-black uppercase italic mb-1">Plus-Value</p>
                         <p id="stat-total-profit" class="text-xl font-black text-emerald-400 italic">... €</p>
                     </div>
                 </div>
 
-                <div class="glass-card rounded-[2rem] p-6">
-                    <div class="flex items-center gap-3 mb-6">
-                        <span class="material-symbols-outlined text-primary">donut_large</span>
-                        <p class="text-white font-black italic uppercase text-xs tracking-widest">Distribution</p>
-                    </div>
-                    <div class="flex items-center justify-around">
-                        <div class="size-24 rounded-full border-8 border-primary/20 flex items-center justify-center bg-white/5">
-                             <span class="text-white font-black italic text-sm">...</span>
-                        </div>
-                        <div class="space-y-2 text-white/70">
-                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-primary shadow-[0_0_8px_#b14dff]"></div> Nintendo</div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div> Sony</div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div> Microsoft</div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="glass-card rounded-[2rem] py-6 overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6 px-6">
+                    <div class="flex flex-col items-center gap-2 mb-6 px-6 text-center">
                         <span class="material-symbols-outlined text-primary">emoji_events</span>
                         <p class="text-white font-black italic uppercase text-xs tracking-widest">Hall of Fame (Possédés)</p>
                     </div>
-                    <div id="owned-rankings" class="flex overflow-x-auto gap-6 px-6 no-scrollbar snap-x snap-mandatory" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <div id="owned-rankings" class="flex overflow-x-auto gap-6 px-6 no-scrollbar snap-x">
                         <div class="text-center text-slate-500 italic text-[10px] py-4 w-full">Analyse...</div>
                     </div>
                 </div>
 
                 <div class="glass-card rounded-[2rem] py-6 overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6 px-6">
+                    <div class="flex flex-col items-center gap-2 mb-6 px-6 text-center">
                         <span class="material-symbols-outlined text-amber-400">priority_high</span>
                         <p class="text-white font-black italic uppercase text-xs tracking-widest">Priorités d'Achat (Manquants)</p>
                     </div>
-                    <div id="wishlist-rankings" class="flex overflow-x-auto gap-6 px-6 no-scrollbar snap-x snap-mandatory" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <div id="wishlist-rankings" class="flex overflow-x-auto gap-6 px-6 no-scrollbar snap-x">
                         <div class="text-center text-slate-500 italic text-[10px] py-4 w-full">Analyse...</div>
                     </div>
                 </div>
@@ -234,8 +220,8 @@ function renderRankings(ownedData, wishData) {
     const generateCategorySections = (data) => {
         const cats = [
             { label: 'JEUX', key: 'Jeux', limit: 10 },
-            { label: 'CONSOLES', key: 'Consoles', limit: 10 },
-            { label: 'ACCESSOIRES', key: 'Accessoires', limit: 10 }
+            { label: 'CONSOLES', key: 'Consoles', limit: 5 },
+            { label: 'ACCESSOIRES', key: 'Accessoires', limit: 5 }
         ];
 
         return cats.map(cat => {
