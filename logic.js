@@ -211,53 +211,86 @@ async function calculateDetailedStats(brand) {
 
 // --- CLASSEMENT DES MEILLEURS PRODUITS (CARROUSELS PAR CATEGORIE) ---
 function renderRankings(ownedData, wishData) {
+
     const ownedContainer = document.getElementById('owned-rankings');
+
     const wishlistContainer = document.getElementById('wishlist-rankings');
+
     if(!ownedContainer || !wishlistContainer) return;
+
     
+
     const sortFn = (a, b) => (b.cote || 0) - (a.cote || 0);
 
+
+
     const generateCategorySections = (data) => {
+
         const cats = [
+
             { label: 'JEUX', key: 'Jeux', limit: 10 },
+
             { label: 'CONSOLES', key: 'Consoles', limit: 5 },
+
             { label: 'ACCESSOIRES', key: 'Accessoires', limit: 5 }
+
         ];
 
+
+
         return cats.map(cat => {
+
             const sortedItems = data[cat.key].sort(sortFn).slice(0, cat.limit);
+
             if (sortedItems.length === 0) return '';
 
-            // Le secret est ici : flex-none + w-[85vw] + snap-center
-            return `
-                <div class="flex-none w-[85vw] snap-center flex flex-col h-auto">
-                    <p class="text-[9px] font-black text-primary uppercase italic mb-4 tracking-[0.3em] text-center w-full">${cat.label} TOP ${sortedItems.length}</p>
-                    <div class="flex flex-col gap-3">
-                        ${sortedItems.map((item, idx) => {
-                            const secureData = btoa(unescape(encodeURIComponent(JSON.stringify(item.rawData))));
-                            return `
-                            <div onclick="openProductDetail(JSON.parse(decodeURIComponent(escape(atob('${secureData}')))))" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98]">
-                                <div class="relative size-14 flex-none rounded-xl overflow-hidden border border-white/10 bg-black/20">
-                                    <img src="${toDirectLink(item.photo)}" class="w-full h-full object-contain">
-                                    <div class="absolute top-1 left-1 size-4 bg-white/20 backdrop-blur-md flex items-center justify-center text-[7px] font-black text-white rounded-full">#${idx + 1}</div>
-                                </div>
-                                <div class="flex-1 min-w-0 text-left">
-                                    <p class="text-[10px] font-bold text-white truncate uppercase italic">${item.titre}</p>
-                                    <p class="text-[10px] font-black text-primary italic">${item.cote || 0}€</p>
-                                </div>
-                            </div>`;
-                        }).join('')}
-                    </div>
-                </div>`;
-        }).join('');
-        // Injection du contenu
-    ownedContainer.innerHTML = generateCategorySections(ownedData) || '<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit</div>';
-    wishlistContainer.innerHTML = generateCategorySections(wishData) || '<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit</div>';
 
-    // FORCE L'AIMANT (Ajoute ces lignes ici)
-    ownedContainer.classList.add('snap-x', 'snap-mandatory');
-    wishlistContainer.classList.add('snap-x', 'snap-mandatory');
-}
+
+            // Le secret est ici : flex-none + w-[85vw] + snap-center
+
+            return `
+
+                <div class="flex-none w-[85vw] snap-center flex flex-col h-auto">
+
+                    <p class="text-[9px] font-black text-primary uppercase italic mb-4 tracking-[0.3em] text-center w-full">${cat.label} TOP ${sortedItems.length}</p>
+
+                    <div class="flex flex-col gap-3">
+
+                        ${sortedItems.map((item, idx) => {
+
+                            const secureData = btoa(unescape(encodeURIComponent(JSON.stringify(item.rawData))));
+
+                            return `
+
+                            <div onclick="openProductDetail(JSON.parse(decodeURIComponent(escape(atob('${secureData}')))))" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 active:scale-[0.98]">
+
+                                <div class="relative size-14 flex-none rounded-xl overflow-hidden border border-white/10 bg-black/20">
+
+                                    <img src="${toDirectLink(item.photo)}" class="w-full h-full object-contain">
+
+                                    <div class="absolute top-1 left-1 size-4 bg-white/20 backdrop-blur-md flex items-center justify-center text-[7px] font-black text-white rounded-full">#${idx + 1}</div>
+
+                                </div>
+
+                                <div class="flex-1 min-w-0 text-left">
+
+                                    <p class="text-[10px] font-bold text-white truncate uppercase italic">${item.titre}</p>
+
+                                    <p class="text-[10px] font-black text-primary italic">${item.cote || 0}€</p>
+
+                                </div>
+
+                            </div>`;
+
+                        }).join('')}
+
+                    </div>
+
+                </div>`;
+
+        }).join('');
+
+    };
     };
 
     // On force le scroll snap sur les containers ici même
@@ -360,22 +393,24 @@ async function loadItems(brand, type) {
 }
 
 window.filterByConsole = function(consoleName, colIdx, btn) {
-    document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.remove('bg-primary', 'text-white', 'shadow-lg');
-        b.classList.add('glass-card', 'text-slate-400');
-    });
-    btn.classList.add('bg-primary', 'text-white', 'shadow-lg');
-    btn.classList.remove('glass-card', 'text-slate-400');
-    if (consoleName === 'TOUT') { 
-        displayGrid(allFetchedItems); 
-    } else { 
-        const filtered = allFetchedItems.filter(r => {
-            // Utilise directement le nom de la colonne pour être sûr
-            return r.rawData && r.rawData['Console'] === consoleName;
-        }); 
-        displayGrid(filtered); 
-    }
 
+    document.querySelectorAll('.filter-btn').forEach(b => {
+
+        b.classList.remove('bg-primary', 'text-white', 'shadow-lg');
+
+        b.classList.add('glass-card', 'text-slate-400');
+
+    });
+
+    btn.classList.add('bg-primary', 'text-white', 'shadow-lg');
+
+    btn.classList.remove('glass-card', 'text-slate-400');
+
+    if (consoleName === 'TOUT') { displayGrid(allFetchedItems); } 
+
+    else { const filtered = allFetchedItems.filter(r => r.c[colIdx] && r.c[colIdx].v === consoleName); displayGrid(filtered); }
+
+};
 // --- GRILLE D'AFFICHAGE ---
 function displayGrid(items) {
     const grid = document.getElementById('items-grid');
