@@ -355,14 +355,16 @@ function displayGrid(items) {
         const achatStatus = (r.c[m.achat] && r.c[m.achat].v) ? r.c[m.achat].v : '';
         const isOwned = (achatStatus && (achatStatus.toString().toLowerCase() === 'oui' || r.c[m.achat].v === true));
         const card = document.createElement('div');
-        card.className = "flex flex-col gap-3 transition-all cursor-pointer";
+        
+        // APPLICATION DE LA TRANSPARENCE ET DU GRIS SUR TOUTE LA CARTE SI PAS POSSÉDÉ
+        card.className = `flex flex-col gap-3 transition-all cursor-pointer ${isOwned ? '' : 'opacity-25 grayscale'}`;
         card.onclick = () => openProductDetail(r.rawData);
         card.innerHTML = `
-            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-xl flex items-center justify-center ${isOwned ? '' : 'opacity-25 grayscale'}">
+            <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-xl flex items-center justify-center">
                 ${imgUrl ? `<img class="w-full h-full object-contain p-1" src="${imgUrl}" loading="lazy">` : ''}
                 ${isOwned ? '<div class="absolute top-2 right-2 flex items-center justify-center size-7 rounded-full bg-primary/80 backdrop-blur-sm text-white shadow-lg z-10 border border-white/20"><span class="material-symbols-outlined !text-[18px] font-bold">workspace_premium</span></div>' : ''}
             </div>
-            <div class="px-1 text-center ${isOwned ? '' : 'opacity-25 grayscale'}">
+            <div class="px-1 text-center">
                 <p class="font-bold text-[11px] leading-tight text-white line-clamp-2 uppercase italic tracking-tighter">${title}</p>
                 <p class="text-primary text-[10px] font-black mt-1 uppercase italic tracking-widest">${formatInfo}</p>
             </div>`;
