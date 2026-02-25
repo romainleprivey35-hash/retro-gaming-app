@@ -250,6 +250,14 @@ function renderRankings(ownedData, wishData) {
                     </div>
                 </div>`;
         }).join('');
+        // Injection du contenu
+    ownedContainer.innerHTML = generateCategorySections(ownedData) || '<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit</div>';
+    wishlistContainer.innerHTML = generateCategorySections(wishData) || '<div class="text-slate-500 italic text-[10px] py-4 w-full text-center">Aucun produit</div>';
+
+    // FORCE L'AIMANT (Ajoute ces lignes ici)
+    ownedContainer.classList.add('snap-x', 'snap-mandatory');
+    wishlistContainer.classList.add('snap-x', 'snap-mandatory');
+}
     };
 
     // On force le scroll snap sur les containers ici même
@@ -358,9 +366,15 @@ window.filterByConsole = function(consoleName, colIdx, btn) {
     });
     btn.classList.add('bg-primary', 'text-white', 'shadow-lg');
     btn.classList.remove('glass-card', 'text-slate-400');
-    if (consoleName === 'TOUT') { displayGrid(allFetchedItems); } 
-    else { const filtered = allFetchedItems.filter(r => r.c[colIdx] && r.c[colIdx].v === consoleName); displayGrid(filtered); }
-};
+    if (consoleName === 'TOUT') { 
+        displayGrid(allFetchedItems); 
+    } else { 
+        const filtered = allFetchedItems.filter(r => {
+            // Utilise directement le nom de la colonne pour être sûr
+            return r.rawData && r.rawData['Console'] === consoleName;
+        }); 
+        displayGrid(filtered); 
+    }
 
 // --- GRILLE D'AFFICHAGE ---
 function displayGrid(items) {
