@@ -81,16 +81,16 @@ window.showCategories = async function(brand, type = 'Menu') {
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div class="glass-card p-6 rounded-3xl">
-                        <p class="text-[9px] text-slate-400 font-black uppercase italic mb-1">Investi</p>
-                        <p id="stat-total-spent" class="text-xl font-black text-white italic">... €</p>
-                    </div>
-                    <div class="glass-card p-6 rounded-3xl">
-                        <p class="text-[9px] text-slate-400 font-black uppercase italic mb-1">Plus-Value</p>
-                        <p id="stat-total-profit" class="text-xl font-black text-emerald-400 italic">... €</p>
-                    </div>
-                </div>
+               <div class="grid grid-cols-2 gap-4">
+    <div class="glass-card p-6 rounded-3xl flex flex-col items-center text-center">
+        <p class="text-[9px] text-slate-400 font-black uppercase italic mb-1">Investi</p>
+        <p id="stat-total-spent" class="text-xl font-black text-white italic">... €</p>
+    </div>
+    <div class="glass-card p-6 rounded-3xl flex flex-col items-center text-center">
+        <p class="text-[9px] text-slate-400 font-black uppercase italic mb-1">Plus-Value</p>
+        <p id="stat-total-profit" class="text-xl font-black text-emerald-400 italic">... €</p>
+    </div>
+</div>
 
                 <div class="glass-card rounded-[2rem] p-6">
                     <div class="flex items-center gap-3 mb-6">
@@ -424,7 +424,7 @@ function openProductDetail(data) {
     ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : '-')}
     ${renderStat('Cote Jour Achat', data['Cote jour achat'] ? data['Cote jour achat'] + '€' : '-')}
     ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : '-', true)}
-    <div class="col-span-2">${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : '-')}</div>
+    ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : '-', false, true)}
     ${renderStat('Cote +1 Mois', data['Cote + 1 mois'] ? data['Cote + 1 mois'] + '€' : '-')}
 </div>
 
@@ -459,12 +459,10 @@ function openProductDetail(data) {
     document.body.style.overflow = 'hidden';
 }
 
-function renderStat(label, value, isProfit = false) {
+function renderStat(label, value, isProfit = false, fullWidth = false) {
     if (!value || value === '€' || value === '0€' || value === '-€') return '';
     const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
-    
-    // Ajout de flex-col items-center et text-center
-    return `<div class="p-4 rounded-2xl bg-white/5 border border-white/10 shadow-lg flex flex-col items-center text-center">
+    return `<div class="${fullWidth ? 'col-span-2' : ''} p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center text-center shadow-lg">
             <p class="text-[9px] text-white/40 uppercase font-black mb-1 italic">${label}</p>
             <p class="text-xl font-black italic ${color}">${value}</p>
         </div>`;
