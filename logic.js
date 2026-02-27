@@ -97,16 +97,16 @@ window.showCategories = async function(brand, type = 'Menu') {
                         <span class="material-symbols-outlined text-primary">donut_large</span>
                         <p class="text-white font-black italic uppercase text-xs tracking-widest">Distribution</p>
                     </div>
-                    <div class="flex items-center justify-around">
-                        <div class="size-24 rounded-full border-8 border-primary/20 flex items-center justify-center bg-white/5">
-                             <span class="text-white font-black italic text-sm">...</span>
-                        </div>
-                        <div class="space-y-2 text-white/70">
-                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-primary shadow-[0_0_8px_#b14dff]"></div> Nintendo</div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div> Sony</div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div> Microsoft</div>
-                        </div>
-                    </div>
+                   <div class="flex flex-col items-center justify-center gap-6">
+    <div class="size-24 rounded-full border-8 border-primary/20 flex items-center justify-center bg-white/5">
+         <span class="text-white font-black italic text-sm">...</span>
+    </div>
+    <div class="flex flex-wrap justify-center gap-4 text-white/70">
+        <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-primary shadow-[0_0_8px_#b14dff]"></div> Nintendo</div>
+        <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div> Sony</div>
+        <div class="flex items-center gap-2 text-[10px] font-bold italic uppercase"><div class="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div> Microsoft</div>
+    </div>
+</div>
                 </div>
 
                 <div class="glass-card rounded-[2rem] py-6 overflow-hidden">
@@ -420,13 +420,13 @@ function openProductDetail(data) {
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    ${renderStat('Format', data['Format'])}
-                    ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : '-')}
-                    ${renderStat('Cote Jour Achat', data['Cote jour achat'] ? data['Cote jour achat'] + '€' : '-')}
-                    ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : '-', true)}
-                    ${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : '-')}
-                    ${renderStat('Cote +1 Mois', data['Cote + 1 mois'] ? data['Cote + 1 mois'] + '€' : '-')}
-                </div>
+    ${renderStat('Format', data['Format'])}
+    ${renderStat('Prix d\'Achat', data['Prix d\'Achat (€)'] ? data['Prix d\'Achat (€)'] + '€' : '-')}
+    ${renderStat('Cote Jour Achat', data['Cote jour achat'] ? data['Cote jour achat'] + '€' : '-')}
+    ${renderStat('Gain / Perte', data['Gain / Perte'] ? data['Gain / Perte'] + '€' : '-', true)}
+    <div class="col-span-2">${renderStat('Cote Actuelle', data['Cote Actuelle'] ? data['Cote Actuelle'] + '€' : '-')}</div>
+    ${renderStat('Cote +1 Mois', data['Cote + 1 mois'] ? data['Cote + 1 mois'] + '€' : '-')}
+</div>
 
                 <div class="w-full p-6 rounded-3xl glass-card border border-white/10 bg-white/5">
                     <div class="flex justify-between items-center mb-2">
@@ -460,12 +460,14 @@ function openProductDetail(data) {
 }
 
 function renderStat(label, value, isProfit = false) {
-    if (!value || value === '€' || value === '0€') return '';
-    const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
-    return `<div class="p-4 rounded-2xl bg-white/5 border border-white/10 shadow-lg">
-            <p class="text-[9px] text-white/40 uppercase font-black mb-1 italic">${label}</p>
-            <p class="text-xl font-black italic ${color}">${value}</p>
-        </div>`;
+    if (!value || value === '€' || value === '0€' || value === '-€') return '';
+    const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
+    
+    // Ajout de flex-col items-center et text-center
+    return `<div class="p-4 rounded-2xl bg-white/5 border border-white/10 shadow-lg flex flex-col items-center text-center">
+            <p class="text-[9px] text-white/40 uppercase font-black mb-1 italic">${label}</p>
+            <p class="text-xl font-black italic ${color}">${value}</p>
+        </div>`;
 }
 
 window.closeGameDetail = function() {
