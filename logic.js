@@ -462,19 +462,53 @@ function openProductDetail(data) {
 function renderStat(label, value, isProfit = false, fullWidth = false) {
     if (!value || value === '€' || value === '0€' || value === '-€') return '';
     
-    // Couleur du texte : Noir par défaut sur fond sable, Rouge ou Vert pour les profits
-    let colorClass = "text-black";
+    // Calcul de la couleur pour le profit
+    let colorText = "#000000"; // Noir par défaut
     if (isProfit) {
-        colorClass = value.toString().includes('-') ? "text-red-700" : "text-emerald-700";
+        colorText = value.toString().includes('-') ? "#b91c1c" : "#15803d"; // Rouge ou Vert
     }
 
+    // Design Stitch injecté directement pour forcer l'affichage
+    const cardStyle = `
+        background: rgba(226, 222, 210, 0.85) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 24px !important;
+        padding: 20px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2) !important;
+        min-height: 100px !important;
+        margin-bottom: 12px !important;
+    `;
+
+    const labelStyle = `
+        color: rgba(0, 0, 0, 0.5) !important;
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        margin-bottom: 4px !important;
+        font-style: italic !important;
+    `;
+
+    const valueStyle = `
+        color: ${colorText} !important;
+        font-size: 18px !important;
+        font-weight: 900 !important;
+        font-style: italic !important;
+        margin: 0 !important;
+    `;
+
     return `
-        <div class="${fullWidth ? 'col-span-2' : ''} glass-card">
-            <p>${label}</p>
-            <p class="${colorClass}">${value}</p>
+        <div class="${fullWidth ? 'col-span-2' : ''}" style="${cardStyle}">
+            <p style="${labelStyle}">${label}</p>
+            <p style="${valueStyle}">${value}</p>
         </div>`;
 }
-
 window.closeGameDetail = function() {
     document.getElementById('game-detail-modal').classList.add('hidden');
     document.documentElement.style.overflow = '';
