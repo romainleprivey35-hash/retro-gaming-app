@@ -120,21 +120,57 @@ body {
 
 /* --- GRILLE DE JEUX --- */
 
+/* --- GRILLE DE JEUX & TUILES FIGMA --- */
+
 .game-grid {
-    display: flex;
-    flex-wrap: wrap;       /* Permet d'aller à la ligne */
-    justify-content: center; /* C'est cette ligne qui centre tout, y compris le dernier objet */
-    gap: 15px;             /* L'espace entre tes jeux */
-    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Force 2 colonnes */
+    gap: 12px;
+    padding: 15px;
     width: 100%;
     box-sizing: border-box;
 }
 
-.game-card {
-    /* Assure-toi que tes cartes ont une taille fixe ou min-width pour garder l'aspect grille */
-    width: calc(50% - 20px); /* Pour avoir 2 colonnes comme sur tes photos */
-    max-width: 180px;        /* Ajuste selon la taille que tu aimes */
-    flex-grow: 0;            /* Empêche le dernier de s'étirer sur toute la largeur */
+/* Style des Tuiles (Directement inspiré de votre code Figma) */
+.game-card, .glass-card, .p-4 {
+    position: relative;
+    /* Dégradé Figma : 155deg gris vers noir */
+    background: linear-gradient(155.943deg, rgb(132, 132, 132) 0%, rgb(10, 10, 10) 100%) !important;
+    border-radius: 24px !important;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    /* Bordure semi-transparente Figma */
+    border: 1px solid rgba(226, 226, 217, 0.5) !important;
+    box-shadow: 0px 4px 4px 0px rgba(0,0,0,0.25);
+    overflow: hidden;
+}
+
+/* Gestion des grandes tuiles (ex: Cote Actuelle) */
+.col-span-2 {
+    grid-column: span 2;
+    width: 100%;
+}
+
+/* Typographie Figma pour l'intérieur des tuiles */
+.game-card p, .glass-card p {
+    margin: 2px 0;
+}
+
+.label-small { /* Pour "The Original" */
+    color: rgba(226, 226, 217, 0.4);
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.value-large { /* Pour "Xbox Classic" */
+    color: #e2e2d9;
+    font-size: 18px;
+    font-weight: 700;
 }
 
 
@@ -151,7 +187,7 @@ body {
 
     filter: drop-shadow(0 0 8px rgba(255,255,255,0.5)); 
 
-}
+}    
 
 
 
