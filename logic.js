@@ -462,15 +462,16 @@ function openProductDetail(data) {
 function renderStat(label, value, isProfit = false, fullWidth = false) {
     if (!value || value === '€' || value === '0€' || value === '-€') return '';
     
-    // Calcul de la couleur pour le profit
-    let colorText = "#000000"; // Noir par défaut
+    // Calcul de la couleur pour le profit (Vert/Rouge sombre pour lisibilité sur fond clair)
+    let colorText = "#000000"; // Noir par défaut pour les valeurs normales
     if (isProfit) {
-        colorText = value.toString().includes('-') ? "#b91c1c" : "#15803d"; // Rouge ou Vert
+        colorText = value.toString().includes('-') ? "#b91c1c" : "#15803d"; // Rouge sombre ou Vert sombre
     }
 
-    // Design Stitch injecté directement pour forcer l'affichage
+    // --- DESIGN STITCH PREMIUM (Sable/Flou) ---
+    // Ces styles sont injectés DIRECTEMENT pour forcer l'affichage
     const cardStyle = `
-        background: rgba(226, 222, 210, 0.85) !important;
+        background: rgba(226, 222, 210, 0.85) !important; /* Couleur sable premium-card de Stitch */
         backdrop-filter: blur(8px) !important;
         -webkit-backdrop-filter: blur(8px) !important;
         border: 1px solid rgba(255, 255, 255, 0.3) !important;
@@ -484,10 +485,12 @@ function renderStat(label, value, isProfit = false, fullWidth = false) {
         box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2) !important;
         min-height: 100px !important;
         margin-bottom: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     `;
 
     const labelStyle = `
-        color: rgba(0, 0, 0, 0.5) !important;
+        color: rgba(0, 0, 0, 0.5) !important; /* Label sombre transparent */
         font-size: 10px !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
@@ -496,7 +499,7 @@ function renderStat(label, value, isProfit = false, fullWidth = false) {
     `;
 
     const valueStyle = `
-        color: ${colorText} !important;
+        color: ${colorText} !important; /* Noir, Vert sombre ou Rouge sombre */
         font-size: 18px !important;
         font-weight: 900 !important;
         font-style: italic !important;
@@ -504,9 +507,11 @@ function renderStat(label, value, isProfit = false, fullWidth = false) {
     `;
 
     return `
-        <div class="${fullWidth ? 'col-span-2' : ''}" style="${cardStyle}">
-            <p style="${labelStyle}">${label}</p>
-            <p style="${valueStyle}">${value}</p>
+        <div class="${fullWidth ? 'col-span-2' : ''}" style="${fullWidth ? 'width: 100%; grid-column: span 2;' : ''}">
+            <div style="${cardStyle}">
+                <p style="${labelStyle}">${label}</p>
+                <p style="${valueStyle}">${value}</p>
+            </div>
         </div>`;
 }
 window.closeGameDetail = function() {
