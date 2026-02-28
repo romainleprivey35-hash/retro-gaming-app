@@ -132,45 +132,52 @@ body {
 }
 
 /* Style des Tuiles (Directement inspiré de votre code Figma) */
-.game-card, .glass-card, .p-4 {
-    position: relative;
-    /* Dégradé Figma : 155deg gris vers noir */
+/* --- TUILES STYLE FIGMA (FORCE) --- */
+
+.game-card, .glass-card, [class*="bg-white/5"] {
+    position: relative !important;
+    /* Dégradé exact de votre code Figma */
     background: linear-gradient(155.943deg, rgb(132, 132, 132) 0%, rgb(10, 10, 10) 100%) !important;
     border-radius: 24px !important;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    justify-content: center;
-    /* Bordure semi-transparente Figma */
+    padding: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    justify-content: center !important;
+    /* Bordure semi-transparente de votre code Figma */
     border: 1px solid rgba(226, 226, 217, 0.5) !important;
-    box-shadow: 0px 4px 4px 0px rgba(0,0,0,0.25);
-    overflow: hidden;
+    box-shadow: 0px 4px 4px 0px rgba(0,0,0,0.25) !important;
+    overflow: hidden !important;
+    min-height: 100px !important;
 }
 
-/* Gestion des grandes tuiles (ex: Cote Actuelle) */
-.col-span-2 {
-    grid-column: span 2;
-    width: 100%;
+/* Forcer la grille de 2 colonnes */
+.grid-cols-2, [class*="grid-cols-2"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    padding: 10px !important;
 }
 
-/* Typographie Figma pour l'intérieur des tuiles */
-.game-card p, .glass-card p {
-    margin: 2px 0;
+/* Forcer la grande tuile sur toute la largeur */
+.col-span-2, [class*="col-span-2"] {
+    grid-column: span 2 / span 2 !important;
 }
 
-.label-small { /* Pour "The Original" */
-    color: rgba(226, 226, 217, 0.4);
-    font-size: 10px;
-    font-weight: 500;
-    text-transform: uppercase;
+/* Couleurs de texte Figma */
+.game-card p:first-child, .glass-card p:first-child {
+    color: rgba(226, 226, 217, 0.4) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
 }
 
-.value-large { /* Pour "Xbox Classic" */
-    color: #e2e2d9;
-    font-size: 18px;
-    font-weight: 700;
+.game-card p:last-child, .glass-card p:last-child {
+    color: #e2e2d9 !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+}
 }
 
 
