@@ -461,10 +461,17 @@ function openProductDetail(data) {
 
 function renderStat(label, value, isProfit = false, fullWidth = false) {
     if (!value || value === '€' || value === '0€' || value === '-€') return '';
-    const color = isProfit ? (value.toString().includes('-') ? 'text-red-400' : 'text-emerald-400') : 'text-white';
-    return `<div class="${fullWidth ? 'col-span-2' : ''} p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center text-center shadow-lg">
-            <p class="text-[9px] text-white/40 uppercase font-black mb-1 italic">${label}</p>
-            <p class="text-xl font-black italic ${color}">${value}</p>
+    
+    // Couleur du texte : Noir par défaut sur fond sable, Rouge ou Vert pour les profits
+    let colorClass = "text-black";
+    if (isProfit) {
+        colorClass = value.toString().includes('-') ? "text-red-700" : "text-emerald-700";
+    }
+
+    return `
+        <div class="${fullWidth ? 'col-span-2' : ''} glass-card">
+            <p>${label}</p>
+            <p class="${colorClass}">${value}</p>
         </div>`;
 }
 
