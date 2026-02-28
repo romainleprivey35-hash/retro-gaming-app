@@ -1,143 +1,103 @@
 /* --- BASE DE L'APPLICATION --- */
 
 :root { 
-
     --brand-color: #ffffff; 
-
 }
-
-
 
 body { 
-
     background: #000; 
-
     color: #fff; 
-
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-
     margin: 0; 
-
     padding: 0; 
-
     overflow-x: hidden; 
-
     -webkit-tap-highlight-color: transparent;
-
 }
 
+/* --- STYLES STITCH (Nouveau) --- */
 
+.glass-pill {
+    background: rgba(226, 226, 217, 0.15) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(226, 226, 217, 0.25) !important;
+}
 
-/* --- ACCUEIL : 3 PILULES PLEIN ÉCRAN (33% chacun) --- */
+.active-pill {
+    background: rgba(226, 226, 217, 0.95) !important;
+    color: #000000 !important;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* --- ACCUEIL : 3 PILULES PLEIN ÉCRAN --- */
 
 .menu-full { 
-
     height: 100vh; 
-
     display: flex; 
-
     flex-direction: column; 
-
     background: #000; 
-
 }
-
-
 
 .brand-section { 
-
     flex: 1; 
-
     display: flex; 
-
     align-items: center; 
-
     justify-content: center; 
-
     cursor: pointer; 
-
     border-bottom: 1px solid #111;
-
     transition: background 0.3s;
-
 }
-
-
 
 .brand-section:active {
-
     background: #111;
-
 }
-
-
-
-/* Logos des marques avec Halo Blanc */
 
 .brand-section img { 
-
     height: 40%; 
-
     max-width: 70%; 
-
     object-fit: contain; 
-
     filter: drop-shadow(0 0 15px rgba(255,255,255,0.6)); 
-
 }
 
-
-
-/* --- SECTIONS CONSOLES (LOGO NOM CONSOLE) --- */
+/* --- SECTIONS CONSOLES --- */
 
 .console-logo-header {
-
     width: 100%; 
-
     display: flex; 
-
     justify-content: center;
-
-    padding: 60px 0 20px 0; /* Espace pour le logo console */
-
+    padding: 60px 0 20px 0;
 }
-
-
 
 .console-logo-header img { 
-
     height: 55px; 
-
     max-width: 80%; 
-
     object-fit: contain;
-
     filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));
-
 }
 
-
-
-/* --- GRILLE DE JEUX --- */
-
-/* --- GRILLE DE JEUX & TUILES FIGMA --- */
+/* --- GRILLE ET TUILES PREMIUM --- */
 
 .game-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Force 2 colonnes */
-    gap: 12px;
-    padding: 15px;
-    width: 100%;
-    box-sizing: border-box;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    padding: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
-/* Style des Tuiles (Directement inspiré de votre code Figma) */
-/* --- TUILES STYLE FIGMA (FORCE) --- */
-
-.game-card, .glass-card, [class*="bg-white/5"] {
+.game-card, .glass-card, .premium-card, [class*="bg-white/5"] {
     position: relative !important;
-    /* Dégradé exact de votre code Figma */
-    background: linear-gradient(155.943deg, rgb(132, 132, 132) 0%, rgb(10, 10, 10) 100%) !important;
+    background: rgba(226, 222, 210, 0.85) !important; /* Couleur sable Stitch */
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 24px !important;
     padding: 20px !important;
     display: flex !important;
@@ -145,59 +105,40 @@ body {
     align-items: center !important;
     text-align: center !important;
     justify-content: center !important;
-    /* Bordure semi-transparente de votre code Figma */
-    border: 1px solid rgba(226, 226, 217, 0.5) !important;
-    box-shadow: 0px 4px 4px 0px rgba(0,0,0,0.25) !important;
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2) !important;
     overflow: hidden !important;
     min-height: 100px !important;
 }
 
-/* Forcer la grille de 2 colonnes */
-.grid-cols-2, [class*="grid-cols-2"] {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-    padding: 10px !important;
-}
-
-/* Forcer la grande tuile sur toute la largeur */
 .col-span-2, [class*="col-span-2"] {
     grid-column: span 2 / span 2 !important;
 }
 
-/* Couleurs de texte Figma */
+/* --- TEXTE DANS LES TUILES --- */
+
 .game-card p:first-child, .glass-card p:first-child {
-    color: rgba(226, 226, 217, 0.4) !important;
+    color: rgba(0, 0, 0, 0.5) !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
+    margin: 0 0 4px 0 !important;
 }
 
 .game-card p:last-child, .glass-card p:last-child {
-    color: #e2e2d9 !important;
+    color: #000000 !important;
     font-size: 18px !important;
     font-weight: 800 !important;
+    margin: 0 !important;
 }
 
-
-
-/* Halo blanc sur les jaquettes flottantes */
+/* --- EFFETS IMAGES ET ETAT --- */
 
 .game-card img { 
-
     width: 100%; 
-
     height: 100%; 
-
     object-fit: contain; 
-
     filter: drop-shadow(0 0 8px rgba(255,255,255,0.5)); 
-
-}    
-
-
-
-/* Effet Jeux Non Possédés : Flou + Grisaille (Haut de gamme) */
+}   
 
 .not-owned {
     filter: blur(1px) saturate(30%) brightness(0.6);
